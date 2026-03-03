@@ -1,6 +1,6 @@
 {
-  "name": "utla",
-  "displayName": "Utla",
+  "name": "utio",
+  "displayName": "Utio",
   "type": "module",
   "version": "0.0.1",
   "private": false,
@@ -8,14 +8,14 @@
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
-  "homepage": "https://utla.letstri.dev",
+  "homepage": "https://utio.letstri.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/letstri/utla.git",
-    "directory": "utla"
+    "url": "git+https://github.com/letstri/utio.git",
+    "directory": "utio"
   },
   "bugs": {
-    "url": "https://github.com/letstri/utla/issues"
+    "url": "https://github.com/letstri/utio/issues"
   },
   "keywords": [
     "typescript",

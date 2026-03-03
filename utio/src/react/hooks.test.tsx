@@ -14,7 +14,7 @@ afterEach(() => {
   window.sessionStorage.clear()
 })
 
-const TEST_KEY = 'utla-hooks-test-key'
+const TEST_KEY = 'utio-hooks-test-key'
 
 function TestComponent({ storage }: { storage: SessionStorageValue<number> }) {
   const value = useSubscription(storage)

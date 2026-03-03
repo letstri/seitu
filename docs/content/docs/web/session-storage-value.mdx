@@ -13,10 +13,10 @@ Two modes:
 - **Storage mode** (`storage`, `key`): binds to one key of a `createSessionStorage` instance.
   Type and default come from that storage.
 
-**Kind**: global function  
-**Example**  
+**Kind**: global function
+**Example**
 ```ts twoslash
-import { sessionStorageValue } from 'utla/web'
+import { sessionStorageValue } from 'utio/web'
 import * as z from 'zod'
 
 const value = sessionStorageValue({
@@ -30,9 +30,9 @@ value.set(v => v + 1)
 value.remove()
 value.subscribe(v => console.log(v))
 ```
-**Example**  
+**Example**
 ```ts twoslash
-import { createSessionStorage, sessionStorageValue } from 'utla/web'
+import { createSessionStorage, sessionStorageValue } from 'utio/web'
 import * as z from 'zod'
 
 const storage = createSessionStorage({

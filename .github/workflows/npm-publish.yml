@@ -22,9 +22,9 @@ jobs:
         run: pnpm run lint
       - name: Check version and publish if needed
         run: |
-          cd utla
+          cd utio
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          NPM_VERSION=$(npm view utla version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view utio version 2>/dev/null || echo "0.0.0")
           if [ "$PACKAGE_VERSION" != "$NPM_VERSION" ]; then
             npm config set sign-git-tag true
             if [[ "$PACKAGE_VERSION" == *"beta"* ]]; then

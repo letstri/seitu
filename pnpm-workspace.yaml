@@ -3,7 +3,7 @@ cleanupUnusedCatalogs: true
 shellEmulator: true
 trustPolicy: no-downgrade
 packages:
-  - utla
+  - utio
   - docs
 catalog:
   '@antfu/eslint-config': ^7.6.1
