@@ -16,11 +16,7 @@ export default defineConfig({
     tsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
-    tanstackStart({
-      prerender: {
-        enabled: true,
-      },
-    }),
+    tanstackStart(),
     react(),
     nitro(),
   ],
