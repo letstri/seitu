@@ -1,6 +1,5 @@
 {
   "type": "module",
-  "private": true,
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "prepare": "husky",
