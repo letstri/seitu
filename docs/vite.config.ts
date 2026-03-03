@@ -23,7 +23,7 @@ export default defineConfig({
     }),
     react(),
     nitro({
-      preset: 'bun',
+      preset: 'vercel',
     }),
   ],
 })
