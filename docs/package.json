@@ -4,6 +4,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
+    "prebuild": "cd ../utla && pnpm run build",
     "dev": "vite dev",
     "build": "vite build",
     "start": "node .output/server/index.mjs",
