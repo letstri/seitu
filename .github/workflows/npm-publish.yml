@@ -21,9 +21,9 @@ jobs:
         run: pnpm run lint
       - name: Check version and publish if needed
         run: |
-          cd utix
+          cd elitu
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          NPM_VERSION=$(npm view utix version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view elitu version 2>/dev/null || echo "0.0.0")
           if [ "$PACKAGE_VERSION" != "$NPM_VERSION" ]; then
             npm config set sign-git-tag true
             if [[ "$PACKAGE_VERSION" == *"beta"* ]]; then

@@ -5,7 +5,7 @@ import jsdoc2md from 'jsdoc-to-markdown'
 import ts from 'typescript'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const srcDir = path.join(rootDir, 'utix', 'src')
+const srcDir = path.join(rootDir, 'elitu', 'src')
 const outDir = path.join(rootDir, 'docs', 'content', 'docs')
 
 const TS_COMPILER_OPTIONS: ts.CompilerOptions = {

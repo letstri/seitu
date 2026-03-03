@@ -1,6 +1,6 @@
 {
-  "name": "utix",
-  "displayName": "Utix",
+  "name": "elitu",
+  "displayName": "Elitu",
   "type": "module",
   "version": "0.0.1",
   "private": false,
@@ -8,14 +8,14 @@
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
-  "homepage": "https://utix.letstri.dev",
+  "homepage": "https://elitu.letstri.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/letstri/utix.git",
-    "directory": "utix"
+    "url": "git+https://github.com/letstri/elitu.git",
+    "directory": "elitu"
   },
   "bugs": {
-    "url": "https://github.com/letstri/utix/issues"
+    "url": "https://github.com/letstri/elitu/issues"
   },
   "keywords": [
     "typescript",

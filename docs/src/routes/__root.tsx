@@ -13,7 +13,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Utix - Type-Safe Utilities',
+        title: 'Elitu - Type-Safe Utilities',
       },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],

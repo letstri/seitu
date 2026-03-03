@@ -11,7 +11,7 @@ function Home() {
   return (
     <HomeLayout {...baseOptions()}>
       <div className="flex flex-col flex-1 justify-center px-4 py-8 text-center">
-        <h1 className="font-medium text-xl mb-4">Utix - Type-Safe Utilities.</h1>
+        <h1 className="font-medium text-xl mb-4">Elitu - Type-Safe Utilities.</h1>
         <Link
           to="/docs/$"
           params={{
