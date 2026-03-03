@@ -4,7 +4,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "prebuild": "cd ../utio && pnpm run build",
+    "prebuild": "cd ../utix && pnpm run build",
     "dev": "vite dev",
     "build": "vite build",
     "start": "node .output/server/index.mjs",
@@ -25,7 +25,7 @@
     "react-dom": "catalog:",
     "srvx": "catalog:",
     "tailwind-merge": "catalog:",
-    "utio": "workspace:*",
+    "utix": "workspace:*",
     "vite": "catalog:",
     "zod": "catalog:"
   },

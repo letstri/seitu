@@ -11,8 +11,8 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { sessionStorageValue } from 'utio/web'
- * import { useSubscription } from 'utio/react'
+ * import { sessionStorageValue } from 'utix/web'
+ * import { useSubscription } from 'utix/react'
  * import * as z from 'zod'
  *
  * export default function Page() {
@@ -30,8 +30,8 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { sessionStorageValue } from 'utio/web'
- * import { useSubscription } from 'utio/react'
+ * import { sessionStorageValue } from 'utix/web'
+ * import { useSubscription } from 'utix/react'
  * import * as z from 'zod'
  *
  * const sessionStorage = sessionStorageValue({
@@ -51,8 +51,8 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorage, sessionStorageValue } from 'utio/web'
- * import { useSubscription } from 'utio/react'
+ * import { createSessionStorage, sessionStorageValue } from 'utix/web'
+ * import { useSubscription } from 'utix/react'
  * import * as z from 'zod'
  *
  * const sessionStorage = createSessionStorage({

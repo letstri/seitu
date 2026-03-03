@@ -1,6 +1,6 @@
 {
-  "name": "utio",
-  "displayName": "Utio",
+  "name": "utix",
+  "displayName": "Utix",
   "type": "module",
   "version": "0.0.1",
   "private": false,
@@ -8,14 +8,14 @@
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
-  "homepage": "https://utio.letstri.dev",
+  "homepage": "https://utix.letstri.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/letstri/utio.git",
-    "directory": "utio"
+    "url": "git+https://github.com/letstri/utix.git",
+    "directory": "utix"
   },
   "bugs": {
-    "url": "https://github.com/letstri/utio/issues"
+    "url": "https://github.com/letstri/utix/issues"
   },
   "keywords": [
     "typescript",

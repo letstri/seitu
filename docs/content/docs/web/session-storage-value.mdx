@@ -16,7 +16,7 @@ Two modes:
 **Kind**: global function
 **Example**
 ```ts twoslash
-import { sessionStorageValue } from 'utio/web'
+import { sessionStorageValue } from 'utix/web'
 import * as z from 'zod'
 
 const value = sessionStorageValue({
@@ -32,7 +32,7 @@ value.subscribe(v => console.log(v))
 ```
 **Example**
 ```ts twoslash
-import { createSessionStorage, sessionStorageValue } from 'utio/web'
+import { createSessionStorage, sessionStorageValue } from 'utix/web'
 import * as z from 'zod'
 
 const storage = createSessionStorage({

@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { createSessionStorage } from './session-storage'
 import { sessionStorageValue } from './session-storage-value'
 
-const TEST_KEY = 'utio-session-storage-value-test-key'
+const TEST_KEY = 'utix-session-storage-value-test-key'
 
 describe('sessionStorageValue', () => {
   beforeEach(() => {
