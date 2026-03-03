@@ -7,8 +7,7 @@ title: Hooks
 ## useSubscription
 Use this hook to access a subscription for any function that implements the Subscription interface.
 
-**Kind**: global hook
-**Example**
+**Example**  
 ```tsx twoslash title="/app/page.tsx"
 'use client'
 
@@ -26,7 +25,7 @@ export default function Page() {
   return <div>{value}</div>
 }
 ```
-**Example**
+**Example**  
 ```tsx twoslash title="/app/page.tsx"
 'use client'
 
@@ -46,7 +45,7 @@ export default function Page() {
   return <div>{value}</div>
 }
 ```
-**Example**
+**Example**  
 ```tsx twoslash title="/app/page.tsx"
 'use client'
 
@@ -62,6 +61,7 @@ const sessionStorage = createSessionStorage({
   defaultValues: { count: 0, name: '' },
 })
 
+// Usage with selector, re-renders only when count changes
 export default function Page() {
   const count = useSubscription(sessionStorage, value => value.count)
 

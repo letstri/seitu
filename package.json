@@ -9,7 +9,6 @@
     "check-types": "cd seitu && pnpm run check-types",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "docs:generate": "node scripts/generate-docs.ts",
     "update": "taze -r -I major"
   },
   "devDependencies": {

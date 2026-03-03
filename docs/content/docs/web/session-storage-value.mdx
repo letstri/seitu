@@ -13,8 +13,7 @@ Two modes:
 - **Storage mode** (`storage`, `key`): binds to one key of a `createSessionStorage` instance.
   Type and default come from that storage.
 
-**Kind**: global function
-**Example**
+**Example**  
 ```ts twoslash
 import { sessionStorageValue } from 'seitu/web'
 import * as z from 'zod'
@@ -30,7 +29,7 @@ value.set(v => v + 1)
 value.remove()
 value.subscribe(v => console.log(v))
 ```
-**Example**
+**Example**  
 ```ts twoslash
 import { createSessionStorage, sessionStorageValue } from 'seitu/web'
 import * as z from 'zod'

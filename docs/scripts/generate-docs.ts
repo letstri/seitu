@@ -5,8 +5,9 @@ import jsdoc2md from 'jsdoc-to-markdown'
 import ts from 'typescript'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const srcDir = path.join(rootDir, 'seitu', 'src')
-const outDir = path.join(rootDir, 'docs', 'content', 'docs')
+const srcDir = path.join(rootDir, '../', 'seitu', 'src')
+const outDir = path.join(rootDir, 'content', 'docs')
+const scopePartialPath = path.join(rootDir, 'scripts', 'partials', 'scope.hbs')
 
 const TS_COMPILER_OPTIONS: ts.CompilerOptions = {
   target: ts.ScriptTarget.ESNext,
@@ -105,6 +106,7 @@ async function generateDocForFile(sourcePath: string): Promise<void> {
     'property-list-format': 'list',
     'no-cache': true,
     'source': js,
+    'partial': [scopePartialPath],
   })
   if (!markdown) {
     console.warn('No markdown for', sourcePath)

@@ -9,6 +9,7 @@
     "build": "vite build",
     "start": "node .output/server/index.mjs",
     "preview": "vite preview",
+    "docs:generate": "node scripts/generate-docs.ts",
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
