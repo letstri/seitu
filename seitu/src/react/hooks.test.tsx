@@ -14,7 +14,7 @@ afterEach(() => {
   window.sessionStorage.clear()
 })
 
-const TEST_KEY = 'elitu-hooks-test-key'
+const TEST_KEY = 'seitu-hooks-test-key'
 
 function TestComponent({ storage }: { storage: SessionStorageValue<number> }) {
   const value = useSubscription(storage)

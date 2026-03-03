@@ -11,8 +11,8 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { sessionStorageValue } from 'elitu/web'
- * import { useSubscription } from 'elitu/react'
+ * import { sessionStorageValue } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
  * export default function Page() {
@@ -30,8 +30,8 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { sessionStorageValue } from 'elitu/web'
- * import { useSubscription } from 'elitu/react'
+ * import { sessionStorageValue } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
  * const sessionStorage = sessionStorageValue({
@@ -51,8 +51,8 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorage, sessionStorageValue } from 'elitu/web'
- * import { useSubscription } from 'elitu/react'
+ * import { createSessionStorage, sessionStorageValue } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
  * const sessionStorage = createSessionStorage({

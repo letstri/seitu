@@ -49,7 +49,7 @@ export interface SessionStorageOptions<S extends Record<string, StandardSchemaV1
  *
  * @example
  * ```ts twoslash
- * import { createSessionStorage } from 'elitu/web'
+ * import { createSessionStorage } from 'seitu/web'
  * import * as z from 'zod'
  *
  * const sessionStorage = createSessionStorage({

@@ -1,6 +1,6 @@
 {
-  "name": "elitu",
-  "displayName": "Elitu",
+  "name": "seitu",
+  "displayName": "Seitu",
   "type": "module",
   "version": "0.0.1",
   "private": false,
@@ -8,14 +8,14 @@
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
-  "homepage": "https://elitu.letstri.dev",
+  "homepage": "https://seitu.letstri.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/letstri/elitu.git",
-    "directory": "elitu"
+    "url": "git+https://github.com/letstri/seitu.git",
+    "directory": "seitu"
   },
   "bugs": {
-    "url": "https://github.com/letstri/elitu/issues"
+    "url": "https://github.com/letstri/seitu/issues"
   },
   "keywords": [
     "typescript",

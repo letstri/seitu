@@ -37,7 +37,7 @@ export type SessionStorageValueOptions
  *
  * @example
  * ```ts twoslash
- * import { sessionStorageValue } from 'elitu/web'
+ * import { sessionStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
  * const value = sessionStorageValue({
@@ -54,7 +54,7 @@ export type SessionStorageValueOptions
  *
  * @example
  * ```ts twoslash
- * import { createSessionStorage, sessionStorageValue } from 'elitu/web'
+ * import { createSessionStorage, sessionStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
  * const storage = createSessionStorage({
