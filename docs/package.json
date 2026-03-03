@@ -23,6 +23,7 @@
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "srvx": "catalog:",
     "tailwind-merge": "catalog:",
     "utla": "workspace:*",
     "vite": "catalog:",
