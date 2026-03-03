@@ -22,8 +22,6 @@ export default defineConfig({
       },
     }),
     react(),
-    nitro({
-      preset: 'vercel',
-    }),
+    nitro(),
   ],
 })
