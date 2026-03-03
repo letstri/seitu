@@ -1,0 +1,42 @@
+name: Build and publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm i --frozen-lockfile
+      - name: Run linter
+        run: pnpm run lint
+      - name: Check version and publish if needed
+        run: |
+          cd utla
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          NPM_VERSION=$(npm view utla version 2>/dev/null || echo "0.0.0")
+          if [ "$PACKAGE_VERSION" != "$NPM_VERSION" ]; then
+            npm config set sign-git-tag true
+            if [[ "$PACKAGE_VERSION" == *"beta"* ]]; then
+              pnpm publish --no-git-checks --tag beta
+            elif [[ "$PACKAGE_VERSION" == *"rc"* ]]; then
+              pnpm publish --no-git-checks --tag rc
+            else
+              pnpm publish --no-git-checks
+            fi
+          else
+            echo "Package version $PACKAGE_VERSION is already published"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

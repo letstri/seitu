@@ -1,0 +1,48 @@
+---
+title: Session Storage Value
+---
+
+<a name="sessionStorageValue"></a>
+
+## sessionStorageValue()
+Creates a reactive handle for a single sessionStorage value.
+
+Two modes:
+- **Schema mode** (`schema`, `key`, `defaultValue`): standalone key with validation. Missing or
+  invalid stored data returns `defaultValue`.
+- **Storage mode** (`storage`, `key`): binds to one key of a `createSessionStorage` instance.
+  Type and default come from that storage.
+
+**Kind**: global function  
+**Example**  
+```ts twoslash
+import { sessionStorageValue } from 'utla/web'
+import * as z from 'zod'
+
+const value = sessionStorageValue({
+  key: 'count',
+  defaultValue: 0,
+  schema: z.number(),
+})
+value.get() // 0
+value.set(1)
+value.set(v => v + 1)
+value.remove()
+value.subscribe(v => console.log(v))
+```
+**Example**  
+```ts twoslash
+import { createSessionStorage, sessionStorageValue } from 'utla/web'
+import * as z from 'zod'
+
+const storage = createSessionStorage({
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+const count = sessionStorageValue({ storage, key: 'count' })
+count.set(5)
+storage.get().count === 5 // true
+```
+
+* * *
+

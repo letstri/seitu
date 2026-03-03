@@ -1,0 +1,32 @@
+{
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "prepare": "husky",
+    "publish": "cd utla && pnpm publish",
+    "build": "cd utla && pnpm run build",
+    "test": "cd utla && pnpm run test",
+    "check-types": "cd utla && pnpm run check-types",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "docs:generate": "node scripts/generate-docs.ts",
+    "update": "taze -r -I major"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:",
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
+    "@eslint-react/eslint-plugin": "catalog:",
+    "@types/jsdoc-to-markdown": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "eslint-plugin-react-refresh": "catalog:",
+    "husky": "catalog:",
+    "jsdoc-to-markdown": "catalog:",
+    "npm-run-all2": "catalog:",
+    "taze": "catalog:",
+    "typescript": "catalog:"
+  }
+}

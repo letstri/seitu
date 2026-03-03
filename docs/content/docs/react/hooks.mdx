@@ -1,0 +1,73 @@
+---
+title: Hooks
+---
+
+<a name="useSubscription"></a>
+
+## useSubscription
+Use this hook to access a subscription for any function that implements the Subscription interface.
+
+**Kind**: global hook  
+**Example**  
+```tsx twoslash title="/app/page.tsx"
+'use client'
+
+import { sessionStorageValue } from 'utla/web'
+import { useSubscription } from 'utla/react'
+import * as z from 'zod'
+
+export default function Page() {
+  const value = useSubscription(sessionStorageValue({
+    key: 'test',
+    defaultValue: 0,
+    schema: z.number(),
+  }))
+
+  return <div>{value}</div>
+}
+```
+**Example**  
+```tsx twoslash title="/app/page.tsx"
+'use client'
+
+import { sessionStorageValue } from 'utla/web'
+import { useSubscription } from 'utla/react'
+import * as z from 'zod'
+
+const sessionStorage = sessionStorageValue({
+  key: 'test',
+  defaultValue: 0,
+  schema: z.number(),
+})
+
+export default function Page() {
+  const value = useSubscription(sessionStorage)
+
+  return <div>{value}</div>
+}
+```
+**Example**  
+```tsx twoslash title="/app/page.tsx"
+'use client'
+
+import { createSessionStorage, sessionStorageValue } from 'utla/web'
+import { useSubscription } from 'utla/react'
+import * as z from 'zod'
+
+const sessionStorage = createSessionStorage({
+  schemas: {
+    count: z.number(),
+    name: z.string(),
+  },
+  defaultValues: { count: 0, name: '' },
+})
+
+export default function Page() {
+  const count = useSubscription(sessionStorage, value => value.count)
+
+  return <div>{count}</div>
+}
+```
+
+* * *
+
