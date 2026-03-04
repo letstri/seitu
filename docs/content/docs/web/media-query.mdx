@@ -1,0 +1,51 @@
+---
+title: Media Query
+---
+
+<a name="mediaQuery"></a>
+
+## mediaQuery()
+Creates a handle for a media query.
+
+**Example**  
+```ts twoslash title="media-query.ts"
+import { mediaQuery } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+const isDesktop = mediaQuery({ query: '(min-width: 768px)' })
+
+// Usage with subscribe
+isDesktop.subscribe(matches => {
+  console.log(matches)
+})
+
+const state = isDesktop.get()
+console.log(state)
+```
+
+```tsx twoslash title="page.tsx"
+import { mediaQuery } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+const isDesktop = mediaQuery({ query: '(min-width: 768px)' })
+
+// Usage with some function component
+function Layout() {
+  const matches = useSubscription(isDesktop)
+  return matches ? 'i am desktop' : 'i am mobile'
+}
+```
+
+```tsx twoslash
+import { mediaQuery } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+// @errors: 2362 2322 1109
+mediaQuery({ query: '(min-width: ' })
+
+// @errors: 2362 2322 2820
+mediaQuery({ query: '(min-width: 768' })
+```
+
+* * *
+

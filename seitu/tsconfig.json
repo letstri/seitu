@@ -11,5 +11,5 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["./src/react/index.ts", "./src/web/index.ts"]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

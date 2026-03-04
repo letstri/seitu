@@ -2,8 +2,9 @@ import type { SessionStorage } from '../web/session-storage'
 import type { SessionStorageValue } from '../web/session-storage-value'
 import { act, cleanup, render, renderHook, screen } from '@testing-library/react'
 import * as React from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
+import { mediaQuery } from '../web/media-query'
 import { createSessionStorage } from '../web/session-storage'
 import { sessionStorageValue } from '../web/session-storage-value'
 import { useSubscription } from './hooks'
@@ -32,7 +33,8 @@ describe('hooks', () => {
       const subscription = {
         'get': () => 1,
         'subscribe': () => () => {},
-        '~types': {
+        '~': {
+          notify: () => {},
           output: null as unknown as number,
         },
       }
@@ -50,11 +52,6 @@ describe('hooks', () => {
         storage.set(42)
       })
       expect(screen.getByTestId('subscription-value').textContent).toBe('42')
-
-      act(() => {
-        storage.remove()
-      })
-      expect(screen.getByTestId('subscription-value').textContent).toBe('0')
     })
   })
 
@@ -97,5 +94,40 @@ describe('hooks', () => {
       expect(screen.getByTestId('subscription-value').textContent).toBe('1')
       expect(renderCount).toBe(2)
     })
+  })
+})
+
+describe('mediaQuery', () => {
+  it('should return the matches value for light and dark', () => {
+    const originalMatchMedia = window.matchMedia
+    let listener: ((event: Event) => void) | null = null
+
+    const mql = {
+      matches: true,
+      media: '(prefers-color-scheme: dark)',
+      addEventListener: vi.fn((_event: string, cb: (event: Event) => void) => {
+        listener = cb
+      }),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn((event: Event) => {
+        listener?.(event)
+        return true
+      }),
+    }
+
+    window.matchMedia = vi.fn().mockReturnValue(mql)
+
+    const query = mediaQuery({ query: '(prefers-color-scheme: dark)' })
+    const { result } = renderHook(() => useSubscription(query))
+    expect(result.current).toBe(true)
+
+    act(() => {
+      mql.matches = false
+      listener?.(new Event('change'))
+    })
+
+    expect(result.current).toBe(false)
+
+    window.matchMedia = originalMatchMedia
   })
 })

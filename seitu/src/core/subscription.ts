@@ -1,24 +1,21 @@
 export interface Subscribable<V> {
   'subscribe': (callback: (value: V) => any) => () => void
-  '~types': {
+  '~': {
     output: V
+    notify: () => void
   }
 }
 export interface Readable<T> {
   get: () => T
 }
-export interface Writable<T, P extends Partial<T> = T> {
-  set: (value: T | ((prev: P) => T)) => any
+export interface Writable<T> {
+  set: (value: T | ((prev: T) => T)) => any
 }
-export interface Removable {
-  remove: () => void
-}
-
-export function createSubscription<V>(): {
-  subscribe: (callback: (value: V) => any) => () => void
-  notify: (value: V) => void
+export function createSubscription<T = void>(): {
+  subscribe: (callback: (payload: T) => any) => () => void
+  notify: (payload: T) => void
 } {
-  const subscribers = new Set<(value: V) => void>()
+  const subscribers = new Set<(payload: T) => void>()
   return {
     subscribe(callback) {
       subscribers.add(callback)

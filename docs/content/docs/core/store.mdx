@@ -1,0 +1,44 @@
+---
+title: Store
+---
+
+<a name="createStore"></a>
+
+## createStore()
+Creates a reactive handle for a storage instance.
+
+**Example**  
+```ts twoslash
+import { createStore } from 'seitu'
+import * as z from 'zod'
+
+const store = createStore({
+  schemas: {
+    token: z.string().nullable(),
+    preferences: z.object({ theme: z.enum(['light', 'dark']) }),
+  },
+  defaultValues: { token: null, preferences: { theme: 'light' } },
+  provider: {
+    get: () => ({
+      token: window.localStorage.getItem('token'),
+      preferences: JSON.parse(window.localStorage.getItem('preferences') ?? '{"theme":"light"}'),
+    }),
+    set: (value) => {
+      window.localStorage.setItem('token', value.token ?? '')
+      window.localStorage.setItem('preferences', JSON.stringify(value.preferences))
+    },
+  },
+})
+
+store.get().token // null
+store.get().preferences // { theme: 'light' }
+store.set({ token: '123', preferences: { theme: 'dark' } })
+store.get().token // '123'
+store.get().preferences // { theme: 'dark' }
+store.subscribe(value => console.log(value))
+store.set({ token: '456', preferences: { theme: 'light' } })
+// { token: '456', preferences: { theme: 'light' } }
+```
+
+* * *
+

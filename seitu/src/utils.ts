@@ -6,7 +6,11 @@ export type Satisfies<T extends U, U> = T
 
 export type PartialForKeys<T, K extends keyof T> = Partial<Pick<T, K>> & Omit<T, K>
 
-export function tryParseJson(value: string): unknown {
+export function tryParseJson(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value
+  }
+
   try {
     return JSON.parse(value)
   }

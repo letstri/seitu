@@ -25,14 +25,9 @@ sessionStorage.get().preferences // { theme: 'light' }
 sessionStorage.set({ token: '123', preferences: { theme: 'dark' } })
 sessionStorage.get().token // '123'
 sessionStorage.get().preferences // { theme: 'dark' }
-sessionStorage.clear()
-sessionStorage.get().token // null
-sessionStorage.get().preferences // { theme: 'light' }
 sessionStorage.subscribe(value => console.log(value))
 sessionStorage.set({ token: '456', preferences: { theme: 'light' } })
 // { token: '456', preferences: { theme: 'light' } }
-sessionStorage.clear()
-// { token: null, preferences: { theme: 'light' } }
 ```
 
 * * *

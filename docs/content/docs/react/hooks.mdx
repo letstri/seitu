@@ -16,6 +16,7 @@ import { useSubscription } from 'seitu/react'
 import * as z from 'zod'
 
 export default function Page() {
+  // Usage some subscription function directly inside a function component
   const value = useSubscription(sessionStorageValue({
     key: 'test',
     defaultValue: 0,
@@ -33,6 +34,7 @@ import { sessionStorageValue } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 import * as z from 'zod'
 
+// Create a subscription outside of a function component
 const sessionStorage = sessionStorageValue({
   key: 'test',
   defaultValue: 0,
@@ -40,6 +42,7 @@ const sessionStorage = sessionStorageValue({
 })
 
 export default function Page() {
+  // And use it inside a function component
   const value = useSubscription(sessionStorage)
 
   return <div>{value}</div>
@@ -61,8 +64,8 @@ const sessionStorage = createSessionStorage({
   defaultValues: { count: 0, name: '' },
 })
 
-// Usage with selector, re-renders only when count changes
 export default function Page() {
+  // Usage with selector, re-renders only when count changes
   const count = useSubscription(sessionStorage, value => value.count)
 
   return <div>{count}</div>

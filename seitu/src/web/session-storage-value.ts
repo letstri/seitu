@@ -1,14 +1,14 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Readable, Removable, Subscribable, Writable } from '../core/index'
+import type { Readable, Subscribable, Writable } from '../core/index'
 import type { SessionStorage } from './session-storage'
 import { createSubscription } from '../core'
 import { tryParseJson } from '../utils'
 
-export interface SessionStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Removable {}
+export interface SessionStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V> {}
 
 export interface SessionStorageValueOptionsWithStorage<
   Storage extends SessionStorage<any>,
-  K extends keyof Storage['~types']['output'],
+  K extends keyof Storage['~']['output'],
 > {
   storage: Storage
   key: K
@@ -48,7 +48,6 @@ export type SessionStorageValueOptions
  * value.get() // 0
  * value.set(1)
  * value.set(v => v + 1)
- * value.remove()
  * value.subscribe(v => console.log(v))
  * ```
  *
@@ -68,8 +67,8 @@ export type SessionStorageValueOptions
  */
 export function sessionStorageValue<
   Storage extends SessionStorage<any>,
-  K extends keyof Storage['~types']['output'],
->(options: SessionStorageValueOptionsWithStorage<Storage, K>): SessionStorageValue<Storage['~types']['output'][K]>
+  K extends keyof Storage['~']['output'],
+>(options: SessionStorageValueOptionsWithStorage<Storage, K>): SessionStorageValue<Storage['~']['output'][K]>
 export function sessionStorageValue<S extends StandardSchemaV1<unknown>>(
   options: SessionStorageValueOptionsWithSchema<S>,
 ): SessionStorageValue<StandardSchemaV1.InferOutput<S>>
@@ -88,9 +87,9 @@ export function sessionStorageValue(
     throw new Error('[sessionStorageValue] Either schema or storage must be provided')
   }
 
-  const defaultValue = ('schema' in options ? options.defaultValue : options.storage.defaultValues[options.key]) ?? null
+  const defaultValue = ('schema' in options ? options.defaultValue : options.storage.getDefaultValue(options.key)) ?? null
 
-  const { subscribe, notify } = createSubscription<typeof defaultValue>()
+  const { subscribe, notify } = createSubscription()
 
   const get = () => {
     if (typeof window === 'undefined') {
@@ -120,8 +119,7 @@ export function sessionStorageValue(
         return result.value
       }
       else {
-        const result = options.storage.get()
-        return result[options.key]
+        return parsed
       }
     }
     catch {
@@ -139,19 +137,10 @@ export function sessionStorageValue(
       const newValue = typeof value === 'function' ? value(get()) : value
       window.sessionStorage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
       window.dispatchEvent(new Event('storage'))
-      notify(newValue)
-    },
-    'remove': () => {
-      if (typeof window === 'undefined') {
-        return
-      }
-
-      window.sessionStorage.removeItem(options.key)
-      window.dispatchEvent(new Event('storage'))
-      notify(get())
+      notify()
     },
     'subscribe': (callback) => {
-      const unsubscribe = subscribe(callback)
+      const unsubscribe = subscribe(() => callback(get()))
       const onStorage = (event: StorageEvent): void => {
         if (event.key === options.key) {
           callback(get())
@@ -167,8 +156,9 @@ export function sessionStorageValue(
         }
       }
     },
-    '~types': {
+    '~': {
       output: null as unknown as typeof defaultValue,
+      notify,
     },
   }
 }

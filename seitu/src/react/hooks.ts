@@ -1,4 +1,4 @@
-import type { Readable, Subscribable } from '../core/subscription'
+import type { Readable, Subscribable } from '../core/index'
 import deepEqual from 'deep-equal'
 import * as React from 'react'
 
@@ -16,6 +16,7 @@ import * as React from 'react'
  * import * as z from 'zod'
  *
  * export default function Page() {
+ *   // Usage some subscription function directly inside a function component
  *   const value = useSubscription(sessionStorageValue({
  *     key: 'test',
  *     defaultValue: 0,
@@ -34,6 +35,7 @@ import * as React from 'react'
  * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
+ * // Create a subscription outside of a function component
  * const sessionStorage = sessionStorageValue({
  *   key: 'test',
  *   defaultValue: 0,
@@ -41,6 +43,7 @@ import * as React from 'react'
  * })
  *
  * export default function Page() {
+ *   // And use it inside a function component
  *   const value = useSubscription(sessionStorage)
  *
  *   return <div>{value}</div>
@@ -63,15 +66,15 @@ import * as React from 'react'
  *   defaultValues: { count: 0, name: '' },
  * })
  *
- * // Usage with selector, re-renders only when count changes
  * export default function Page() {
+ *   // Usage with selector, re-renders only when count changes
  *   const count = useSubscription(sessionStorage, value => value.count)
  *
  *   return <div>{count}</div>
  * }
  * ```
  */
-export function useSubscription<S extends Subscribable<any> & Readable<any>, R = S['~types']['output']>(subscription: S, selector?: (value: S['~types']['output']) => R): R {
+export function useSubscription<S extends Subscribable<any> & Readable<any>, R = S['~']['output']>(subscription: S, selector?: (value: S['~']['output']) => R): R {
   if (!subscription.get || !subscription.subscribe) {
     throw new Error('Subscription is not valid. It must have a get and subscribe method.')
   }

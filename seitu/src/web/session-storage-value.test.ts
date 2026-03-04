@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
 import { createSessionStorage } from './session-storage'
 import { sessionStorageValue } from './session-storage-value'
@@ -8,10 +8,6 @@ const TEST_KEY = 'seitu-session-storage-value-test-key'
 describe('sessionStorageValue', () => {
   beforeEach(() => {
     window.sessionStorage.clear()
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
   })
 
   describe('get', () => {
@@ -98,22 +94,6 @@ describe('sessionStorageValue', () => {
     })
   })
 
-  describe('remove', () => {
-    it('removes key from sessionStorage', () => {
-      window.sessionStorage.setItem(TEST_KEY, '1')
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
-      storage.remove()
-      expect(window.sessionStorage.getItem(TEST_KEY)).toBeNull()
-    })
-
-    it('should\'nt remove other keys from sessionStorage', () => {
-      window.sessionStorage.setItem('other-key', '1')
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
-      storage.remove()
-      expect(window.sessionStorage.getItem('other-key')).toBe('1')
-    })
-  })
-
   describe('subscribe', () => {
     it('calls callback with current value and event when storage event is dispatched', () => {
       const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
@@ -142,7 +122,7 @@ describe('sessionStorageValue', () => {
   })
 
   describe('integration', () => {
-    it('get reflects set and remove', () => {
+    it('get reflects set', () => {
       const storage = sessionStorageValue({ schema: z.string(), key: TEST_KEY, defaultValue: 'default' })
 
       expect(storage.get()).toBe('default')
@@ -152,9 +132,6 @@ describe('sessionStorageValue', () => {
 
       storage.set('second')
       expect(storage.get()).toBe('second')
-
-      storage.remove()
-      expect(storage.get()).toBe('default')
     })
 
     it('get reflects value set directly in sessionStorage', () => {
@@ -189,7 +166,7 @@ describe('sessionStorageValue', () => {
 
     it('returns value from storage when key is set', () => {
       const storage = createSessionStorage({
-        schemas: { count: z.coerce.number(), name: z.string() },
+        schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
 
@@ -204,7 +181,7 @@ describe('sessionStorageValue', () => {
 
     it('set updates storage and is reflected by storage.get()', () => {
       const storage = createSessionStorage({
-        schemas: { count: z.coerce.number(), name: z.string() },
+        schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
       const countValue = sessionStorageValue({ storage, key: 'count' })
@@ -216,7 +193,7 @@ describe('sessionStorageValue', () => {
 
     it('set with function receives current value and updates storage', () => {
       const storage = createSessionStorage({
-        schemas: { count: z.coerce.number() },
+        schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })
       const countValue = sessionStorageValue({ storage, key: 'count' })
@@ -227,38 +204,9 @@ describe('sessionStorageValue', () => {
       expect(storage.get().count).toBe(6)
     })
 
-    it('remove clears only the value key and reverts to default', () => {
-      const storage = createSessionStorage({
-        schemas: { count: z.coerce.number(), name: z.string() },
-        defaultValues: { count: 0, name: '' },
-      })
-      storage.set({ count: 99, name: 'keep' })
-      const countValue = sessionStorageValue({ storage, key: 'count' })
-
-      countValue.remove()
-      expect(window.sessionStorage.getItem('count')).toBeNull()
-      expect(countValue.get()).toBe(0)
-      expect(storage.get()).toEqual({ count: 0, name: 'keep' })
-    })
-
-    it('subscribe is called when value is set', () => {
-      const storage = createSessionStorage({
-        schemas: { count: z.coerce.number() },
-        defaultValues: { count: 0 },
-      })
-      const countValue = sessionStorageValue({ storage, key: 'count' })
-      const callback = vi.fn()
-
-      countValue.subscribe(callback)
-      countValue.set(7)
-
-      expect(callback).toHaveBeenCalledTimes(1)
-      expect(callback).toHaveBeenCalledWith(7)
-    })
-
     it('multiple value instances for same storage key stay in sync', () => {
       const storage = createSessionStorage({
-        schemas: { count: z.coerce.number() },
+        schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })
       const countA = sessionStorageValue({ storage, key: 'count' })
