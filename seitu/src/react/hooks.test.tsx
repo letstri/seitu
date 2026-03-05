@@ -18,12 +18,12 @@ afterEach(() => {
 const TEST_KEY = 'seitu-hooks-test-key'
 
 function TestComponent({ storage }: { storage: SessionStorageValue<number> }) {
-  const value = useSubscription(storage)
+  const value = useSubscription(() => storage)
   return <span data-testid="subscription-value">{value}</span>
 }
 
 function TestComponentWithSelector({ storage }: { storage: SessionStorage<{ count: number }> }) {
-  const value = useSubscription(storage, value => value.count)
+  const value = useSubscription(() => storage, value => value.count)
   return <span data-testid="subscription-value">{value}</span>
 }
 
@@ -38,7 +38,7 @@ describe('hooks', () => {
           output: null as unknown as number,
         },
       }
-      const { result } = renderHook(() => useSubscription(subscription))
+      const { result } = renderHook(() => useSubscription(() => subscription))
       expect(result.current).toBe(1)
     })
 
@@ -74,7 +74,7 @@ describe('hooks', () => {
 
       function TestWithRenderCount({ storage: s }: { storage: SessionStorage<{ count: number }> }) {
         renderCount++
-        const value = useSubscription(s, value => value.count)
+        const value = useSubscription(() => s, value => value.count)
         return <span data-testid="subscription-value">{value}</span>
       }
 
@@ -93,6 +93,75 @@ describe('hooks', () => {
       })
       expect(screen.getByTestId('subscription-value').textContent).toBe('1')
       expect(renderCount).toBe(2)
+    })
+  })
+
+  describe('useSubscription factory', () => {
+    it('should call factory only once across re-renders', () => {
+      const factory = vi.fn(() =>
+        sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 }),
+      )
+
+      const { result, rerender } = renderHook(() => useSubscription(factory))
+      expect(factory).toHaveBeenCalledTimes(1)
+      expect(result.current).toBe(0)
+
+      rerender()
+      rerender()
+      expect(factory).toHaveBeenCalledTimes(1)
+    })
+
+    it('should update when subscription created by factory changes', () => {
+      let storage: SessionStorageValue<number> | undefined
+
+      function TestFactory() {
+        const value = useSubscription(() => {
+          storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+          return storage
+        })
+        return <span data-testid="subscription-value">{value}</span>
+      }
+
+      render(<TestFactory />)
+      expect(screen.getByTestId('subscription-value').textContent).toBe('0')
+
+      act(() => {
+        storage!.set(99)
+      })
+      expect(screen.getByTestId('subscription-value').textContent).toBe('99')
+    })
+
+    it('should not re-render when factory value is deeply equal', () => {
+      let renderCount = 0
+
+      const storage = createSessionStorage({
+        schemas: {
+          count: z.number(),
+          name: z.string(),
+        },
+        defaultValues: { count: 0, name: '' },
+      })
+
+      function TestFactoryRenderCount() {
+        renderCount++
+        const value = useSubscription(
+          () => storage,
+          v => v.count,
+        )
+        return <span data-testid="subscription-value">{value}</span>
+      }
+
+      const { unmount } = render(<TestFactoryRenderCount />)
+      expect(renderCount).toBe(1)
+      act(() => {
+        storage.set({ count: 1, name: 'test' })
+      })
+      expect(renderCount).toBe(2)
+      act(() => {
+        storage.set({ count: 1, name: 'new test' })
+      })
+      expect(renderCount).toBe(2)
+      unmount()
     })
   })
 })
@@ -117,8 +186,7 @@ describe('mediaQuery', () => {
 
     window.matchMedia = vi.fn().mockReturnValue(mql)
 
-    const query = mediaQuery({ query: '(prefers-color-scheme: dark)' })
-    const { result } = renderHook(() => useSubscription(query))
+    const { result } = renderHook(() => useSubscription(() => mediaQuery({ query: '(prefers-color-scheme: dark)' })))
     expect(result.current).toBe(true)
 
     act(() => {
