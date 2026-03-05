@@ -1,7 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Readable, Subscribable, Writable } from '../core/index'
 import type { SessionStorage } from './session-storage'
-import type { WebStorage } from './web-storage'
 import type { WebStorageValueOptionsWithSchema, WebStorageValueOptionsWithStorage } from './web-storage-value'
 import { createWebStorageValue } from './web-storage-value'
 
@@ -10,7 +9,7 @@ export interface SessionStorageValue<V> extends Subscribable<V>, Readable<V>, Wr
 export type SessionStorageValueOptionsWithStorage<
   Storage extends SessionStorage<any>,
   K extends keyof Storage['~']['output'],
-> = WebStorageValueOptionsWithStorage<WebStorage<any>, K>
+> = WebStorageValueOptionsWithStorage<Storage, K>
 
 export type SessionStorageValueOptionsWithSchema<
   S extends StandardSchemaV1<unknown>,

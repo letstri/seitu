@@ -1,7 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Readable, Subscribable, Writable } from '../core/index'
 import type { LocalStorage } from './local-storage'
-import type { WebStorage } from './web-storage'
 import type { WebStorageValueOptionsWithSchema, WebStorageValueOptionsWithStorage } from './web-storage-value'
 import { createWebStorageValue } from './web-storage-value'
 
@@ -10,7 +9,7 @@ export interface LocalStorageValue<V> extends Subscribable<V>, Readable<V>, Writ
 export type LocalStorageValueOptionsWithStorage<
   Storage extends LocalStorage<any>,
   K extends keyof Storage['~']['output'],
-> = WebStorageValueOptionsWithStorage<WebStorage<any>, K>
+> = WebStorageValueOptionsWithStorage<Storage, K>
 
 export type LocalStorageValueOptionsWithSchema<
   S extends StandardSchemaV1<unknown>,
