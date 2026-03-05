@@ -111,7 +111,7 @@ export interface MediaQueryOptions<T extends string> {
  *
  * // Usage with some function component
  * function Layout() {
- *   const matches = useSubscription(isDesktop)
+ *   const matches = useSubscription(() => isDesktop)
  *   return matches ? 'i am desktop' : 'i am mobile'
  * }
  * ```

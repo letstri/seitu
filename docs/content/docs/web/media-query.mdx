@@ -31,7 +31,7 @@ const isDesktop = mediaQuery({ query: '(min-width: 768px)' })
 
 // Usage with some function component
 function Layout() {
-  const matches = useSubscription(isDesktop)
+  const matches = useSubscription(() => isDesktop)
   return matches ? 'i am desktop' : 'i am mobile'
 }
 ```

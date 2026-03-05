@@ -70,7 +70,7 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  * })
  *
  * function Layout() {
- *   const state = useSubscription(scroll)
+ *   const state = useSubscription(() => scroll)
  *   return state.top.value ? 'scrolled' : 'at the top'
  * }
  * ```
