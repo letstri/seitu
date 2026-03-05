@@ -26,7 +26,6 @@ jobs:
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           NPM_VERSION=$(npm view seitu version 2>/dev/null || echo "0.0.0")
           if [ "$PACKAGE_VERSION" != "$NPM_VERSION" ]; then
-            npm config set sign-git-tag true
             if [[ "$PACKAGE_VERSION" == *"beta"* ]]; then
               pnpm publish --no-git-checks --tag beta
             elif [[ "$PACKAGE_VERSION" == *"rc"* ]]; then
@@ -37,6 +36,3 @@ jobs:
           else
             echo "Package version $PACKAGE_VERSION is already published"
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
