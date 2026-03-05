@@ -1,31 +1,66 @@
 ---
-title: Hello World
-description: Your favourite docs framework.
-icon: Rocket
+title: Introduction
+description: Type-safe, framework-agnostic library for working with familiar hooks and reactive values
 ---
 
-Hey there! Fumadocs is the docs framework that also works on Tanstack Start!
+## Why?
 
-## Heading
+When using many different libraries for working with utils, I kept running into the same issues:
 
-Hello World!
+- No tests
+- No way to use the value outside of components
+- Poor or missing typing
 
-<Cards>
-  <Card title="Learn more about Tanstack Start" href="https://tanstack.com/start" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+So I created a library based on shadcn/cli and called it Hookas. But it was React-only and still had the same problem: you couldn't use the data outside of components.
 
-### CodeBlock
+## Solution
 
-```ts
-console.log('Hello World');
+That's why I built **Seitu** _(word "utils" reversed, with the letter L replaced by E)_. It's a type-safe, framework-agnostic library for working with familiar hooks. I brought together my experience with TypeScript and different frameworks, so you can use Seitu with React or without any framework at all.
+
+## Examples
+
+### Local Storage / Session Storage
+
+One of the painful spots for me was `localStorage`. I wanted typed storage that I could also use reactively.
+
+With Seitu you get a reactive, typed value that works both inside and outside components:
+
+```ts twoslash
+import { createLocalStorageValue } from 'seitu/web'
+import * as z from 'zod'
+
+const count = createLocalStorageValue({
+  key: 'count',
+  defaultValue: 0,
+  schema: z.number(),
+})
+
+count.get() // 0
+count.set(1)
+count.set(v => v + 1)
+count.subscribe(v => console.log(v))
 ```
 
-#### Table
+In React, subscribe with `useSubscription`:
 
-| Head                            | Description                         |
-| ------------------------------- | ----------------------------------- |
-| `hello`                         | Hello World                         |
-| very **important**              | Hey                                 |
-| _Surprisingly_                  | Fumadocs                            |
-| very long text that looks weird | hello world hello world hello world |
+```tsx twoslash
+'use client'
+
+import { createLocalStorageValue } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+export default function Page() {
+  const { value: count } = useSubscription(() => createLocalStorageValue({
+    key: 'count',
+    defaultValue: 0,
+    schema: z.number(),
+  }))
+
+  return <div>{count}</div>
+}
+```
+
+## Ready?
+
+Head to [Local Storage](/docs/web/local-storage) or [React hooks](/docs/react/hooks) to get started.
