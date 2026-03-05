@@ -16,7 +16,7 @@ import * as React from 'react'
  * import * as z from 'zod'
  *
  * export default function Page() {
- *   const value = useSubscription(() => sessionStorageValue({
+ *   const { value } = useSubscription(() => sessionStorageValue({
  *     key: 'test',
  *     defaultValue: 0,
  *     schema: z.number(),
