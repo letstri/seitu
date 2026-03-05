@@ -4,7 +4,7 @@ import { createWebStorage } from './web-storage'
 
 describe('createWebStorage', () => {
   beforeEach(() => {
-    localStorage.clear()
+    window.localStorage.clear()
   })
 
   describe('get', () => {
