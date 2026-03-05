@@ -13,59 +13,7 @@ export interface SchemaStore<O extends Record<string, unknown>> extends Subscrib
 }
 
 export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> {
-  /**
-   * Schemas for each storage key (one validator per key).
-   * Use this when each key has its own type; for a single compound schema use a wrapper with one key.
-   *
-   * @example
-   * ```ts
-   * const store = createSchemaStore({
-   *   schemas: {
-   *     token: z.string().nullable(),
-   *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
-   *   },
-   *   defaultValues: { token: null, preferences: { theme: 'light' } },
-   *   provider: {
-   *     get: () => ({
-   *       token: window.localStorage.getItem('token'),
-   *       preferences: window.localStorage.getItem('preferences'),
-   *     }),
-   *     set: (value) => {
-   *       window.localStorage.setItem('token', value.token ?? '')
-   *       window.localStorage.setItem('preferences', JSON.stringify(value.preferences))
-   *     },
-   *   },
-   * })
-   * ```
-   */
   schemas: S
-  /**
-   * The default values to use for the storage.
-   *
-   * @example
-   * ```ts
-   * const store = createSchemaStore({
-   *   schemas: {
-   *     token: z.string().nullable(),
-   *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
-   *   },
-   *   defaultValues: {
-   *     token: null,
-   *     preferences: { theme: 'light' },
-   *   },
-   *   provider: {
-   *     get: () => ({
-   *       token: window.localStorage.getItem('token'),
-   *       preferences: window.localStorage.getItem('preferences'),
-   *     }),
-   *     set: (value) => {
-   *       window.localStorage.setItem('token', value.token ?? '')
-   *       window.localStorage.setItem('preferences', JSON.stringify(value.preferences))
-   *     },
-   *   },
-   * })
-   * ```
-   */
   defaultValues: SchemaStoreOutput<S>
   provider: {
     get: () => SchemaStoreOutput<S>
@@ -73,42 +21,6 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
   }
 }
 
-/**
- * Creates a reactive handle for a storage instance.
- *
- * @example
- * ```ts twoslash
- * import { createSchemaStore } from 'seitu'
- * import * as z from 'zod'
- *
- * const store = createSchemaStore({
- *   schemas: {
- *     token: z.string().nullable(),
- *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
- *   },
- *   defaultValues: { token: null, preferences: { theme: 'light' } },
- *   provider: {
- *     get: () => ({
- *       token: window.localStorage.getItem('token'),
- *       preferences: JSON.parse(window.localStorage.getItem('preferences') ?? '{"theme":"light"}'),
- *     }),
- *     set: (value) => {
- *       window.localStorage.setItem('token', value.token ?? '')
- *       window.localStorage.setItem('preferences', JSON.stringify(value.preferences))
- *     },
- *   },
- * })
- *
- * store.get().token // null
- * store.get().preferences // { theme: 'light' }
- * store.set({ token: '123', preferences: { theme: 'dark' } })
- * store.get().token // '123'
- * store.get().preferences // { theme: 'dark' }
- * store.subscribe(value => console.log(value))
- * store.set({ token: '456', preferences: { theme: 'light' } })
- * // { token: '456', preferences: { theme: 'light' } }
- * ```
- */
 export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
   const { subscribe, notify } = createSubscription()
   const defaultValues = { ...options.defaultValues }

@@ -7,7 +7,7 @@ import * as z from 'zod'
 import { mediaQuery } from '../web/media-query'
 import { scrollState } from '../web/scroll-state'
 import { createSessionStorage } from '../web/session-storage'
-import { sessionStorageValue } from '../web/session-storage-value'
+import { createSessionStorageValue } from '../web/session-storage-value'
 import { useSubscription } from './hooks'
 import '@testing-library/jest-dom/vitest'
 
@@ -44,7 +44,7 @@ describe('hooks', () => {
     })
 
     it('should update when session storage value changes', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
 
       render(<TestComponent storage={storage} />)
       expect(screen.getByTestId('subscription-value').textContent).toBe('0')
@@ -99,7 +99,7 @@ describe('hooks', () => {
 
   describe('useSubscription with direct object', () => {
     it('should accept a stable subscription object', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
 
       const { result } = renderHook(() => useSubscription(storage))
       expect(result.current.value).toBe(0)
@@ -111,7 +111,7 @@ describe('hooks', () => {
       let error: Error | undefined
       try {
         const { rerender } = renderHook(() =>
-          useSubscription(sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })),
+          useSubscription(createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })),
         )
         rerender()
       }
@@ -126,7 +126,7 @@ describe('hooks', () => {
   describe('useSubscription factory', () => {
     it('should call factory only once across re-renders', () => {
       const factory = vi.fn(() =>
-        sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 }),
+        createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 }),
       )
 
       const { result, rerender } = renderHook(() => useSubscription(factory))
@@ -143,7 +143,7 @@ describe('hooks', () => {
 
       function TestFactory() {
         const { value } = useSubscription(() => {
-          storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+          storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
           return storage
         })
         return <span data-testid="subscription-value">{value}</span>
@@ -190,7 +190,7 @@ describe('hooks', () => {
 
     it('should recreate subscription when deps change', () => {
       const factory = vi.fn((key: string) =>
-        sessionStorageValue({ schema: z.number(), key, defaultValue: 0 }),
+        createSessionStorageValue({ schema: z.number(), key, defaultValue: 0 }),
       )
 
       const { result, rerender } = renderHook(

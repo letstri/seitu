@@ -1,3 +1,5 @@
+export * from './local-storage'
+export * from './local-storage-value'
 export * from './media-query'
 export * from './scroll-state'
 export * from './session-storage'

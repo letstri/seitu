@@ -11,12 +11,12 @@ import * as React from 'react'
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { sessionStorageValue } from 'seitu/web'
+ * import { createSessionStorageValue } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
  * export default function Page() {
- *   const { value } = useSubscription(() => sessionStorageValue({
+ *   const { value } = useSubscription(() => createSessionStorageValue({
  *     key: 'test',
  *     defaultValue: 0,
  *     schema: z.number(),

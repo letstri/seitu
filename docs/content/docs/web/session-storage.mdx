@@ -44,11 +44,11 @@ const sessionStorage = createSessionStorage({
 })
 
 export default function Page() {
-  const { value: storage } = useSubscription(sessionStorage)
+  const { value } = useSubscription(sessionStorage)
   return (
     <div>
-      <span>{storage.count}</span>
-      <span>{storage.name}</span>
+      <span>{value.count}</span>
+      <span>{value.name}</span>
     </div>
   )
 }

@@ -1,8 +1,10 @@
-import type { SchemaStore, SchemaStoreOptions, SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
-import { createSchemaStore } from '../core/index'
-import { tryParseJson } from '../utils'
+import type { SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
+import type { WebStorage, WebStorageOptions } from './web-storage'
+import { createWebStorage } from './web-storage'
 
-export type SessionStorage<O extends Record<string, unknown>> = SchemaStore<O>
+export interface SessionStorage<O extends Record<string, unknown>> extends WebStorage<O> {}
+
+export interface SessionStorageOptions<S extends SchemaStoreSchema> extends Omit<WebStorageOptions<S>, 'kind'> {}
 
 /**
  * Creates a reactive handle for a sessionStorage instance.
@@ -40,61 +42,19 @@ export type SessionStorage<O extends Record<string, unknown>> = SchemaStore<O>
  * })
  *
  * export default function Page() {
- *   const { value: storage } = useSubscription(sessionStorage)
+ *   const { value } = useSubscription(sessionStorage)
  *   return (
  *     <div>
- *       <span>{storage.count}</span>
- *       <span>{storage.name}</span>
+ *       <span>{value.count}</span>
+ *       <span>{value.name}</span>
  *     </div>
  *   )
  * }
  * ```
  */
-export function createSessionStorage<S extends SchemaStoreSchema>(options: Omit<SchemaStoreOptions<S>, 'provider'>): SessionStorage<SchemaStoreOutput<S>> {
-  const store = createSchemaStore<S>({
+export function createSessionStorage<S extends SchemaStoreSchema>(options: SessionStorageOptions<S>): SessionStorage<SchemaStoreOutput<S>> {
+  return createWebStorage<S>({
+    kind: 'sessionStorage',
     ...options,
-    provider: {
-      get: () => {
-        if (typeof window === 'undefined') {
-          return options.defaultValues
-        }
-
-        const output = { ...options.defaultValues }
-
-        for (const key in output) {
-          const item = tryParseJson(window.sessionStorage.getItem(key))
-          const result = options.schemas[key]['~standard'].validate(item)
-
-          if (result instanceof Promise) {
-            throw new TypeError('[createSessionStorage] Validation schema should not return a Promise.')
-          }
-
-          if (result.issues) {
-            console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
-          }
-
-          output[key] = result.issues ? options.defaultValues[key] : result.value
-        }
-
-        return output
-      },
-      set: (value) => {
-        if (typeof window === 'undefined') {
-          return
-        }
-
-        Object.entries(value).forEach(([key, value]) => {
-          window.sessionStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
-        })
-      },
-    },
   })
-
-  if (typeof window !== 'undefined') {
-    window.addEventListener('storage', () => {
-      store['~'].notify()
-    })
-  }
-
-  return store
 }

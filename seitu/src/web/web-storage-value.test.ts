@@ -1,42 +1,67 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
-import { createSessionStorage } from './session-storage'
-import { sessionStorageValue } from './session-storage-value'
+import { createWebStorage } from './web-storage'
+import { createWebStorageValue } from './web-storage-value'
 
 const TEST_KEY = 'seitu-session-storage-value-test-key'
 
-describe('sessionStorageValue', () => {
+describe('createWebStorageValue', () => {
   beforeEach(() => {
-    window.sessionStorage.clear()
+    window.localStorage.clear()
   })
 
   describe('get', () => {
-    it('returns defaultValue when key is not in sessionStorage', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+    it('returns defaultValue when key is not in localStorage', () => {
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       expect(storage.get()).toBe(0)
     })
 
     it('returns defaultValue as-is when it is stringified JSON (no parsing of default)', () => {
       const stringifiedJson = '{"a":1,"b":"two"}'
-      const storage = sessionStorageValue({ schema: z.string(), key: TEST_KEY, defaultValue: stringifiedJson })
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.string(),
+        key: TEST_KEY,
+        defaultValue: stringifiedJson,
+      })
       expect(storage.get()).toBe(stringifiedJson)
     })
 
     it('returns parsed JSON when key exists with valid JSON', () => {
-      window.sessionStorage.setItem(TEST_KEY, JSON.stringify(42))
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      window.localStorage.setItem(TEST_KEY, JSON.stringify(42))
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       expect(storage.get()).toBe(42)
     })
 
     it('returns defaultValue when stored value is invalid JSON and defaultValue is not string', () => {
-      window.sessionStorage.setItem(TEST_KEY, 'not-valid-json{{{')
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      window.localStorage.setItem(TEST_KEY, 'not-valid-json{{{')
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       expect(storage.get()).toBe(0)
     })
 
     it('returns raw item when stored value is invalid JSON and defaultValue is string', () => {
-      window.sessionStorage.setItem(TEST_KEY, 'raw-string')
-      const storage = sessionStorageValue({ schema: z.string(), key: TEST_KEY, defaultValue: 'default' })
+      window.localStorage.setItem(TEST_KEY, 'raw-string')
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.string(),
+        key: TEST_KEY,
+        defaultValue: 'default',
+      })
       expect(storage.get()).toBe('raw-string')
     })
 
@@ -45,7 +70,12 @@ describe('sessionStorageValue', () => {
       vi.stubGlobal('window', undefined)
 
       try {
-        const storage = sessionStorageValue({ schema: z.string(), key: TEST_KEY, defaultValue: 'ssr-default' })
+        const storage = createWebStorageValue({
+          kind: 'localStorage',
+          schema: z.string(),
+          key: TEST_KEY,
+          defaultValue: 'ssr-default',
+        })
         expect(storage.get()).toBe('ssr-default')
       }
       finally {
@@ -55,17 +85,27 @@ describe('sessionStorageValue', () => {
   })
 
   describe('set', () => {
-    it('stores stringified value in sessionStorage', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+    it('stores stringified value in localStorage', () => {
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       storage.set(42)
-      expect(window.sessionStorage.getItem(TEST_KEY)).toBe('42')
+      expect(window.localStorage.getItem(TEST_KEY)).toBe('42')
     })
 
     it('dispatches storage event', () => {
       const listener = vi.fn()
       window.addEventListener('storage', listener)
 
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       storage.set(1)
 
       expect(listener).toHaveBeenCalledTimes(1)
@@ -79,7 +119,12 @@ describe('sessionStorageValue', () => {
       vi.stubGlobal('window', undefined)
 
       try {
-        const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+        const storage = createWebStorageValue({
+          kind: 'localStorage',
+          schema: z.number(),
+          key: TEST_KEY,
+          defaultValue: 0,
+        })
         expect(() => storage.set(42)).not.toThrow()
       }
       finally {
@@ -88,7 +133,12 @@ describe('sessionStorageValue', () => {
     })
 
     it('calls callback with updated value when set is a function', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       storage.set(v => v + 1)
       expect(storage.get()).toBe(1)
     })
@@ -96,7 +146,12 @@ describe('sessionStorageValue', () => {
 
   describe('subscribe', () => {
     it('calls callback with current value and event when storage event is dispatched', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       const callback = vi.fn()
 
       storage.subscribe(callback)
@@ -108,7 +163,12 @@ describe('sessionStorageValue', () => {
     })
 
     it('stops calling callback after unsubscribe', () => {
-      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
       const callback = vi.fn()
 
       const unsubscribe = storage.subscribe(callback)
@@ -123,7 +183,12 @@ describe('sessionStorageValue', () => {
 
   describe('integration', () => {
     it('get reflects set', () => {
-      const storage = sessionStorageValue({ schema: z.string(), key: TEST_KEY, defaultValue: 'default' })
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.string(),
+        key: TEST_KEY,
+        defaultValue: 'default',
+      })
 
       expect(storage.get()).toBe('default')
 
@@ -134,8 +199,9 @@ describe('sessionStorageValue', () => {
       expect(storage.get()).toBe('second')
     })
 
-    it('get reflects value set directly in sessionStorage', () => {
-      const storage = sessionStorageValue({
+    it('get reflects value set directly in localStorage', () => {
+      const storage = createWebStorageValue({
+        kind: 'localStorage',
         schema: z.union([z.number(), z.object({ x: z.number() })]),
         key: TEST_KEY,
         defaultValue: 0,
@@ -143,35 +209,37 @@ describe('sessionStorageValue', () => {
 
       expect(storage.get()).toBe(0)
 
-      window.sessionStorage.setItem(TEST_KEY, JSON.stringify(99))
+      window.localStorage.setItem(TEST_KEY, JSON.stringify(99))
       expect(storage.get()).toBe(99)
 
-      window.sessionStorage.setItem(TEST_KEY, JSON.stringify({ x: 1 }))
+      window.localStorage.setItem(TEST_KEY, JSON.stringify({ x: 1 }))
       expect(storage.get()).toEqual({ x: 1 })
     })
   })
 
   describe('with storage', () => {
     it('returns default value from storage when key is not set', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
-      const countValue = sessionStorageValue({ storage, key: 'count' })
-      const nameValue = sessionStorageValue({ storage, key: 'name' })
+      const countValue = createWebStorageValue({ storage, key: 'count' })
+      const nameValue = createWebStorageValue({ storage, key: 'name' })
 
       expect(countValue.get()).toBe(0)
       expect(nameValue.get()).toBe('')
     })
 
     it('returns value from storage when key is set', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
 
-      const countValue = sessionStorageValue({ storage, key: 'count' })
-      const nameValue = sessionStorageValue({ storage, key: 'name' })
+      const countValue = createWebStorageValue({ storage, key: 'count' })
+      const nameValue = createWebStorageValue({ storage, key: 'name' })
 
       storage.set({ count: 42, name: 'alice' })
 
@@ -180,11 +248,12 @@ describe('sessionStorageValue', () => {
     })
 
     it('set updates storage and is reflected by storage.get()', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
-      const countValue = sessionStorageValue({ storage, key: 'count' })
+      const countValue = createWebStorageValue({ storage, key: 'count' })
 
       countValue.set(10)
       expect(storage.get()).toEqual({ count: 10, name: '' })
@@ -192,11 +261,12 @@ describe('sessionStorageValue', () => {
     })
 
     it('set with function receives current value and updates storage', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })
-      const countValue = sessionStorageValue({ storage, key: 'count' })
+      const countValue = createWebStorageValue({ storage, key: 'count' })
       countValue.set(5)
       countValue.set(v => v + 1)
 
@@ -205,12 +275,13 @@ describe('sessionStorageValue', () => {
     })
 
     it('multiple value instances for same storage key stay in sync', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })
-      const countA = sessionStorageValue({ storage, key: 'count' })
-      const countB = sessionStorageValue({ storage, key: 'count' })
+      const countA = createWebStorageValue({ storage, key: 'count' })
+      const countB = createWebStorageValue({ storage, key: 'count' })
 
       countA.set(3)
       expect(countB.get()).toBe(3)

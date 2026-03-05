@@ -1,36 +1,36 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Readable, Subscribable, Writable } from '../core/index'
-import type { SessionStorage } from './session-storage'
+import type { LocalStorage } from './local-storage'
 import type { WebStorage } from './web-storage'
 import type { WebStorageValueOptionsWithSchema, WebStorageValueOptionsWithStorage } from './web-storage-value'
 import { createWebStorageValue } from './web-storage-value'
 
-export interface SessionStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V> {}
+export interface LocalStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V> {}
 
-export type SessionStorageValueOptionsWithStorage<
-  Storage extends SessionStorage<any>,
+export type LocalStorageValueOptionsWithStorage<
+  Storage extends LocalStorage<any>,
   K extends keyof Storage['~']['output'],
 > = WebStorageValueOptionsWithStorage<WebStorage<any>, K>
 
-export type SessionStorageValueOptionsWithSchema<
+export type LocalStorageValueOptionsWithSchema<
   S extends StandardSchemaV1<unknown>,
 > = Omit<WebStorageValueOptionsWithSchema<S>, 'kind'>
 
 /**
- * Creates a reactive handle for a single sessionStorage value.
+ * Creates a reactive handle for a single localStorage value.
  *
  * Two modes:
  * - **Schema mode** (`schema`, `key`, `defaultValue`): standalone key with validation. Missing or
  *   invalid stored data returns `defaultValue`.
- * - **Storage mode** (`storage`, `key`): binds to one key of a `createSessionStorage` instance.
+ * - **Storage mode** (`storage`, `key`): binds to one key of a `createLocalStorage` instance.
  *   Type and default come from that storage.
  *
  * @example Vanilla
- * ```ts twoslash title="session-storage-value.ts"
- * import { createSessionStorageValue } from 'seitu/web'
+ * ```ts twoslash title="local-storage-value.ts"
+ * import { createLocalStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
- * const value = createSessionStorageValue({
+ * const value = createLocalStorageValue({
  *   key: 'count',
  *   defaultValue: 0,
  *   schema: z.number(),
@@ -42,15 +42,15 @@ export type SessionStorageValueOptionsWithSchema<
  * ```
  *
  * @example Storage mode
- * ```ts twoslash title="session-storage-value.ts"
- * import { createSessionStorage, createSessionStorageValue } from 'seitu/web'
+ * ```ts twoslash title="local-storage-value.ts"
+ * import { createLocalStorage, createLocalStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
- * const storage = createSessionStorage({
+ * const storage = createLocalStorage({
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
  * })
- * const count = createSessionStorageValue({ storage, key: 'count' })
+ * const count = createLocalStorageValue({ storage, key: 'count' })
  * count.set(5)
  * storage.get().count === 5 // true
  * ```
@@ -59,12 +59,12 @@ export type SessionStorageValueOptionsWithSchema<
  * ```tsx twoslash title="page.tsx"
  * 'use client'
  *
- * import { createSessionStorageValue } from 'seitu/web'
+ * import { createLocalStorageValue } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
  * export default function Page() {
- *   const { value: count } = useSubscription(() => createSessionStorageValue({
+ *   const { value: count } = useSubscription(() => createLocalStorageValue({
  *     key: 'count',
  *     defaultValue: 0,
  *     schema: z.number(),
@@ -78,20 +78,20 @@ export type SessionStorageValueOptionsWithSchema<
  * }
  * ```
  */
-export function createSessionStorageValue<
-  Storage extends SessionStorage<any>,
+export function createLocalStorageValue<
+  Storage extends LocalStorage<any>,
   K extends keyof Storage['~']['output'],
->(options: SessionStorageValueOptionsWithStorage<Storage, K>): SessionStorageValue<Storage['~']['output'][K]>
-export function createSessionStorageValue<S extends StandardSchemaV1<unknown>>(
-  options: SessionStorageValueOptionsWithSchema<S>,
-): SessionStorageValue<StandardSchemaV1.InferOutput<S>>
-export function createSessionStorageValue(
+>(options: LocalStorageValueOptionsWithStorage<Storage, K>): LocalStorageValue<Storage['~']['output'][K]>
+export function createLocalStorageValue<S extends StandardSchemaV1<unknown>>(
+  options: LocalStorageValueOptionsWithSchema<S>,
+): LocalStorageValue<StandardSchemaV1.InferOutput<S>>
+export function createLocalStorageValue(
   options:
-    | SessionStorageValueOptionsWithStorage<SessionStorage<any>, string>
-    | SessionStorageValueOptionsWithSchema<StandardSchemaV1<unknown>>,
-): SessionStorageValue<unknown> {
+    | LocalStorageValueOptionsWithStorage<LocalStorage<any>, string>
+    | LocalStorageValueOptionsWithSchema<StandardSchemaV1<unknown>>,
+): LocalStorageValue<unknown> {
   if ('storage' in options) {
     return createWebStorageValue(options)
   }
-  return createWebStorageValue({ ...options, kind: 'sessionStorage' })
+  return createWebStorageValue({ ...options, kind: 'localStorage' })
 }

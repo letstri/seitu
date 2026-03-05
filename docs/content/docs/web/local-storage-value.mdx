@@ -1,27 +1,27 @@
 ---
-title: Session Storage Value
+title: Local Storage Value
 ---
 
-<a name="createSessionStorageValue"></a>
+<a name="createLocalStorageValue"></a>
 
-## createSessionStorageValue()
-Creates a reactive handle for a single sessionStorage value.
+## createLocalStorageValue()
+Creates a reactive handle for a single localStorage value.
 
 Two modes:
 - **Schema mode** (`schema`, `key`, `defaultValue`): standalone key with validation. Missing or
   invalid stored data returns `defaultValue`.
-- **Storage mode** (`storage`, `key`): binds to one key of a `createSessionStorage` instance.
+- **Storage mode** (`storage`, `key`): binds to one key of a `createLocalStorage` instance.
   Type and default come from that storage.
 
 ### Examples
 
 #### Vanilla
 
-```ts twoslash title="session-storage-value.ts"
-import { createSessionStorageValue } from 'seitu/web'
+```ts twoslash title="local-storage-value.ts"
+import { createLocalStorageValue } from 'seitu/web'
 import * as z from 'zod'
 
-const value = createSessionStorageValue({
+const value = createLocalStorageValue({
   key: 'count',
   defaultValue: 0,
   schema: z.number(),
@@ -34,15 +34,15 @@ value.subscribe(v => console.log(v))
 
 #### Storage mode
 
-```ts twoslash title="session-storage-value.ts"
-import { createSessionStorage, createSessionStorageValue } from 'seitu/web'
+```ts twoslash title="local-storage-value.ts"
+import { createLocalStorage, createLocalStorageValue } from 'seitu/web'
 import * as z from 'zod'
 
-const storage = createSessionStorage({
+const storage = createLocalStorage({
   schemas: { count: z.number(), name: z.string() },
   defaultValues: { count: 0, name: '' },
 })
-const count = createSessionStorageValue({ storage, key: 'count' })
+const count = createLocalStorageValue({ storage, key: 'count' })
 count.set(5)
 storage.get().count === 5 // true
 ```
@@ -52,12 +52,12 @@ storage.get().count === 5 // true
 ```tsx twoslash title="page.tsx"
 'use client'
 
-import { createSessionStorageValue } from 'seitu/web'
+import { createLocalStorageValue } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 import * as z from 'zod'
 
 export default function Page() {
-  const { value: count } = useSubscription(() => createSessionStorageValue({
+  const { value: count } = useSubscription(() => createLocalStorageValue({
     key: 'count',
     defaultValue: 0,
     schema: z.number(),

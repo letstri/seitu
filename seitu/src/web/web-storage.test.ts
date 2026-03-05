@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
-import { createSessionStorage } from './session-storage'
+import { createWebStorage } from './web-storage'
 
-describe('createSessionStorage', () => {
+describe('createWebStorage', () => {
   beforeEach(() => {
-    window.sessionStorage.clear()
+    window.localStorage.clear()
   })
 
   describe('get', () => {
@@ -13,7 +13,8 @@ describe('createSessionStorage', () => {
       vi.stubGlobal('window', undefined)
 
       try {
-        const storage = createSessionStorage({
+        const storage = createWebStorage({
+          kind: 'localStorage',
           schemas: {
             count: z.number(),
             name: z.string(),
@@ -29,8 +30,9 @@ describe('createSessionStorage', () => {
   })
 
   describe('set', () => {
-    it('stores values in sessionStorage and notifies subscribers on set and on storage event', () => {
-      const storage = createSessionStorage({
+    it('stores values in localStorage and notifies subscribers on set and on storage event', () => {
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: {
           count: z.number(),
           name: z.string(),
@@ -41,11 +43,11 @@ describe('createSessionStorage', () => {
       storage.subscribe(callback)
 
       storage.set({ count: 5, name: 'bob' })
-      expect(window.sessionStorage.getItem('count')).toBe('5')
-      expect(window.sessionStorage.getItem('name')).toBe('bob')
+      expect(window.localStorage.getItem('count')).toBe('5')
+      expect(window.localStorage.getItem('name')).toBe('bob')
       expect(callback).toHaveBeenCalledTimes(1)
 
-      window.sessionStorage.setItem('count', '99')
+      window.localStorage.setItem('count', '99')
       window.dispatchEvent(new Event('storage'))
       expect(callback).toHaveBeenCalledTimes(2)
     })
@@ -54,7 +56,8 @@ describe('createSessionStorage', () => {
   describe('defaultValues', () => {
     it('exposes defaultValues as readonly', () => {
       const defaults = { count: 0, name: '' }
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: {
           count: z.number(),
           name: z.string(),
@@ -67,8 +70,9 @@ describe('createSessionStorage', () => {
   })
 
   describe('integration', () => {
-    it('get reflects values set directly in sessionStorage', () => {
-      const storage = createSessionStorage({
+    it('get reflects values set directly in localStorage', () => {
+      const storage = createWebStorage({
+        kind: 'localStorage',
         schemas: {
           count: z.number(),
           name: z.string(),
@@ -78,8 +82,8 @@ describe('createSessionStorage', () => {
 
       expect(storage.get()).toEqual({ count: 0, name: '' })
 
-      window.sessionStorage.setItem('count', '99')
-      window.sessionStorage.setItem('name', 'direct')
+      window.localStorage.setItem('count', '99')
+      window.localStorage.setItem('name', 'direct')
       expect(storage.get()).toEqual({ count: 99, name: 'direct' })
     })
   })
