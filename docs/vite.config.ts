@@ -10,6 +10,11 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  build: {
+    rollupOptions: {
+      external: ['shiki/wasm'],
+    },
+  },
   plugins: [
     mdx(await import('./source.config')),
     tailwindcss(),
