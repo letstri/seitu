@@ -1,18 +1,19 @@
 ---
-title: Store
+title: Schema Store
 ---
 
-<a name="createStore"></a>
+<a name="createSchemaStore"></a>
 
-## createStore()
+## createSchemaStore()
 Creates a reactive handle for a storage instance.
 
-**Example**  
+### Examples
+
 ```ts twoslash
-import { createStore } from 'seitu'
+import { createSchemaStore } from 'seitu'
 import * as z from 'zod'
 
-const store = createStore({
+const store = createSchemaStore({
   schemas: {
     token: z.string().nullable(),
     preferences: z.object({ theme: z.enum(['light', 'dark']) }),

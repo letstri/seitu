@@ -30,7 +30,7 @@ value.remove()
 value.subscribe(v => console.log(v))
 
 function Counter() {
-  const count = useSubscription(() => value)
+  const count = useSubscription(value)
 
   return (
     <div>

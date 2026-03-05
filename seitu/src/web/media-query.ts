@@ -87,7 +87,7 @@ export interface MediaQueryOptions<T extends string> {
 /**
  * Creates a handle for a media query.
  *
- * @example
+ * @example Vanilla
  * ```ts twoslash title="media-query.ts"
  * import { mediaQuery } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
@@ -103,6 +103,7 @@ export interface MediaQueryOptions<T extends string> {
  * console.log(state)
  * ```
  *
+ * @example React
  * ```tsx twoslash title="page.tsx"
  * import { mediaQuery } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
@@ -111,11 +112,12 @@ export interface MediaQueryOptions<T extends string> {
  *
  * // Usage with some function component
  * function Layout() {
- *   const matches = useSubscription(() => isDesktop)
+ *   const { value: matches } = useSubscription(isDesktop)
  *   return matches ? 'i am desktop' : 'i am mobile'
  * }
  * ```
  *
+ * @example Errors
  * ```tsx twoslash
  * import { mediaQuery } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'

@@ -1,2 +1,2 @@
-export * from './store'
+export * from './schema-store'
 export * from './subscription'

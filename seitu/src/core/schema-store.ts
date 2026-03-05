@@ -4,22 +4,22 @@ import type { Readable, Subscribable, Writable } from './index'
 import { createSubscription } from '.'
 import { tryParseJson } from '../utils'
 
-export type StoreSchema = Record<string, StandardSchemaV1<unknown, unknown>>
+export type SchemaStoreSchema = Record<string, StandardSchemaV1<unknown, unknown>>
 
-export type StoreOutput<S extends StoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
+export type SchemaStoreOutput<S extends SchemaStoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
 
-export interface Store<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<O> {
+export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>> {
   getDefaultValue: <K extends keyof O>(key: K) => O[K]
 }
 
-export interface StoreOptions<S extends Record<string, StandardSchemaV1>> {
+export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> {
   /**
    * Schemas for each storage key (one validator per key).
    * Use this when each key has its own type; for a single compound schema use a wrapper with one key.
    *
    * @example
    * ```ts
-   * const store = createStore({
+   * const store = createSchemaStore({
    *   schemas: {
    *     token: z.string().nullable(),
    *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
@@ -44,7 +44,7 @@ export interface StoreOptions<S extends Record<string, StandardSchemaV1>> {
    *
    * @example
    * ```ts
-   * const store = createStore({
+   * const store = createSchemaStore({
    *   schemas: {
    *     token: z.string().nullable(),
    *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
@@ -66,10 +66,10 @@ export interface StoreOptions<S extends Record<string, StandardSchemaV1>> {
    * })
    * ```
    */
-  defaultValues: StoreOutput<S>
+  defaultValues: SchemaStoreOutput<S>
   provider: {
-    get: () => StoreOutput<S>
-    set: (value: StoreOutput<S>) => void
+    get: () => SchemaStoreOutput<S>
+    set: (value: Partial<SchemaStoreOutput<S>>) => void
   }
 }
 
@@ -78,10 +78,10 @@ export interface StoreOptions<S extends Record<string, StandardSchemaV1>> {
  *
  * @example
  * ```ts twoslash
- * import { createStore } from 'seitu'
+ * import { createSchemaStore } from 'seitu'
  * import * as z from 'zod'
  *
- * const store = createStore({
+ * const store = createSchemaStore({
  *   schemas: {
  *     token: z.string().nullable(),
  *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
@@ -109,7 +109,7 @@ export interface StoreOptions<S extends Record<string, StandardSchemaV1>> {
  * // { token: '456', preferences: { theme: 'light' } }
  * ```
  */
-export function createStore<S extends Record<string, StandardSchemaV1>>(options: StoreOptions<S>): Store<StoreOutput<S>> {
+export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
   const { subscribe, notify } = createSubscription()
   const defaultValues = { ...options.defaultValues }
 
@@ -149,7 +149,7 @@ export function createStore<S extends Record<string, StandardSchemaV1>>(options:
       })
     },
     '~': {
-      output: null as unknown as StoreOutput<S>,
+      output: null as unknown as SchemaStoreOutput<S>,
       notify,
     },
   }

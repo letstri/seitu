@@ -35,8 +35,8 @@ export type SessionStorageValueOptions
  * - **Storage mode** (`storage`, `key`): binds to one key of a `createSessionStorage` instance.
  *   Type and default come from that storage.
  *
- * @example
- * ```ts twoslash
+ * @example Vanilla
+ * ```ts twoslash title="session-storage-value.ts"
  * import { sessionStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
@@ -51,8 +51,8 @@ export type SessionStorageValueOptions
  * value.subscribe(v => console.log(v))
  * ```
  *
- * @example
- * ```ts twoslash
+ * @example Storage mode
+ * ```ts twoslash title="session-storage-value.ts"
  * import { createSessionStorage, sessionStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
@@ -63,6 +63,29 @@ export type SessionStorageValueOptions
  * const count = sessionStorageValue({ storage, key: 'count' })
  * count.set(5)
  * storage.get().count === 5 // true
+ * ```
+ *
+ * @example React
+ * ```tsx twoslash title="page.tsx"
+ * 'use client'
+ *
+ * import { sessionStorageValue } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ * import * as z from 'zod'
+ *
+ * export default function Page() {
+ *   const { value: count } = useSubscription(() => sessionStorageValue({
+ *     key: 'count',
+ *     defaultValue: 0,
+ *     schema: z.number(),
+ *   }))
+ *
+ *   return (
+ *     <div>
+ *       <span>{count}</span>
+ *     </div>
+ *   )
+ * }
  * ```
  */
 export function sessionStorageValue<

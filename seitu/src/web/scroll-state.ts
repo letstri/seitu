@@ -39,7 +39,7 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
 /**
  * Creates a reactive handle that tracks scroll position of an element relative to each edge.
  *
- * @example
+ * @example Vanilla
  * ```ts twoslash
  * import { scrollState } from 'seitu/web'
  *
@@ -50,17 +50,18 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  * })
  *
  * scroll.subscribe(state => {
- *   console.log(state.top.value)       // scrolled away from top
- *   console.log(state.top.remaining)   // px left to scroll back to top
- *   console.log(state.bottom.value)    // reached the bottom
- *   console.log(state.bottom.remaining) // px left to reach bottom
+ *   console.log(state.top.value)
+ *   console.log(state.top.remaining)
+ *   console.log(state.bottom.value)
+ *   console.log(state.bottom.remaining)
  * })
  *
  * const state = scroll.get()
  * console.log(state)
  * ```
  *
- * ```tsx twoslash
+ * @example React
+ * ```tsx twoslash title="page.tsx"
  * import { scrollState } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
@@ -70,8 +71,24 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  * })
  *
  * function Layout() {
- *   const state = useSubscription(() => scroll)
- *   return state.top.value ? 'scrolled' : 'at the top'
+ *   const { value: state, ref } = useSubscription(scroll)
+ *
+ *   return (
+ *     <div ref={ref}>
+ *       <div>
+ *         {state.top.value ? 'scrolled' : 'at the top'}
+ *       </div>
+ *       <div>
+ *         {state.bottom.value ? 'scrolled' : 'at the bottom'}
+ *       </div>
+ *       <div>
+ *         {state.left.value ? 'scrolled' : 'at the left'}
+ *       </div>
+ *       <div>
+ *         {state.right.value ? 'scrolled' : 'at the right'}
+ *       </div>
+ *     </div>
+ *   )
  * }
  * ```
  */

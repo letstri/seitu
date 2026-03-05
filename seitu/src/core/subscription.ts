@@ -1,7 +1,13 @@
 export interface Subscribable<V> {
   'subscribe': (callback: (value: V) => any) => () => void
   '~': {
+    /**
+     * Type type with returned value of the subscription.
+     */
     output: V
+    /**
+     * A function that notifies all subscribers that the value has changed.
+     */
     notify: () => void
   }
 }

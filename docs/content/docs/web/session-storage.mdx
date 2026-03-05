@@ -7,8 +7,11 @@ title: Session Storage
 ## createSessionStorage()
 Creates a reactive handle for a sessionStorage instance.
 
-**Example**  
-```ts twoslash
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="session-storage.ts"
 import { createSessionStorage } from 'seitu/web'
 import * as z from 'zod'
 
@@ -20,15 +23,37 @@ const sessionStorage = createSessionStorage({
   defaultValues: { token: null, preferences: { theme: 'light' } },
 })
 
-sessionStorage.get().token // null
-sessionStorage.get().preferences // { theme: 'light' }
-sessionStorage.set({ token: '123', preferences: { theme: 'dark' } })
-sessionStorage.get().token // '123'
-sessionStorage.get().preferences // { theme: 'dark' }
-sessionStorage.subscribe(value => console.log(value))
-sessionStorage.set({ token: '456', preferences: { theme: 'light' } })
-// { token: '456', preferences: { theme: 'light' } }
+sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
+sessionStorage.set({ token: 'abc' })
+sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
+sessionStorage.subscribe(console.log)
 ```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import { createSessionStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const sessionStorage = createSessionStorage({
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+export default function Page() {
+  const { value: storage } = useSubscription(sessionStorage)
+  return (
+    <div>
+      <span>{storage.count}</span>
+      <span>{storage.name}</span>
+    </div>
+  )
+}
+```
+
 
 * * *
 

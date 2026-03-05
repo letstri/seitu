@@ -4,11 +4,21 @@ title: Hooks
 
 <a name="useSubscription"></a>
 
-## useSubscription
-Use this hook to subscribe to a reactive value. The factory function is called only
-once on first render — subsequent renders reuse the cached subscription.
+## useSubscription(source, options)
+Use this hook to subscribe to a reactive value. Accepts a subscription object
+directly, or a factory function that is called only once on first render —
+subsequent renders reuse the cached subscription unless dependency array changes.
 
-**Example**  
+
+| Param | Description |
+| --- | --- |
+| source | A reactive subscription object, or a factory function returning one. |
+| options | Optional configuration object. |
+| options.selector | Optional selection function to derive value. |
+| options.deps | Optional dependencies to force memoization of subscription (recreate on change). |
+
+### Examples
+
 ```tsx twoslash title="/app/page.tsx"
 'use client'
 
@@ -26,7 +36,6 @@ export default function Page() {
   return <div>{value}</div>
 }
 ```
-**Example**  
 ```tsx twoslash title="/app/page.tsx"
 'use client'
 
@@ -44,7 +53,7 @@ const sessionStorage = createSessionStorage({
 
 export default function Page() {
   // Usage with selector, re-renders only when count changes
-  const count = useSubscription(() => sessionStorage, value => value.count)
+  const { value: count } = useSubscription(sessionStorage, { selector: value => value.count })
 
   return <div>{count}</div>
 }

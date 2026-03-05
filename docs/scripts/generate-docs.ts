@@ -8,6 +8,7 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const srcDir = path.join(rootDir, '../', 'seitu', 'src')
 const outDir = path.join(rootDir, 'content', 'docs')
 const scopePartialPath = path.join(rootDir, 'scripts', 'partials', 'scope.hbs')
+const examplesPartialPath = path.join(rootDir, 'scripts', 'partials', 'examples.hbs')
 
 const TS_COMPILER_OPTIONS: ts.CompilerOptions = {
   target: ts.ScriptTarget.ESNext,
@@ -33,6 +34,10 @@ async function findSourceFiles(dir: string): Promise<string[]> {
     }
   }
   return results
+}
+
+function normalizeExampleCaptions(code: string): string {
+  return code.replace(/@example +(?!<caption>)(\S[^\n]*)/g, '@example <caption>$1</caption>')
 }
 
 function extractJSDocForExportedFunctions(code: string, filePath: string): Map<string, string> {
@@ -94,7 +99,8 @@ function getPageTitle(sourcePath: string): string {
 }
 
 async function generateDocForFile(sourcePath: string): Promise<void> {
-  const code = await fs.readFile(sourcePath, 'utf8')
+  const raw = await fs.readFile(sourcePath, 'utf8')
+  const code = normalizeExampleCaptions(raw)
   const jsdocMap = extractJSDocForExportedFunctions(code, sourcePath)
   const js = injectJSDocIntoJs(transpileToJs(code, sourcePath), jsdocMap)
 
@@ -102,11 +108,11 @@ async function generateDocForFile(sourcePath: string): Promise<void> {
     'heading-depth': 2,
     'separators': true,
     'example-lang': 'ts',
-    'param-list-format': 'list',
-    'property-list-format': 'list',
+    'param-list-format': 'table',
+    'property-list-format': 'table',
     'no-cache': true,
     'source': js,
-    'partial': [scopePartialPath],
+    'partial': [scopePartialPath, examplesPartialPath],
   })
   if (!markdown) {
     console.warn('No markdown for', sourcePath)

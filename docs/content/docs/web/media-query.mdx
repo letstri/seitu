@@ -7,7 +7,10 @@ title: Media Query
 ## mediaQuery()
 Creates a handle for a media query.
 
-**Example**  
+### Examples
+
+#### Vanilla
+
 ```ts twoslash title="media-query.ts"
 import { mediaQuery } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
@@ -23,6 +26,8 @@ const state = isDesktop.get()
 console.log(state)
 ```
 
+#### React
+
 ```tsx twoslash title="page.tsx"
 import { mediaQuery } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
@@ -31,10 +36,12 @@ const isDesktop = mediaQuery({ query: '(min-width: 768px)' })
 
 // Usage with some function component
 function Layout() {
-  const matches = useSubscription(() => isDesktop)
+  const { value: matches } = useSubscription(isDesktop)
   return matches ? 'i am desktop' : 'i am mobile'
 }
 ```
+
+#### Errors
 
 ```tsx twoslash
 import { mediaQuery } from 'seitu/web'
@@ -46,6 +53,7 @@ mediaQuery({ query: '(min-width: ' })
 // @errors: 2362 2322 2820
 mediaQuery({ query: '(min-width: 768' })
 ```
+
 
 * * *
 

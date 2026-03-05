@@ -5,6 +5,7 @@ import * as React from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
 import { mediaQuery } from '../web/media-query'
+import { scrollState } from '../web/scroll-state'
 import { createSessionStorage } from '../web/session-storage'
 import { sessionStorageValue } from '../web/session-storage-value'
 import { useSubscription } from './hooks'
@@ -18,12 +19,12 @@ afterEach(() => {
 const TEST_KEY = 'seitu-hooks-test-key'
 
 function TestComponent({ storage }: { storage: SessionStorageValue<number> }) {
-  const value = useSubscription(() => storage)
+  const { value } = useSubscription(() => storage)
   return <span data-testid="subscription-value">{value}</span>
 }
 
 function TestComponentWithSelector({ storage }: { storage: SessionStorage<{ count: number }> }) {
-  const value = useSubscription(() => storage, value => value.count)
+  const { value } = useSubscription(storage, { selector: value => value.count })
   return <span data-testid="subscription-value">{value}</span>
 }
 
@@ -39,7 +40,7 @@ describe('hooks', () => {
         },
       }
       const { result } = renderHook(() => useSubscription(() => subscription))
-      expect(result.current).toBe(1)
+      expect(result.current.value).toBe(1)
     })
 
     it('should update when session storage value changes', () => {
@@ -74,7 +75,7 @@ describe('hooks', () => {
 
       function TestWithRenderCount({ storage: s }: { storage: SessionStorage<{ count: number }> }) {
         renderCount++
-        const value = useSubscription(() => s, value => value.count)
+        const { value } = useSubscription(() => s, { selector: value => value.count })
         return <span data-testid="subscription-value">{value}</span>
       }
 
@@ -96,6 +97,32 @@ describe('hooks', () => {
     })
   })
 
+  describe('useSubscription with direct object', () => {
+    it('should accept a stable subscription object', () => {
+      const storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+
+      const { result } = renderHook(() => useSubscription(storage))
+      expect(result.current.value).toBe(0)
+    })
+
+    it('should throw when a new object is passed on re-render', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      let error: Error | undefined
+      try {
+        const { rerender } = renderHook(() =>
+          useSubscription(sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })),
+        )
+        rerender()
+      }
+      catch (e) { error = e as Error }
+
+      expect(error?.message).toContain('useSubscription detected a new object on re-render')
+
+      vi.restoreAllMocks()
+    })
+  })
+
   describe('useSubscription factory', () => {
     it('should call factory only once across re-renders', () => {
       const factory = vi.fn(() =>
@@ -104,7 +131,7 @@ describe('hooks', () => {
 
       const { result, rerender } = renderHook(() => useSubscription(factory))
       expect(factory).toHaveBeenCalledTimes(1)
-      expect(result.current).toBe(0)
+      expect(result.current.value).toBe(0)
 
       rerender()
       rerender()
@@ -115,7 +142,7 @@ describe('hooks', () => {
       let storage: SessionStorageValue<number> | undefined
 
       function TestFactory() {
-        const value = useSubscription(() => {
+        const { value } = useSubscription(() => {
           storage = sessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
           return storage
         })
@@ -144,10 +171,7 @@ describe('hooks', () => {
 
       function TestFactoryRenderCount() {
         renderCount++
-        const value = useSubscription(
-          () => storage,
-          v => v.count,
-        )
+        const { value } = useSubscription(storage, { selector: v => v.count })
         return <span data-testid="subscription-value">{value}</span>
       }
 
@@ -162,6 +186,25 @@ describe('hooks', () => {
       })
       expect(renderCount).toBe(2)
       unmount()
+    })
+
+    it('should recreate subscription when deps change', () => {
+      const factory = vi.fn((key: string) =>
+        sessionStorageValue({ schema: z.number(), key, defaultValue: 0 }),
+      )
+
+      const { result, rerender } = renderHook(
+        ({ key }) => useSubscription(() => factory(key), { deps: [key] }),
+        { initialProps: { key: 'key-a' } },
+      )
+      expect(factory).toHaveBeenCalledTimes(1)
+      expect(result.current.value).toBe(0)
+
+      rerender({ key: 'key-a' })
+      expect(factory).toHaveBeenCalledTimes(1)
+
+      rerender({ key: 'key-b' })
+      expect(factory).toHaveBeenCalledTimes(2)
     })
   })
 })
@@ -187,15 +230,39 @@ describe('mediaQuery', () => {
     window.matchMedia = vi.fn().mockReturnValue(mql)
 
     const { result } = renderHook(() => useSubscription(() => mediaQuery({ query: '(prefers-color-scheme: dark)' })))
-    expect(result.current).toBe(true)
+    expect(result.current.value).toBe(true)
 
     act(() => {
       mql.matches = false
       listener?.(new Event('change'))
     })
 
-    expect(result.current).toBe(false)
+    expect(result.current.value).toBe(false)
 
     window.matchMedia = originalMatchMedia
+  })
+})
+
+describe('scrollState', () => {
+  it('should recreate subscription when element ref changes via callback ref', () => {
+    const factory = vi.fn((el: HTMLDivElement | null) =>
+      scrollState({ element: el, direction: 'vertical' }),
+    )
+
+    function TestWithScrollState() {
+      const { value: state, ref } = useSubscription<{ ref: HTMLDivElement | null }>(({ ref }) => factory(ref))
+      return (
+        <div ref={ref} data-testid="scroll-value">
+          {String(state.top.value)}
+        </div>
+      )
+    }
+
+    render(<TestWithScrollState />)
+
+    expect(factory).toHaveBeenCalledTimes(2)
+    expect(factory).toHaveBeenNthCalledWith(1, null)
+    expect(factory).toHaveBeenNthCalledWith(2, expect.any(HTMLDivElement))
+    expect(screen.getByTestId('scroll-value').textContent).toBe('false')
   })
 })
