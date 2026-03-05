@@ -17,7 +17,6 @@ export interface WebStorageValueOptionsWithStorage<
 export interface WebStorageValueOptionsWithSchema<
   S extends StandardSchemaV1<unknown>,
 > {
-  kind: 'sessionStorage' | 'localStorage'
   schema: S
   key: string
   defaultValue: StandardSchemaV1.InferOutput<S>
@@ -28,12 +27,12 @@ export function createWebStorageValue<
   K extends keyof Storage['~']['output'],
 >(options: WebStorageValueOptionsWithStorage<Storage, K>): WebStorageValue<Storage['~']['output'][K]>
 export function createWebStorageValue<S extends StandardSchemaV1<unknown>>(
-  options: WebStorageValueOptionsWithSchema<S>,
+  options: WebStorageValueOptionsWithSchema<S> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorageValue<StandardSchemaV1.InferOutput<S>>
 export function createWebStorageValue(
   options:
     | WebStorageValueOptionsWithStorage<WebStorage<any>, string>
-    | WebStorageValueOptionsWithSchema<StandardSchemaV1<unknown>>,
+    | WebStorageValueOptionsWithSchema<StandardSchemaV1<unknown>> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorageValue<unknown> {
   const kind = 'storage' in options ? options.storage['~'].kind : options.kind
   const label = `${kind}Value`

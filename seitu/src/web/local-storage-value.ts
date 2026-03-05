@@ -1,19 +1,17 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Readable, Subscribable, Writable } from '../core/index'
 import type { LocalStorage } from './local-storage'
-import type { WebStorageValueOptionsWithSchema, WebStorageValueOptionsWithStorage } from './web-storage-value'
+import type {
+  WebStorageValue as LocalStorageValue,
+  WebStorageValueOptionsWithSchema as LocalStorageValueOptionsWithSchema,
+  WebStorageValueOptionsWithStorage as LocalStorageValueOptionsWithStorage,
+} from './web-storage-value'
 import { createWebStorageValue } from './web-storage-value'
 
-export interface LocalStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V> {}
-
-export type LocalStorageValueOptionsWithStorage<
-  Storage extends LocalStorage<any>,
-  K extends keyof Storage['~']['output'],
-> = WebStorageValueOptionsWithStorage<Storage, K>
-
-export type LocalStorageValueOptionsWithSchema<
-  S extends StandardSchemaV1<unknown>,
-> = Omit<WebStorageValueOptionsWithSchema<S>, 'kind'>
+export type {
+  LocalStorageValue,
+  LocalStorageValueOptionsWithSchema,
+  LocalStorageValueOptionsWithStorage,
+}
 
 /**
  * Creates a reactive handle for a single localStorage value.

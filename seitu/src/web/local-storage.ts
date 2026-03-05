@@ -1,10 +1,8 @@
 import type { SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
-import type { WebStorage, WebStorageOptions } from './web-storage'
+import type { WebStorage as LocalStorage, WebStorageOptions as LocalStorageOptions } from './web-storage'
 import { createWebStorage } from './web-storage'
 
-export interface LocalStorage<O extends Record<string, unknown>> extends WebStorage<O> {}
-
-export interface LocalStorageOptions<S extends SchemaStoreSchema> extends Omit<WebStorageOptions<S>, 'kind'> {}
+export type { LocalStorage, LocalStorageOptions }
 
 /**
  * Creates a reactive handle for a localStorage instance.

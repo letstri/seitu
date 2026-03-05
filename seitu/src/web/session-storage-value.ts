@@ -1,19 +1,17 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Readable, Subscribable, Writable } from '../core/index'
 import type { SessionStorage } from './session-storage'
-import type { WebStorageValueOptionsWithSchema, WebStorageValueOptionsWithStorage } from './web-storage-value'
+import type {
+  WebStorageValue as SessionStorageValue,
+  WebStorageValueOptionsWithSchema as SessionStorageValueOptionsWithSchema,
+  WebStorageValueOptionsWithStorage as SessionStorageValueOptionsWithStorage,
+} from './web-storage-value'
 import { createWebStorageValue } from './web-storage-value'
 
-export interface SessionStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V> {}
-
-export type SessionStorageValueOptionsWithStorage<
-  Storage extends SessionStorage<any>,
-  K extends keyof Storage['~']['output'],
-> = WebStorageValueOptionsWithStorage<Storage, K>
-
-export type SessionStorageValueOptionsWithSchema<
-  S extends StandardSchemaV1<unknown>,
-> = Omit<WebStorageValueOptionsWithSchema<S>, 'kind'>
+export type {
+  SessionStorageValue,
+  SessionStorageValueOptionsWithSchema,
+  SessionStorageValueOptionsWithStorage,
+}
 
 /**
  * Creates a reactive handle for a single sessionStorage value.

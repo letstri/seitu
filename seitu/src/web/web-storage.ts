@@ -2,9 +2,7 @@ import type { SchemaStore, SchemaStoreOptions, SchemaStoreOutput, SchemaStoreSch
 import { createSchemaStore } from '../core/index'
 import { tryParseJson } from '../utils'
 
-export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {
-  kind: 'sessionStorage' | 'localStorage'
-}
+export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {}
 
 export interface WebStorage<O extends Record<string, unknown>> extends SchemaStore<O> {
   '~': {
@@ -13,7 +11,7 @@ export interface WebStorage<O extends Record<string, unknown>> extends SchemaSto
 }
 
 export function createWebStorage<S extends SchemaStoreSchema>(
-  options: WebStorageOptions<S>,
+  options: WebStorageOptions<S> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorage<SchemaStoreOutput<S>> {
   const { kind, ...rest } = options
 

@@ -1,10 +1,8 @@
 import type { SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
-import type { WebStorage, WebStorageOptions } from './web-storage'
+import type { WebStorage as SessionStorage, WebStorageOptions as SessionStorageOptions } from './web-storage'
 import { createWebStorage } from './web-storage'
 
-export interface SessionStorage<O extends Record<string, unknown>> extends WebStorage<O> {}
-
-export interface SessionStorageOptions<S extends SchemaStoreSchema> extends Omit<WebStorageOptions<S>, 'kind'> {}
+export type { SessionStorage, SessionStorageOptions }
 
 /**
  * Creates a reactive handle for a sessionStorage instance.
