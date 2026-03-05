@@ -7,7 +7,7 @@ const TEST_KEY = 'seitu-session-storage-value-test-key'
 
 describe('createWebStorageValue', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    localStorage.clear()
   })
 
   describe('get', () => {
