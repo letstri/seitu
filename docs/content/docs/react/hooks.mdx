@@ -4,20 +4,14 @@ title: Hooks
 
 <a name="useSubscription"></a>
 
-## useSubscription(source, options)
+## useSubscription()
 Use this hook to subscribe to a reactive value. Accepts a subscription object
 directly, or a factory function that is called only once on first render —
 subsequent renders reuse the cached subscription unless dependency array changes.
 
-
-| Param | Description |
-| --- | --- |
-| source | A reactive subscription object, or a factory function returning one. |
-| options | Optional configuration object. |
-| options.selector | Optional selection function to derive value. |
-| options.deps | Optional dependencies to force memoization of subscription (recreate on change). |
-
 ### Examples
+
+#### Inline subscription
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -27,7 +21,7 @@ import { useSubscription } from 'seitu/react'
 import * as z from 'zod'
 
 export default function Page() {
-  const { value } = useSubscription(() => createSessionStorageValue({
+  const value = useSubscription(() => createSessionStorageValue({
     key: 'test',
     defaultValue: 0,
     schema: z.number(),
@@ -36,6 +30,29 @@ export default function Page() {
   return <div>{value}</div>
 }
 ```
+
+#### Instance outside of component
+
+```tsx twoslash title="/app/page.tsx"
+'use client'
+
+import { createSessionStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const sessionStorage = createSessionStorage({
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+export default function Page() {
+  const value = useSubscription(sessionStorage)
+  return <div>{value.count}</div>
+}
+```
+
+#### Subscription with selector
+
 ```tsx twoslash title="/app/page.tsx"
 'use client'
 
@@ -53,11 +70,33 @@ const sessionStorage = createSessionStorage({
 
 export default function Page() {
   // Usage with selector, re-renders only when count changes
-  const { value: count } = useSubscription(sessionStorage, { selector: value => value.count })
+  const count = useSubscription(sessionStorage, { selector: value => value.count })
 
   return <div>{count}</div>
 }
 ```
+
+#### Ref example
+
+```tsx twoslash title="/app/page.tsx"
+'use client'
+
+import * as React from 'react'
+import { scrollState } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+export default function Page() {
+  const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
+  const state = useSubscription(() => scrollState({ element: ref, direction: 'vertical' }), { deps: [ref] })
+
+  return (
+    <div ref={setRef}>
+      {String(state.top.value)}
+    </div>
+  )
+}
+```
+
 
 * * *
 

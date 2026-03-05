@@ -19,12 +19,12 @@ afterEach(() => {
 const TEST_KEY = 'seitu-hooks-test-key'
 
 function TestComponent({ storage }: { storage: SessionStorageValue<number> }) {
-  const { value } = useSubscription(() => storage)
+  const value = useSubscription(storage)
   return <span data-testid="subscription-value">{value}</span>
 }
 
 function TestComponentWithSelector({ storage }: { storage: SessionStorage<{ count: number }> }) {
-  const { value } = useSubscription(storage, { selector: value => value.count })
+  const value = useSubscription(storage, { selector: value => value.count })
   return <span data-testid="subscription-value">{value}</span>
 }
 
@@ -40,7 +40,7 @@ describe('hooks', () => {
         },
       }
       const { result } = renderHook(() => useSubscription(() => subscription))
-      expect(result.current.value).toBe(1)
+      expect(result.current).toBe(1)
     })
 
     it('should update when session storage value changes', () => {
@@ -75,7 +75,7 @@ describe('hooks', () => {
 
       function TestWithRenderCount({ storage: s }: { storage: SessionStorage<{ count: number }> }) {
         renderCount++
-        const { value } = useSubscription(() => s, { selector: value => value.count })
+        const value = useSubscription(() => s, { selector: value => value.count })
         return <span data-testid="subscription-value">{value}</span>
       }
 
@@ -102,7 +102,7 @@ describe('hooks', () => {
       const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
 
       const { result } = renderHook(() => useSubscription(storage))
-      expect(result.current.value).toBe(0)
+      expect(result.current).toBe(0)
     })
 
     it('should throw when a new object is passed on re-render', () => {
@@ -131,7 +131,7 @@ describe('hooks', () => {
 
       const { result, rerender } = renderHook(() => useSubscription(factory))
       expect(factory).toHaveBeenCalledTimes(1)
-      expect(result.current.value).toBe(0)
+      expect(result.current).toBe(0)
 
       rerender()
       rerender()
@@ -142,7 +142,7 @@ describe('hooks', () => {
       let storage: SessionStorageValue<number> | undefined
 
       function TestFactory() {
-        const { value } = useSubscription(() => {
+        const value = useSubscription(() => {
           storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
           return storage
         })
@@ -171,7 +171,7 @@ describe('hooks', () => {
 
       function TestFactoryRenderCount() {
         renderCount++
-        const { value } = useSubscription(storage, { selector: v => v.count })
+        const value = useSubscription(storage, { selector: v => v.count })
         return <span data-testid="subscription-value">{value}</span>
       }
 
@@ -198,7 +198,7 @@ describe('hooks', () => {
         { initialProps: { key: 'key-a' } },
       )
       expect(factory).toHaveBeenCalledTimes(1)
-      expect(result.current.value).toBe(0)
+      expect(result.current).toBe(0)
 
       rerender({ key: 'key-a' })
       expect(factory).toHaveBeenCalledTimes(1)
@@ -230,14 +230,14 @@ describe('mediaQuery', () => {
     window.matchMedia = vi.fn().mockReturnValue(mql)
 
     const { result } = renderHook(() => useSubscription(() => mediaQuery({ query: '(prefers-color-scheme: dark)' })))
-    expect(result.current.value).toBe(true)
+    expect(result.current).toBe(true)
 
     act(() => {
       mql.matches = false
       listener?.(new Event('change'))
     })
 
-    expect(result.current.value).toBe(false)
+    expect(result.current).toBe(false)
 
     window.matchMedia = originalMatchMedia
   })
@@ -250,9 +250,10 @@ describe('scrollState', () => {
     )
 
     function TestWithScrollState() {
-      const { value: state, ref } = useSubscription<{ ref: HTMLDivElement | null }>(({ ref }) => factory(ref))
+      const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
+      const state = useSubscription(() => factory(ref), { deps: [ref] })
       return (
-        <div ref={ref} data-testid="scroll-value">
+        <div ref={setRef} data-testid="scroll-value">
           {String(state.top.value)}
         </div>
       )

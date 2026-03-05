@@ -2,12 +2,19 @@ import type { Readable, Subscribable } from '../core/index'
 import deepEqual from 'deep-equal'
 import * as React from 'react'
 
+export type UseSubscriptionSource<S extends Subscribable<any> & Readable<any>> = S | (() => S)
+
+export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
+  selector?: (value: S['~']['output']) => R
+  deps?: React.DependencyList
+}
+
 /**
  * Use this hook to subscribe to a reactive value. Accepts a subscription object
  * directly, or a factory function that is called only once on first render —
  * subsequent renders reuse the cached subscription unless dependency array changes.
  *
- * @example
+ * @example Inline subscription
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
@@ -16,7 +23,7 @@ import * as React from 'react'
  * import * as z from 'zod'
  *
  * export default function Page() {
- *   const { value } = useSubscription(() => createSessionStorageValue({
+ *   const value = useSubscription(() => createSessionStorageValue({
  *     key: 'test',
  *     defaultValue: 0,
  *     schema: z.number(),
@@ -26,7 +33,26 @@ import * as React from 'react'
  * }
  * ```
  *
- * @example
+ * @example Instance outside of component
+ * ```tsx twoslash title="/app/page.tsx"
+ * 'use client'
+ *
+ * import { createSessionStorage } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ * import * as z from 'zod'
+ *
+ * const sessionStorage = createSessionStorage({
+ *   schemas: { count: z.number(), name: z.string() },
+ *   defaultValues: { count: 0, name: '' },
+ * })
+ *
+ * export default function Page() {
+ *   const value = useSubscription(sessionStorage)
+ *   return <div>{value.count}</div>
+ * }
+ * ```
+ *
+ * @example Subscription with selector
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
@@ -44,28 +70,39 @@ import * as React from 'react'
  *
  * export default function Page() {
  *   // Usage with selector, re-renders only when count changes
- *   const { value: count } = useSubscription(sessionStorage, { selector: value => value.count })
+ *   const count = useSubscription(sessionStorage, { selector: value => value.count })
  *
  *   return <div>{count}</div>
  * }
  * ```
  *
- * @param source - A reactive subscription object, or a factory function returning one.
- * @param options - Optional configuration object.
- * @param options.selector - Optional selection function to derive value.
- * @param options.deps - Optional dependencies to force memoization of subscription (recreate on change).
+ * @example Ref example
+ * ```tsx twoslash title="/app/page.tsx"
+ * 'use client'
+ *
+ * import * as React from 'react'
+ * import { scrollState } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ *
+ * export default function Page() {
+ *   const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
+ *   const state = useSubscription(() => scrollState({ element: ref, direction: 'vertical' }), { deps: [ref] })
+ *
+ *   return (
+ *     <div ref={setRef}>
+ *       {String(state.top.value)}
+ *     </div>
+ *   )
+ * }
+ * ```
  */
 export function useSubscription<
-  Props extends { ref: unknown | null } = { ref: unknown | null },
   S extends Subscribable<any> & Readable<any> = Subscribable<any> & Readable<any>,
   R = S['~']['output'],
 >(
-  source: S | ((props: { ref: Props['ref'] }) => S),
-  options?: {
-    selector?: (value: S['~']['output']) => R
-    deps?: React.DependencyList
-  },
-): { value: R, ref: React.RefCallback<Props['ref']> } {
+  source: UseSubscriptionSource<S>,
+  options?: UseSubscriptionOptions<S, R>,
+): R {
   const { selector, deps = [] } = options ?? {}
   const isFactory = typeof source === 'function'
 
@@ -79,14 +116,12 @@ export function useSubscription<
   }
   sourceRef.current = source
 
-  const [ref, setRef] = React.useState<Props['ref'] | null>(null)
-
   const factoryFn = isFactory ? source : () => source
   const factoryRef = React.useRef(factoryFn)
   factoryRef.current = factoryFn
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const subscription = React.useMemo(() => factoryRef.current({ ref }), [ref, ...deps])
+  const subscription = React.useMemo(() => factoryRef.current(), deps)
 
   if (!subscription.get || !subscription.subscribe) {
     throw new Error('Subscription is not valid. It must have a get and subscribe method.')
@@ -105,5 +140,5 @@ export function useSubscription<
     })
   }, [subscription, selector])
 
-  return { value, ref: setRef }
+  return value
 }
