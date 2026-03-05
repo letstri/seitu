@@ -1,0 +1,47 @@
+---
+title: Scroll State
+---
+
+<a name="scrollState"></a>
+
+## scrollState()
+Creates a reactive handle that tracks scroll position of an element relative to each edge.
+
+**Example**  
+```ts twoslash
+import { scrollState } from 'seitu/web'
+
+const scroll = scrollState({
+  element: document.querySelector('.container'),
+  direction: 'vertical',
+  threshold: 10,
+})
+
+scroll.subscribe(state => {
+  console.log(state.top.value)       // scrolled away from top
+  console.log(state.top.remaining)   // px left to scroll back to top
+  console.log(state.bottom.value)    // reached the bottom
+  console.log(state.bottom.remaining) // px left to reach bottom
+})
+
+const state = scroll.get()
+console.log(state)
+```
+
+```tsx twoslash
+import { scrollState } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+const scroll = scrollState({
+  element: document.querySelector('.container'),
+  threshold: 10,
+})
+
+function Layout() {
+  const state = useSubscription(scroll)
+  return state.top.value ? 'scrolled' : 'at the top'
+}
+```
+
+* * *
+
