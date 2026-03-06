@@ -11,22 +11,22 @@ export default function Home() {
   console.table([
     {
       'Edge': 'Top',
-      'At Edge?': scroll.top.value ? 'Yes' : 'No',
+      'At Edge?': scroll.top.reached ? 'Yes' : 'No',
       'Remaining px': scroll.top.remaining,
     },
     {
       'Edge': 'Bottom',
-      'At Edge?': scroll.bottom.value ? 'Yes' : 'No',
+      'At Edge?': scroll.bottom.reached ? 'Yes' : 'No',
       'Remaining px': scroll.bottom.remaining,
     },
     {
       'Edge': 'Left',
-      'At Edge?': scroll.left.value ? 'Yes' : 'No',
+      'At Edge?': scroll.left.reached ? 'Yes' : 'No',
       'Remaining px': scroll.left.remaining,
     },
     {
       'Edge': 'Right',
-      'At Edge?': scroll.right.value ? 'Yes' : 'No',
+      'At Edge?': scroll.right.reached ? 'Yes' : 'No',
       'Remaining px': scroll.right.remaining,
     },
   ])

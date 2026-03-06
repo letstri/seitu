@@ -88,7 +88,7 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  *
  *   return (
  *     <div ref={ref}>
- *       {String(state.top.value)}
+ *       {String(state.top.reached)}
  *     </div>
  *   )
  * }

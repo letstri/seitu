@@ -4,7 +4,7 @@ import { createSubscription } from '../core/index'
 export type ScrollDirection = 'vertical' | 'horizontal' | 'both'
 
 export interface ScrollStateEdge {
-  value: boolean
+  reached: boolean
   remaining: number
 }
 
@@ -13,6 +13,13 @@ export interface ScrollStateValue {
   bottom: ScrollStateEdge
   left: ScrollStateEdge
   right: ScrollStateEdge
+}
+
+export interface ScrollStateThreshold {
+  top?: number
+  bottom?: number
+  left?: number
+  right?: number
 }
 
 export interface ScrollState extends Subscribable<ScrollStateValue>, Readable<ScrollStateValue> {}
@@ -30,13 +37,15 @@ export interface ScrollStateOptions {
    */
   direction?: ScrollDirection
   /**
-   * Number of pixels from each edge before it counts as "scrolled".
+   * Number of pixels from each edge before it counts as "reached".
+   * Pass a single number to apply the same threshold to all edges,
+   * or an object with per-side values.
    * @default 0
    */
-  threshold?: number
+  threshold?: number | ScrollStateThreshold
 }
 
-const inactive: ScrollStateEdge = { value: false, remaining: 0 }
+const inactive: ScrollStateEdge = { reached: false, remaining: 0 }
 
 /**
  * Creates a reactive handle that tracks scroll position of an element relative to each edge.
@@ -52,9 +61,9 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  * })
  *
  * scroll.subscribe(state => {
- *   console.log(state.top.value)
+ *   console.log(state.top.reached)
  *   console.log(state.top.remaining)
- *   console.log(state.bottom.value)
+ *   console.log(state.bottom.reached)
  *   console.log(state.bottom.remaining)
  * })
  *
@@ -79,7 +88,7 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  *
  *   return (
  *     <div ref={ref}>
- *       {state.top.value ? 'at the top' : 'scrolled'}
+ *       {state.top.reached ? 'at the top' : 'scrolled'}
  *     </div>
  *   )
  * }
@@ -102,15 +111,19 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  *
  *   return (
  *     <div ref={setRef}>
- *       {state.top.value ? 'at the top' : 'scrolled'}
+ *       {state.top.reached ? 'at the top' : 'scrolled'}
  *     </div>
  *   )
  * }
  * ```
  */
 export function scrollState(options: ScrollStateOptions): ScrollState {
-  const { direction = 'both', threshold = 0 } = options
+  const { direction = 'both', threshold: rawThreshold = 0 } = options
   const { subscribe, notify } = createSubscription()
+
+  const t = typeof rawThreshold === 'number'
+    ? { top: rawThreshold, bottom: rawThreshold, left: rawThreshold, right: rawThreshold }
+    : { top: rawThreshold.top ?? 0, bottom: rawThreshold.bottom ?? 0, left: rawThreshold.left ?? 0, right: rawThreshold.right ?? 0 }
 
   const resolveElement = (): Element | null =>
     typeof options.element === 'function' ? options.element() : options.element
@@ -118,7 +131,7 @@ export function scrollState(options: ScrollStateOptions): ScrollState {
   const get = (): ScrollStateValue => {
     const element = resolveElement()
 
-    const edge = (value: boolean, remaining: number): ScrollStateEdge => ({ value, remaining: Math.max(0, remaining) })
+    const edge = (reached: boolean, remaining: number): ScrollStateEdge => ({ reached, remaining: Math.max(0, remaining) })
 
     if (!element) {
       return { top: inactive, bottom: inactive, left: inactive, right: inactive }
@@ -130,10 +143,10 @@ export function scrollState(options: ScrollStateOptions): ScrollState {
     const remainingRight = element.scrollWidth - element.scrollLeft - element.clientWidth
 
     return {
-      top: direction !== 'horizontal' ? edge(remainingTop <= threshold, remainingTop) : inactive,
-      bottom: direction !== 'horizontal' ? edge(remainingBottom <= threshold, remainingBottom) : inactive,
-      left: direction !== 'vertical' ? edge(remainingLeft <= threshold, remainingLeft) : inactive,
-      right: direction !== 'vertical' ? edge(remainingRight <= threshold, remainingRight) : inactive,
+      top: direction !== 'horizontal' ? edge(remainingTop <= t.top, remainingTop) : inactive,
+      bottom: direction !== 'horizontal' ? edge(remainingBottom <= t.bottom, remainingBottom) : inactive,
+      left: direction !== 'vertical' ? edge(remainingLeft <= t.left, remainingLeft) : inactive,
+      right: direction !== 'vertical' ? edge(remainingRight <= t.right, remainingRight) : inactive,
     }
   }
 

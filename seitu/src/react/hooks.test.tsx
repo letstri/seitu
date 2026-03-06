@@ -254,7 +254,7 @@ describe('scrollState', () => {
       const state = useSubscription(() => factory(ref), { deps: [ref] })
       return (
         <div ref={setRef} data-testid="scroll-value">
-          {String(state.top.value)}
+          {String(state.top.reached)}
         </div>
       )
     }

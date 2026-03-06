@@ -27,7 +27,7 @@ function setScrollPosition(el: Element, props: { scrollTop?: number, scrollLeft?
   }
 }
 
-const inactive = { value: false, remaining: 0 }
+const inactive = { reached: false, remaining: 0 }
 
 describe('scrollState', () => {
   describe('get', () => {
@@ -41,60 +41,60 @@ describe('scrollState', () => {
       const scroll = scrollState({ element: el })
       const state = scroll.get()
 
-      expect(state.top).toEqual({ value: true, remaining: 0 })
-      expect(state.bottom).toEqual({ value: false, remaining: 300 })
-      expect(state.left).toEqual({ value: true, remaining: 0 })
-      expect(state.right).toEqual({ value: false, remaining: 300 })
+      expect(state.top).toEqual({ reached: true, remaining: 0 })
+      expect(state.bottom).toEqual({ reached: false, remaining: 300 })
+      expect(state.left).toEqual({ reached: true, remaining: 0 })
+      expect(state.right).toEqual({ reached: false, remaining: 300 })
     })
 
-    it('returns top.value=false and remaining when scrolled past threshold', () => {
+    it('returns top.reached=false and remaining when scrolled past threshold', () => {
       const el = createMockElement({ scrollHeight: 500, clientHeight: 200 })
       setScrollPosition(el, { scrollTop: 50 })
 
       const scroll = scrollState({ element: el, threshold: 10 })
-      expect(scroll.get().top).toEqual({ value: false, remaining: 50 })
+      expect(scroll.get().top).toEqual({ reached: false, remaining: 50 })
     })
 
-    it('returns top.value=true when within threshold of top', () => {
+    it('returns top.reached=true when within threshold of top', () => {
       const el = createMockElement()
       setScrollPosition(el, { scrollTop: 5 })
 
       const scroll = scrollState({ element: el, threshold: 10 })
-      expect(scroll.get().top.value).toBe(true)
+      expect(scroll.get().top.reached).toBe(true)
       expect(scroll.get().top.remaining).toBe(5)
     })
 
-    it('returns bottom.value=true when scrolled to the end', () => {
+    it('returns bottom.reached=true when scrolled to the end', () => {
       const el = createMockElement({ scrollHeight: 500, clientHeight: 200 })
       setScrollPosition(el, { scrollTop: 300 })
 
       const scroll = scrollState({ element: el })
-      expect(scroll.get().bottom).toEqual({ value: true, remaining: 0 })
+      expect(scroll.get().bottom).toEqual({ reached: true, remaining: 0 })
     })
 
-    it('returns bottom.value=true when within threshold of end', () => {
+    it('returns bottom.reached=true when within threshold of end', () => {
       const el = createMockElement({ scrollHeight: 500, clientHeight: 200 })
       setScrollPosition(el, { scrollTop: 295 })
 
       const scroll = scrollState({ element: el, threshold: 10 })
-      expect(scroll.get().bottom.value).toBe(true)
+      expect(scroll.get().bottom.reached).toBe(true)
       expect(scroll.get().bottom.remaining).toBe(5)
     })
 
-    it('returns left.value=false when scrolled horizontally past threshold', () => {
+    it('returns left.reached=false when scrolled horizontally past threshold', () => {
       const el = createMockElement()
       setScrollPosition(el, { scrollLeft: 50 })
 
       const scroll = scrollState({ element: el, direction: 'horizontal', threshold: 10 })
-      expect(scroll.get().left).toEqual({ value: false, remaining: 50 })
+      expect(scroll.get().left).toEqual({ reached: false, remaining: 50 })
     })
 
-    it('returns right.value=true when scrolled to the right end', () => {
+    it('returns right.reached=true when scrolled to the right end', () => {
       const el = createMockElement({ scrollWidth: 500, clientWidth: 200 })
       setScrollPosition(el, { scrollLeft: 300 })
 
       const scroll = scrollState({ element: el, direction: 'horizontal' })
-      expect(scroll.get().right).toEqual({ value: true, remaining: 0 })
+      expect(scroll.get().right).toEqual({ reached: true, remaining: 0 })
     })
 
     it('tracks only vertical when direction is vertical', () => {
@@ -103,7 +103,7 @@ describe('scrollState', () => {
 
       const scroll = scrollState({ element: el, direction: 'vertical' })
       const state = scroll.get()
-      expect(state.top.value).toBe(false)
+      expect(state.top.reached).toBe(false)
       expect(state.top.remaining).toBe(50)
       expect(state.left).toEqual(inactive)
       expect(state.right).toEqual(inactive)
@@ -117,7 +117,7 @@ describe('scrollState', () => {
       const state = scroll.get()
       expect(state.top).toEqual(inactive)
       expect(state.bottom).toEqual(inactive)
-      expect(state.left.value).toBe(false)
+      expect(state.left.reached).toBe(false)
       expect(state.left.remaining).toBe(50)
     })
 
@@ -127,10 +127,34 @@ describe('scrollState', () => {
 
       const scroll = scrollState({ element: el })
       const state = scroll.get()
-      expect(state.top.value).toBe(false)
+      expect(state.top.reached).toBe(false)
       expect(state.top.remaining).toBe(50)
-      expect(state.left.value).toBe(false)
+      expect(state.left.reached).toBe(false)
       expect(state.left.remaining).toBe(50)
+    })
+
+    it('supports per-side thresholds', () => {
+      const el = createMockElement({ scrollHeight: 500, clientHeight: 200, scrollWidth: 500, clientWidth: 200 })
+      setScrollPosition(el, { scrollTop: 15, scrollLeft: 15 })
+
+      const scroll = scrollState({ element: el, threshold: { top: 20, bottom: 5, left: 10, right: 30 } })
+      const state = scroll.get()
+
+      expect(state.top.reached).toBe(true)
+      expect(state.bottom.reached).toBe(false)
+      expect(state.left.reached).toBe(false)
+      expect(state.right.reached).toBe(false)
+    })
+
+    it('defaults unspecified per-side thresholds to 0', () => {
+      const el = createMockElement({ scrollHeight: 500, clientHeight: 200 })
+      setScrollPosition(el, { scrollTop: 0 })
+
+      const scroll = scrollState({ element: el, threshold: { bottom: 50 } })
+      const state = scroll.get()
+
+      expect(state.top.reached).toBe(true)
+      expect(state.bottom.reached).toBe(false)
     })
   })
 
@@ -142,8 +166,8 @@ describe('scrollState', () => {
       const scroll = scrollState({ element: () => el })
       const state = scroll.get()
 
-      expect(state.top).toEqual({ value: false, remaining: 50 })
-      expect(state.bottom).toEqual({ value: false, remaining: 250 })
+      expect(state.top).toEqual({ reached: false, remaining: 50 })
+      expect(state.bottom).toEqual({ reached: false, remaining: 250 })
     })
 
     it('returns inactive when getter returns null', () => {
@@ -163,7 +187,7 @@ describe('scrollState', () => {
 
       expect(callback).toHaveBeenCalledTimes(1)
       expect(callback).toHaveBeenCalledWith(expect.objectContaining({
-        top: { value: false, remaining: 100 },
+        top: { reached: false, remaining: 100 },
       }))
     })
 
@@ -175,8 +199,8 @@ describe('scrollState', () => {
 
       el = createMockElement({ scrollHeight: 500, clientHeight: 200 })
       const state = scroll.get()
-      expect(state.top).toEqual({ value: true, remaining: 0 })
-      expect(state.bottom).toEqual({ value: false, remaining: 300 })
+      expect(state.top).toEqual({ reached: true, remaining: 0 })
+      expect(state.bottom).toEqual({ reached: false, remaining: 300 })
     })
 
     it('subscribe calls callback with inactive when getter returns null', () => {
@@ -203,7 +227,7 @@ describe('scrollState', () => {
 
       expect(callback).toHaveBeenCalledTimes(1)
       expect(callback).toHaveBeenCalledWith(expect.objectContaining({
-        top: { value: false, remaining: 100 },
+        top: { reached: false, remaining: 100 },
       }))
     })
 
