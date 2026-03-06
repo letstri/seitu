@@ -2,8 +2,6 @@ import type { Readable, Subscribable } from '../core/index'
 import deepEqual from 'deep-equal'
 import * as React from 'react'
 
-export type UseSubscriptionSource<S extends Subscribable<any> & Readable<any>> = S | (() => S)
-
 export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
   selector?: (value: S['~']['output']) => R
   deps?: React.DependencyList
@@ -100,7 +98,7 @@ export function useSubscription<
   S extends Subscribable<any> & Readable<any> = Subscribable<any> & Readable<any>,
   R = S['~']['output'],
 >(
-  source: UseSubscriptionSource<S>,
+  source: S | (() => S),
   options?: UseSubscriptionOptions<S, R>,
 ): R {
   const { selector, deps = [] } = options ?? {}
