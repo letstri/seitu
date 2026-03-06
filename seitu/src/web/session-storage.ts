@@ -40,7 +40,7 @@ export type { SessionStorage, SessionStorageOptions }
  * })
  *
  * export default function Page() {
- *   const { value } = useSubscription(sessionStorage)
+ *   const value = useSubscription(sessionStorage)
  *   return (
  *     <div>
  *       <span>{value.count}</span>

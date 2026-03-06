@@ -61,7 +61,7 @@ export type {
  * import * as z from 'zod'
  *
  * export default function Page() {
- *   const { value: count } = useSubscription(() => createSessionStorageValue({
+ *   const count = useSubscription(() => createSessionStorageValue({
  *     key: 'count',
  *     defaultValue: 0,
  *     schema: z.number(),

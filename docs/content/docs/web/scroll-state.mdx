@@ -34,19 +34,21 @@ console.log(state)
 #### React
 
 ```tsx twoslash title="page.tsx"
+'use client'
+
+import * as React from 'react'
 import { scrollState } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 
-const scroll = scrollState({
-  element: document.querySelector('.container'),
-  threshold: 10,
-})
-
 function Layout() {
-  const { value: state, ref } = useSubscription(scroll)
+  const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
+  const state = useSubscription(() => scrollState({
+    element: ref,
+    threshold: 10,
+  }), { deps: [ref] })
 
   return (
-    <div ref={ref}>
+    <div ref={setRef}>
       <div>
         {state.top.value ? 'scrolled' : 'at the top'}
       </div>

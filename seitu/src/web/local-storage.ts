@@ -40,7 +40,7 @@ export type { LocalStorage, LocalStorageOptions }
  * })
  *
  * export default function Page() {
- *   const { value } = useSubscription(localStorage)
+ *   const value = useSubscription(localStorage)
  *   return (
  *     <div>
  *       <span>{value.count}</span>

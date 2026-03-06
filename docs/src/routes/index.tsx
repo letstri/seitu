@@ -30,7 +30,7 @@ import { useSubscription } from 'seitu/react'
 
 export default function Page() {
   // Subscribe to the instance
-  const { value: count } = useSubscription(
+  const count = useSubscription(
     localStorage,
     // Re-render only when count changes
     { selector: value => value.count }
@@ -39,7 +39,7 @@ export default function Page() {
   return (
     <div>
       <span>{count}</span>
-      <button onClick={() => value.set(c => c + 1)}>Increment</button>
+      <button onClick={() => count.set(c => c + 1)}>Increment</button>
     </div>
   )
 }
