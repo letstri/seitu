@@ -95,7 +95,7 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * ```
  */
 export function useSubscription<
-  S extends Subscribable<any> & Readable<any> = Subscribable<any> & Readable<any>,
+  S extends Subscribable<any> & Readable<any>,
   R = S['~']['output'],
 >(
   source: S | (() => S),
