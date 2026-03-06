@@ -31,7 +31,31 @@ const state = scroll.get()
 console.log(state)
 ```
 
-#### React
+#### React (with useRef)
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import * as React from 'react'
+import { scrollState } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+function Layout() {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const state = useSubscription(() => scrollState({
+    element: () => ref.current,
+    threshold: 10,
+  }))
+
+  return (
+    <div ref={ref}>
+      {state.top.value ? 'at the top' : 'scrolled'}
+    </div>
+  )
+}
+```
+
+#### React (with useState)
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -49,18 +73,7 @@ function Layout() {
 
   return (
     <div ref={setRef}>
-      <div>
-        {state.top.value ? 'scrolled' : 'at the top'}
-      </div>
-      <div>
-        {state.bottom.value ? 'scrolled' : 'at the bottom'}
-      </div>
-      <div>
-        {state.left.value ? 'scrolled' : 'at the left'}
-      </div>
-      <div>
-        {state.right.value ? 'scrolled' : 'at the right'}
-      </div>
+      {state.top.value ? 'at the top' : 'scrolled'}
     </div>
   )
 }

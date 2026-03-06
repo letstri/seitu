@@ -86,11 +86,11 @@ import { scrollState } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 
 export default function Page() {
-  const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
-  const state = useSubscription(() => scrollState({ element: ref, direction: 'vertical' }), { deps: [ref] })
+  const ref = React.useRef<HTMLDivElement>(null)
+  const state = useSubscription(() => scrollState({ element: () => ref.current, direction: 'vertical' }))
 
   return (
-    <div ref={setRef}>
+    <div ref={ref}>
       {String(state.top.value)}
     </div>
   )

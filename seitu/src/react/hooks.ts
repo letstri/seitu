@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from '../core/index'
-import deepEqual from 'deep-equal'
+import { deepEqual } from 'fast-equals'
 import * as React from 'react'
 
 export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
@@ -83,11 +83,11 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * import { useSubscription } from 'seitu/react'
  *
  * export default function Page() {
- *   const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
- *   const state = useSubscription(() => scrollState({ element: ref, direction: 'vertical' }), { deps: [ref] })
+ *   const ref = React.useRef<HTMLDivElement>(null)
+ *   const state = useSubscription(() => scrollState({ element: () => ref.current, direction: 'vertical' }))
  *
  *   return (
- *     <div ref={setRef}>
+ *     <div ref={ref}>
  *       {String(state.top.value)}
  *     </div>
  *   )
@@ -130,12 +130,18 @@ export function useSubscription<
   const getValue = React.useEffectEvent(() => value)
 
   React.useEffect(() => {
-    return subscription.subscribe((next) => {
+    const sync = (next: S['~']['output']) => {
       const nextSelected = selector ? selector(next) : next
       if (deepEqual(nextSelected, getValue()))
         return
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- intentional: sync value that may change between render and effect (e.g. lazy element getter)
       setValue(nextSelected)
-    })
+    }
+
+    const unsub = subscription.subscribe(sync)
+    sync(subscription.get())
+
+    return unsub
   }, [subscription, selector])
 
   return value

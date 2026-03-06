@@ -20,8 +20,10 @@ export interface ScrollState extends Subscribable<ScrollStateValue>, Readable<Sc
 export interface ScrollStateOptions {
   /**
    * The element to observe scroll position on.
+   * Accepts an element directly, or a getter function for lazy resolution
+   * (useful with React refs that aren't available during render).
    */
-  element: Element | null
+  element: Element | null | (() => Element | null)
   /**
    * Which scroll axis to track.
    * @default 'both'
@@ -60,7 +62,30 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  * console.log(state)
  * ```
  *
- * @example React
+ * @example React (with useRef)
+ * ```tsx twoslash title="page.tsx"
+ * 'use client'
+ *
+ * import * as React from 'react'
+ * import { scrollState } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ *
+ * function Layout() {
+ *   const ref = React.useRef<HTMLDivElement>(null)
+ *   const state = useSubscription(() => scrollState({
+ *     element: () => ref.current,
+ *     threshold: 10,
+ *   }))
+ *
+ *   return (
+ *     <div ref={ref}>
+ *       {state.top.value ? 'at the top' : 'scrolled'}
+ *     </div>
+ *   )
+ * }
+ * ```
+ *
+ * @example React (with useState)
  * ```tsx twoslash title="page.tsx"
  * 'use client'
  *
@@ -77,18 +102,7 @@ const inactive: ScrollStateEdge = { value: false, remaining: 0 }
  *
  *   return (
  *     <div ref={setRef}>
- *       <div>
- *         {state.top.value ? 'scrolled' : 'at the top'}
- *       </div>
- *       <div>
- *         {state.bottom.value ? 'scrolled' : 'at the bottom'}
- *       </div>
- *       <div>
- *         {state.left.value ? 'scrolled' : 'at the left'}
- *       </div>
- *       <div>
- *         {state.right.value ? 'scrolled' : 'at the right'}
- *       </div>
+ *       {state.top.value ? 'at the top' : 'scrolled'}
  *     </div>
  *   )
  * }
@@ -98,8 +112,11 @@ export function scrollState(options: ScrollStateOptions): ScrollState {
   const { direction = 'both', threshold = 0 } = options
   const { subscribe, notify } = createSubscription()
 
+  const resolveElement = (): Element | null =>
+    typeof options.element === 'function' ? options.element() : options.element
+
   const get = (): ScrollStateValue => {
-    const element = options.element
+    const element = resolveElement()
 
     const edge = (value: boolean, remaining: number): ScrollStateEdge => ({ value, remaining: Math.max(0, remaining) })
 
@@ -113,9 +130,9 @@ export function scrollState(options: ScrollStateOptions): ScrollState {
     const remainingRight = element.scrollWidth - element.scrollLeft - element.clientWidth
 
     return {
-      top: direction !== 'horizontal' ? edge(remainingTop > threshold, remainingTop) : inactive,
+      top: direction !== 'horizontal' ? edge(remainingTop <= threshold, remainingTop) : inactive,
       bottom: direction !== 'horizontal' ? edge(remainingBottom <= threshold, remainingBottom) : inactive,
-      left: direction !== 'vertical' ? edge(remainingLeft > threshold, remainingLeft) : inactive,
+      left: direction !== 'vertical' ? edge(remainingLeft <= threshold, remainingLeft) : inactive,
       right: direction !== 'vertical' ? edge(remainingRight <= threshold, remainingRight) : inactive,
     }
   }
@@ -123,7 +140,7 @@ export function scrollState(options: ScrollStateOptions): ScrollState {
   return {
     get,
     'subscribe': (callback) => {
-      const element = options.element
+      const element = resolveElement()
 
       if (!element) {
         callback(get())

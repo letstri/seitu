@@ -264,6 +264,6 @@ describe('scrollState', () => {
     expect(factory).toHaveBeenCalledTimes(2)
     expect(factory).toHaveBeenNthCalledWith(1, null)
     expect(factory).toHaveBeenNthCalledWith(2, expect.any(HTMLDivElement))
-    expect(screen.getByTestId('scroll-value').textContent).toBe('false')
+    expect(screen.getByTestId('scroll-value').textContent).toBe('true')
   })
 })

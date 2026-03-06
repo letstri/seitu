@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 import jsdoc2md from 'jsdoc-to-markdown'
 import ts from 'typescript'
 
+const OUTPUT_PATH_REGEXP = /\.(ts|tsx)$/
+
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const srcDir = path.join(rootDir, '../', 'seitu', 'src')
 const outDir = path.join(rootDir, 'content', 'docs')
@@ -36,8 +38,10 @@ async function findSourceFiles(dir: string): Promise<string[]> {
   return results
 }
 
+const EXAMPLE_CAPTION_REGEXP = /@example +(?!<caption>)(\S[^\n]*)/g
+
 function normalizeExampleCaptions(code: string): string {
-  return code.replace(/@example +(?!<caption>)(\S[^\n]*)/g, '@example <caption>$1</caption>')
+  return code.replace(EXAMPLE_CAPTION_REGEXP, '@example <caption>$1</caption>')
 }
 
 function extractJSDocForExportedFunctions(code: string, filePath: string): Map<string, string> {
@@ -52,7 +56,7 @@ function extractJSDocForExportedFunctions(code: string, filePath: string): Map<s
       if (!exported || map.has(name))
         return
       const commentRanges = ts.getLeadingCommentRanges(text, node.getFullStart())
-      const last = commentRanges?.[commentRanges.length - 1]
+      const last = commentRanges?.at(-1)
       if (last) {
         const comment = text.slice(last.pos, last.end)
         if (comment.startsWith('/**'))
@@ -65,11 +69,13 @@ function extractJSDocForExportedFunctions(code: string, filePath: string): Map<s
   return map
 }
 
+const ESCAPE_REGEXP = /[.*+?^${}()|[\]\\]/g
+
 function injectJSDocIntoJs(js: string, jsdocByFunction: Map<string, string>): string {
   if (jsdocByFunction.size === 0)
     return js
   let out = js
-  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const escapeRe = (s: string) => s.replace(ESCAPE_REGEXP, '\\$&')
   for (const [name, jsdoc] of jsdocByFunction) {
     const re = new RegExp(`(export\\s+function\\s+${escapeRe(name)}\\s*\\()`, 'm')
     const m = out.match(re)
@@ -88,12 +94,12 @@ function transpileToJs(code: string, filePath: string): string {
 }
 
 function getOutputPath(sourcePath: string): string {
-  const rel = path.relative(srcDir, sourcePath).replace(/\.ts$/, '.mdx')
+  const rel = path.relative(srcDir, sourcePath).replace(OUTPUT_PATH_REGEXP, '.mdx')
   return path.join(outDir, rel)
 }
 
 function getPageTitle(sourcePath: string): string {
-  const rel = path.relative(srcDir, sourcePath).replace(/\.ts$/, '')
+  const rel = path.relative(srcDir, sourcePath).replace(OUTPUT_PATH_REGEXP, '')
   const name = path.basename(rel)
   return name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }

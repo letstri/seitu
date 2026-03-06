@@ -1,12 +1,12 @@
 'use client'
 
-import { useRef } from 'react'
+import { useState } from 'react'
 import { useSubscription } from 'seitu/react'
 import { scrollState } from 'seitu/web'
 
 export default function Home() {
-  const elementRef = useRef<HTMLDivElement>(null)
-  const scroll = useSubscription(() => scrollState({ element: elementRef.current }), { deps: [elementRef.current] })
+  const [element, setElement] = useState<HTMLDivElement | null>(null)
+  const scroll = useSubscription(() => scrollState({ element }), { deps: [element] })
 
   console.table([
     {
@@ -32,7 +32,7 @@ export default function Home() {
   ])
 
   return (
-    <div ref={elementRef} className="size-[500px] mx-auto overflow-y-auto">
+    <div ref={setElement} className="size-[500px] mx-auto overflow-y-auto">
       <div className="size-[1000px]">
         Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aperiam laudantium ipsam possimus accusantium quam qui sapiente sint velit, error atque repellendus nostrum sequi aut iure veritatis. Obcaecati voluptate magnam accusamus!
       </div>
