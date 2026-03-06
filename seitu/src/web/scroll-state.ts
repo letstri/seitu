@@ -52,9 +52,9 @@ const inactive: ScrollStateEdge = { reached: false, remaining: 0 }
  *
  * @example Vanilla
  * ```ts twoslash
- * import { scrollState } from 'seitu/web'
+ * import { createScrollState } from 'seitu/web'
  *
- * const scroll = scrollState({
+ * const scroll = createScrollState({
  *   element: document.querySelector('.container'),
  *   direction: 'vertical',
  *   threshold: 10,
@@ -76,12 +76,12 @@ const inactive: ScrollStateEdge = { reached: false, remaining: 0 }
  * 'use client'
  *
  * import * as React from 'react'
- * import { scrollState } from 'seitu/web'
+ * import { createScrollState } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
  * function Layout() {
  *   const ref = React.useRef<HTMLDivElement>(null)
- *   const state = useSubscription(() => scrollState({
+ *   const state = useSubscription(() => createScrollState({
  *     element: () => ref.current,
  *     threshold: 10,
  *   }))
@@ -99,12 +99,12 @@ const inactive: ScrollStateEdge = { reached: false, remaining: 0 }
  * 'use client'
  *
  * import * as React from 'react'
- * import { scrollState } from 'seitu/web'
+ * import { createScrollState } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
  * function Layout() {
  *   const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
- *   const state = useSubscription(() => scrollState({
+ *   const state = useSubscription(() => createScrollState({
  *     element: ref,
  *     threshold: 10,
  *   }), { deps: [ref] })
@@ -117,7 +117,7 @@ const inactive: ScrollStateEdge = { reached: false, remaining: 0 }
  * }
  * ```
  */
-export function scrollState(options: ScrollStateOptions): ScrollState {
+export function createScrollState(options: ScrollStateOptions): ScrollState {
   const { direction = 'both', threshold: rawThreshold = 0 } = options
   const { subscribe, notify } = createSubscription()
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mediaQuery } from './media-query'
+import { createMediaQuery } from './media-query'
 
 interface MQL {
   matches: boolean
@@ -9,7 +9,7 @@ interface MQL {
   dispatchEvent: (event: Event) => boolean
 }
 
-describe('mediaQuery', () => {
+describe('createMediaQuery', () => {
   let mql: MQL
   let changeListener: ((event: Event) => void) | null
 
@@ -34,7 +34,7 @@ describe('mediaQuery', () => {
 
   describe('get', () => {
     it('returns matchMedia().matches when window is defined', () => {
-      const query = mediaQuery({ query: '(min-width: 768px)' })
+      const query = createMediaQuery({ query: '(min-width: 768px)' })
       expect(query.get()).toBe(true)
 
       mql.matches = false
@@ -46,7 +46,7 @@ describe('mediaQuery', () => {
       vi.stubGlobal('window', undefined)
 
       try {
-        const query = mediaQuery({
+        const query = createMediaQuery({
           query: '(min-width: 768px)',
           defaultMatches: true,
         })
@@ -62,7 +62,7 @@ describe('mediaQuery', () => {
       vi.stubGlobal('window', undefined)
 
       try {
-        const query = mediaQuery({ query: '(min-width: 768px)' })
+        const query = createMediaQuery({ query: '(min-width: 768px)' })
         expect(query.get()).toBe(false)
       }
       finally {
@@ -73,7 +73,7 @@ describe('mediaQuery', () => {
 
   describe('subscribe', () => {
     it('calls callback when media query change fires and returns unsubscribe', () => {
-      const query = mediaQuery({ query: '(min-width: 768px)' })
+      const query = createMediaQuery({ query: '(min-width: 768px)' })
       const callback = vi.fn()
       const unsubscribe = query.subscribe(callback)
 
@@ -92,7 +92,7 @@ describe('mediaQuery', () => {
     })
 
     it('stops calling callback after unsubscribe', () => {
-      const query = mediaQuery({ query: '(min-width: 768px)' })
+      const query = createMediaQuery({ query: '(min-width: 768px)' })
       const callback = vi.fn()
       const unsubscribe = query.subscribe(callback)
 
@@ -111,7 +111,7 @@ describe('mediaQuery', () => {
       vi.stubGlobal('window', undefined)
 
       try {
-        const query = mediaQuery({
+        const query = createMediaQuery({
           query: '(min-width: 768px)',
           defaultMatches: true,
         })
@@ -132,7 +132,7 @@ describe('mediaQuery', () => {
 
     it('passes the given query string to matchMedia', () => {
       const queryString = '(prefers-color-scheme: dark)'
-      mediaQuery({ query: queryString }).get()
+      createMediaQuery({ query: queryString }).get()
 
       expect(window.matchMedia).toHaveBeenCalledWith(queryString)
     })

@@ -4,8 +4,8 @@ import { act, cleanup, render, renderHook, screen } from '@testing-library/react
 import * as React from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
-import { mediaQuery } from '../web/media-query'
-import { scrollState } from '../web/scroll-state'
+import { createMediaQuery } from '../web/media-query'
+import { createScrollState } from '../web/scroll-state'
 import { createSessionStorage } from '../web/session-storage'
 import { createSessionStorageValue } from '../web/session-storage-value'
 import { useSubscription } from './hooks'
@@ -209,7 +209,7 @@ describe('hooks', () => {
   })
 })
 
-describe('mediaQuery', () => {
+describe('createMediaQuery', () => {
   it('should return the matches value for light and dark', () => {
     const originalMatchMedia = window.matchMedia
     let listener: ((event: Event) => void) | null = null
@@ -229,7 +229,7 @@ describe('mediaQuery', () => {
 
     window.matchMedia = vi.fn().mockReturnValue(mql)
 
-    const { result } = renderHook(() => useSubscription(() => mediaQuery({ query: '(prefers-color-scheme: dark)' })))
+    const { result } = renderHook(() => useSubscription(() => createMediaQuery({ query: '(prefers-color-scheme: dark)' })))
     expect(result.current).toBe(true)
 
     act(() => {
@@ -243,10 +243,10 @@ describe('mediaQuery', () => {
   })
 })
 
-describe('scrollState', () => {
+describe('createScrollState', () => {
   it('should recreate subscription when element ref changes via callback ref', () => {
     const factory = vi.fn((el: HTMLDivElement | null) =>
-      scrollState({ element: el, direction: 'vertical' }),
+      createScrollState({ element: el, direction: 'vertical' }),
     )
 
     function TestWithScrollState() {

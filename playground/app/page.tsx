@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useSubscription } from 'seitu/react'
-import { scrollState } from 'seitu/web'
+import { createScrollState } from 'seitu/web'
 
 export default function Home() {
   const [element, setElement] = useState<HTMLDivElement | null>(null)
-  const scroll = useSubscription(() => scrollState({ element }), { deps: [element] })
+  const scroll = useSubscription(() => createScrollState({ element }), { deps: [element] })
 
   console.table([
     {

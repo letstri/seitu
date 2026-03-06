@@ -89,10 +89,10 @@ export interface MediaQueryOptions<T extends string> {
  *
  * @example Vanilla
  * ```ts twoslash title="media-query.ts"
- * import { mediaQuery } from 'seitu/web'
+ * import { createMediaQuery } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
- * const isDesktop = mediaQuery({ query: '(min-width: 768px)' })
+ * const isDesktop = createMediaQuery({ query: '(min-width: 768px)' })
  *
  * // Usage with subscribe
  * isDesktop.subscribe(matches => {
@@ -105,10 +105,10 @@ export interface MediaQueryOptions<T extends string> {
  *
  * @example React
  * ```tsx twoslash title="page.tsx"
- * import { mediaQuery } from 'seitu/web'
+ * import { createMediaQuery } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
- * const isDesktop = mediaQuery({ query: '(min-width: 768px)' })
+ * const isDesktop = createMediaQuery({ query: '(min-width: 768px)' })
  *
  * // Usage with some function component
  * function Layout() {
@@ -119,17 +119,17 @@ export interface MediaQueryOptions<T extends string> {
  *
  * @example Errors
  * ```tsx twoslash
- * import { mediaQuery } from 'seitu/web'
+ * import { createMediaQuery } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
  * // @errors: 2362 2322 1109
- * mediaQuery({ query: '(min-width: ' })
+ * createMediaQuery({ query: '(min-width: ' })
  *
  * // @errors: 2362 2322 2820
- * mediaQuery({ query: '(min-width: 768' })
+ * createMediaQuery({ query: '(min-width: 768' })
  * ```
  */
-export function mediaQuery<T extends string>(options: MediaQueryOptions<T>): MediaQuery {
+export function createMediaQuery<T extends string>(options: MediaQueryOptions<T>): MediaQuery {
   const { subscribe, notify } = createSubscription()
 
   const get = (): boolean => {

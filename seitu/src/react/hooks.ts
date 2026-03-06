@@ -79,12 +79,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * 'use client'
  *
  * import * as React from 'react'
- * import { scrollState } from 'seitu/web'
+ * import { createScrollState } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
  * export default function Page() {
  *   const ref = React.useRef<HTMLDivElement>(null)
- *   const state = useSubscription(() => scrollState({ element: () => ref.current, direction: 'vertical' }))
+ *   const state = useSubscription(() => createScrollState({ element: () => ref.current, direction: 'vertical' }))
  *
  *   return (
  *     <div ref={ref}>
