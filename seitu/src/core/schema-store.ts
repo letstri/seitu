@@ -8,7 +8,7 @@ export type SchemaStoreSchema = Record<string, StandardSchemaV1<unknown, unknown
 
 export type SchemaStoreOutput<S extends SchemaStoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
 
-export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>> {
+export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O> {
   getDefaultValue: <K extends keyof O>(key: K) => O[K]
 }
 

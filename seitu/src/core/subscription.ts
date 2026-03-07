@@ -14,8 +14,8 @@ export interface Subscribable<V> {
 export interface Readable<T> {
   get: () => T
 }
-export interface Writable<T> {
-  set: (value: T | ((prev: T) => T)) => any
+export interface Writable<T, P = T> {
+  set: (value: T | ((prev: P) => T)) => any
 }
 export function createSubscription<T = void>(): {
   subscribe: (callback: (payload: T) => any) => () => void
