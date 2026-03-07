@@ -1,41 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef } from 'react'
 import { useSubscription } from 'seitu/react'
-import { createScrollState } from 'seitu/web'
+import { createLocalStorage } from 'seitu/web'
+import * as z from 'zod'
+
+const localStorage = createLocalStorage({
+  schemas: {
+    count: z.number(),
+  },
+  defaultValues: {
+    count: 0,
+  },
+})
+
+function CountRender() {
+  const renderCount = useRef(1).current++
+  const count = useSubscription(localStorage, { selector: value => value.count })
+  return (
+    <>
+      <p>
+        Count:
+        {count}
+      </p>
+      <p style={{ opacity: 0.5 }}>
+        Render count:
+        {renderCount}
+      </p>
+    </>
+  )
+}
+
+function CountMod10() {
+  const renderCount = useRef(1).current++
+  const mod10 = useSubscription(localStorage, { selector: value => value.count % 10 === 0 })
+  return (
+    <>
+      <p>
+        Mod 10:
+        {mod10 ? 'Yes' : 'No'}
+      </p>
+      <p style={{ opacity: 0.5 }}>
+        Render count:
+        {renderCount}
+      </p>
+    </>
+  )
+}
 
 export default function Home() {
-  const [element, setElement] = useState<HTMLDivElement | null>(null)
-  const scroll = useSubscription(() => createScrollState({ element }), { deps: [element] })
-
-  console.table([
-    {
-      'Edge': 'Top',
-      'At Edge?': scroll.top.reached ? 'Yes' : 'No',
-      'Remaining px': scroll.top.remaining,
-    },
-    {
-      'Edge': 'Bottom',
-      'At Edge?': scroll.bottom.reached ? 'Yes' : 'No',
-      'Remaining px': scroll.bottom.remaining,
-    },
-    {
-      'Edge': 'Left',
-      'At Edge?': scroll.left.reached ? 'Yes' : 'No',
-      'Remaining px': scroll.left.remaining,
-    },
-    {
-      'Edge': 'Right',
-      'At Edge?': scroll.right.reached ? 'Yes' : 'No',
-      'Remaining px': scroll.right.remaining,
-    },
-  ])
-
   return (
-    <div ref={setElement} className="size-[500px] mx-auto overflow-y-auto">
-      <div className="size-[1000px]">
-        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aperiam laudantium ipsam possimus accusantium quam qui sapiente sint velit, error atque repellendus nostrum sequi aut iure veritatis. Obcaecati voluptate magnam accusamus!
-      </div>
+    <div>
+      <button onClick={() => localStorage.set(({ count }) => ({ count: count + 1 }))}>Increment</button>
+      <CountRender />
+      <CountMod10 />
     </div>
   )
 }
