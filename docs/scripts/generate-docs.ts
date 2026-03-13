@@ -28,7 +28,7 @@ async function findSourceFiles(dir: string): Promise<string[]> {
     }
     else if (
       entry.isFile()
-      && entry.name.endsWith('.ts')
+      && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx'))
       && !entry.name.includes('.test.')
       && entry.name !== 'index.ts'
     ) {
