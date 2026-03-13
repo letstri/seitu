@@ -1,7 +1,7 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Simplify } from '../utils'
 import type { Readable, Subscribable, Writable } from './index'
-import { createSubscription } from '.'
+import { createStore, createSubscription } from '.'
 import { tryParseJson } from '../utils'
 
 export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
@@ -9,15 +9,20 @@ export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
   set: (value: Partial<SchemaStoreOutput<S>>) => void
 }
 
+/**
+ * Creates an in-memory provider for a schema store. Use as the state backing when you don't
+ * need persistence (e.g. for testing or ephemeral UI state).
+ *
+ * @example
+ * const provider = createSchemaStoreMemoryProvider<typeof schemas>()
+ * const store = createSchemaStore({ schemas, defaultValues, provider })
+ */
 export function createSchemaStoreMemoryProvider<S extends SchemaStoreSchema>(): SchemaStoreProvider<S> {
-  const state = new Map<string, unknown>()
+  const store = createStore<SchemaStoreOutput<S>>({} as SchemaStoreOutput<S>)
   return {
-    get: () => Object.fromEntries(state.entries()) as SchemaStoreOutput<S>,
-    set: (value: Partial<SchemaStoreOutput<S>>) => {
-      state.clear()
-      for (const [key, v] of Object.entries(value)) {
-        state.set(key, v as unknown)
-      }
+    get: () => store.get(),
+    set: (value) => {
+      store.set(value as SchemaStoreOutput<S>)
     },
   }
 }
@@ -36,6 +41,22 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
   provider: SchemaStoreProvider<S>
 }
 
+/**
+ * Creates a reactive schema store: state is validated on read, supports partial `set`, and
+ * falls back to default values when validation fails.
+ *
+ * @example
+ * const provider = createSchemaStoreMemoryProvider()
+ * const store = createSchemaStore({
+ *   schemas: { count: z.number(), name: z.string() },
+ *   defaultValues: { count: 0, name: '' },
+ *   provider,
+ * })
+ * store.get()
+ * store.set({ count: 1 })
+ * store.getDefaultValue('count') // 0
+ * store.subscribe(console.log)
+ */
 export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
   const { subscribe, notify } = createSubscription()
   const defaultValues = { ...options.defaultValues }

@@ -1,0 +1,56 @@
+---
+title: Store
+---
+
+## Functions
+
+<dl>
+<dt><a href="#createStore">createStore()</a></dt>
+<dd><p>Creates a simple reactive store (minimal TanStack Store–style API).</p>
+<ul>
+<li><strong>Standalone</strong>: use <code>get()</code>, <code>set(value | updater)</code>, <code>subscribe(callback)</code> for any state.</li>
+<li><strong>With schema-store</strong>: use as the state backing for a memory provider.</li>
+</ul>
+</dd>
+<dt><a href="#createComputed">createComputed()</a></dt>
+<dd><p>Creates a computed (derived) store from a source store. The computed value is
+updated whenever the source updates; it is read-only (no set).</p>
+</dd>
+</dl>
+
+<a name="createStore"></a>
+
+## createStore()
+Creates a simple reactive store (minimal TanStack Store–style API).
+
+- **Standalone**: use `get()`, `set(value | updater)`, `subscribe(callback)` for any state.
+- **With schema-store**: use as the state backing for a memory provider.
+
+### Examples
+
+```ts
+const store = createStore({ count: 0 })
+store.set(prev => ({ ...prev, count: prev.count + 1 }))
+store.subscribe(state => console.log(state))
+```
+
+* * *
+
+<a name="createComputed"></a>
+
+## createComputed()
+Creates a computed (derived) store from a source store. The computed value is
+updated whenever the source updates; it is read-only (no set).
+
+### Examples
+
+```ts
+const count = createStore({ a: 1, b: 2 })
+const sum = createComputed(count, s => s.a + s.b)
+sum.get() // 3
+count.set({ a: 2, b: 2 })
+sum.get() // 4
+```
+
+* * *
+
