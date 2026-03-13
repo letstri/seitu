@@ -4,38 +4,6 @@ import type { Readable, Subscribable, Writable } from './index'
 import { createStore, createSubscription } from '.'
 import { tryParseJson } from '../utils'
 
-export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
-  get: () => SchemaStoreOutput<S>
-  set: (value: Partial<SchemaStoreOutput<S>>) => void
-}
-
-/**
- * Creates an in-memory provider for a schema store. Use as the state backing when you don't
- * need persistence (e.g. for testing or ephemeral UI state).
- *
- * @example
- * ```ts twoslash
- * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
- * import * as z from 'zod'
- *
- * const provider = createSchemaStoreMemoryProvider()
- * const store = createSchemaStore({
- *   schemas: { count: z.number(), name: z.string() },
- *   defaultValues: { count: 0, name: '' },
- *   provider,
- * })
- * ```
- */
-export function createSchemaStoreMemoryProvider<S extends SchemaStoreSchema>(): SchemaStoreProvider<S> {
-  const store = createStore<SchemaStoreOutput<S>>({} as SchemaStoreOutput<S>)
-  return {
-    get: () => store.get(),
-    set: (value) => {
-      store.set(value as SchemaStoreOutput<S>)
-    },
-  }
-}
-
 export type SchemaStoreSchema = Record<string, StandardSchemaV1<unknown, unknown>>
 
 export type SchemaStoreOutput<S extends SchemaStoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
@@ -55,6 +23,10 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
  * falls back to default values when validation fails.
  *
  * @example
+ * ```ts twoslash
+ * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
+ * import * as z from 'zod'
+ *
  * const provider = createSchemaStoreMemoryProvider()
  * const store = createSchemaStore({
  *   schemas: { count: z.number(), name: z.string() },
@@ -63,8 +35,8 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
  * })
  * store.get()
  * store.set({ count: 1 })
- * store.getDefaultValue('count') // 0
  * store.subscribe(console.log)
+ * ```
  */
 export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
   const { subscribe, notify } = createSubscription()
@@ -108,6 +80,38 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
     '~': {
       output: null as unknown as SchemaStoreOutput<S>,
       notify,
+    },
+  }
+}
+
+export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
+  get: () => SchemaStoreOutput<S>
+  set: (value: Partial<SchemaStoreOutput<S>>) => void
+}
+
+/**
+ * Creates an in-memory provider for a schema store. Use as the state backing when you don't
+ * need persistence (e.g. for testing or ephemeral UI state).
+ *
+ * @example
+ * ```ts twoslash
+ * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
+ * import * as z from 'zod'
+ *
+ * const provider = createSchemaStoreMemoryProvider()
+ * const store = createSchemaStore({
+ *   schemas: { count: z.number(), name: z.string() },
+ *   defaultValues: { count: 0, name: '' },
+ *   provider,
+ * })
+ * ```
+ */
+export function createSchemaStoreMemoryProvider<S extends SchemaStoreSchema>(): SchemaStoreProvider<S> {
+  const store = createStore<SchemaStoreOutput<S>>({} as SchemaStoreOutput<S>)
+  return {
+    get: () => store.get(),
+    set: (value) => {
+      store.set(value as SchemaStoreOutput<S>)
     },
   }
 }

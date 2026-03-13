@@ -2,6 +2,29 @@
 title: Schema Store
 ---
 
+## createSchemaStore()
+Creates a reactive schema store: state is validated on read, supports partial `set`, and
+falls back to default values when validation fails.
+
+### Examples
+
+```ts twoslash
+import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
+import * as z from 'zod'
+
+const provider = createSchemaStoreMemoryProvider()
+const store = createSchemaStore({
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+  provider,
+})
+store.get()
+store.set({ count: 1 })
+store.subscribe(console.log)
+```
+
+* * *
+
 ## createSchemaStoreMemoryProvider()
 Creates an in-memory provider for a schema store. Use as the state backing when you don't
 need persistence (e.g. for testing or ephemeral UI state).
@@ -18,27 +41,6 @@ const store = createSchemaStore({
   defaultValues: { count: 0, name: '' },
   provider,
 })
-```
-
-* * *
-
-## createSchemaStore()
-Creates a reactive schema store: state is validated on read, supports partial `set`, and
-falls back to default values when validation fails.
-
-### Examples
-
-```ts
-const provider = createSchemaStoreMemoryProvider()
-const store = createSchemaStore({
-  schemas: { count: z.number(), name: z.string() },
-  defaultValues: { count: 0, name: '' },
-  provider,
-})
-store.get()
-store.set({ count: 1 })
-store.getDefaultValue('count') // 0
-store.subscribe(console.log)
 ```
 
 * * *
