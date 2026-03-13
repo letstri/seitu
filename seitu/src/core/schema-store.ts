@@ -14,8 +14,17 @@ export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
  * need persistence (e.g. for testing or ephemeral UI state).
  *
  * @example
- * const provider = createSchemaStoreMemoryProvider<typeof schemas>()
- * const store = createSchemaStore({ schemas, defaultValues, provider })
+ * ```ts twoslash
+ * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
+ * import * as z from 'zod'
+ *
+ * const provider = createSchemaStoreMemoryProvider()
+ * const store = createSchemaStore({
+ *   schemas: { count: z.number(), name: z.string() },
+ *   defaultValues: { count: 0, name: '' },
+ *   provider,
+ * })
+ * ```
  */
 export function createSchemaStoreMemoryProvider<S extends SchemaStoreSchema>(): SchemaStoreProvider<S> {
   const store = createStore<SchemaStoreOutput<S>>({} as SchemaStoreOutput<S>)

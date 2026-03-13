@@ -1,3 +1,4 @@
+/* eslint-disable e18e/prefer-static-regex */
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -93,6 +94,13 @@ function transpileToJs(code: string, filePath: string): string {
   }).outputText
 }
 
+function stripHtml(markdown: string): string {
+  return markdown
+    .replace(/## Functions\n\n<dl>[\s\S]*?<\/dl>\n*/, '')
+    .replace(/<a name="[^"]*"><\/a>\n*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+}
+
 function getOutputPath(sourcePath: string): string {
   const rel = path.relative(srcDir, sourcePath).replace(OUTPUT_PATH_REGEXP, '.mdx')
   return path.join(outDir, rel)
@@ -125,10 +133,11 @@ async function generateDocForFile(sourcePath: string): Promise<void> {
     return
   }
 
+  const cleaned = stripHtml(markdown)
   const title = getPageTitle(sourcePath)
   const outPath = getOutputPath(sourcePath)
   await fs.mkdir(path.dirname(outPath), { recursive: true })
-  await fs.writeFile(outPath, `---\ntitle: ${title}\n---\n\n${markdown}`, 'utf8')
+  await fs.writeFile(outPath, `---\ntitle: ${title}\n---\n\n${cleaned}`, 'utf8')
   console.log('Generated', outPath)
 }
 

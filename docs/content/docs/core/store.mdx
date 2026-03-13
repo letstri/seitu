@@ -2,24 +2,6 @@
 title: Store
 ---
 
-## Functions
-
-<dl>
-<dt><a href="#createStore">createStore()</a></dt>
-<dd><p>Creates a simple reactive store (minimal TanStack Store–style API).</p>
-<ul>
-<li><strong>Standalone</strong>: use <code>get()</code>, <code>set(value | updater)</code>, <code>subscribe(callback)</code> for any state.</li>
-<li><strong>With schema-store</strong>: use as the state backing for a memory provider.</li>
-</ul>
-</dd>
-<dt><a href="#createComputed">createComputed()</a></dt>
-<dd><p>Creates a computed (derived) store from a source store. The computed value is
-updated whenever the source updates; it is read-only (no set).</p>
-</dd>
-</dl>
-
-<a name="createStore"></a>
-
 ## createStore()
 Creates a simple reactive store (minimal TanStack Store–style API).
 
@@ -35,8 +17,6 @@ store.subscribe(state => console.log(state))
 ```
 
 * * *
-
-<a name="createComputed"></a>
 
 ## createComputed()
 Creates a computed (derived) store from a source store. The computed value is
