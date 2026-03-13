@@ -27,11 +27,10 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
  * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
  * import * as z from 'zod'
  *
- * const provider = createSchemaStoreMemoryProvider()
  * const store = createSchemaStore({
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
- *   provider,
+ *   provider: createSchemaStoreMemoryProvider(),
  * })
  * store.get()
  * store.set({ count: 1 })
@@ -98,11 +97,10 @@ export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
  * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
  * import * as z from 'zod'
  *
- * const provider = createSchemaStoreMemoryProvider()
  * const store = createSchemaStore({
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
- *   provider,
+ *   provider: createSchemaStoreMemoryProvider(),
  * })
  * ```
  */
