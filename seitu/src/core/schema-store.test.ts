@@ -1,19 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
-import { createSchemaStore } from './schema-store'
-
-function createMemoryProvider() {
-  const state = new Map<string, unknown>()
-  return {
-    get: () => Object.fromEntries(state.entries()) as any,
-    set: (value: any) => {
-      state.clear()
-      for (const [key, v] of Object.entries(value)) {
-        state.set(key, v)
-      }
-    },
-  }
-}
+import { createSchemaStore, createSchemaStoreMemoryProvider } from './schema-store'
 
 describe('createSchemaStore', () => {
   describe('get', () => {
@@ -24,13 +11,13 @@ describe('createSchemaStore', () => {
           name: z.string(),
         },
         defaultValues: { count: 0, name: '' },
-        provider: createMemoryProvider(),
+        provider: createSchemaStoreMemoryProvider(),
       })
       expect(store.get()).toEqual({ count: 0, name: '' })
     })
 
     it('returns parsed values when keys exist with valid stored data', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
 
       provider.set({ count: 42, name: 'alice' })
 
@@ -46,7 +33,7 @@ describe('createSchemaStore', () => {
     })
 
     it('merges stored values with defaultValues for partial keys', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
       provider.set({ count: 10 })
 
       const store = createSchemaStore({
@@ -61,7 +48,7 @@ describe('createSchemaStore', () => {
     })
 
     it('returns defaultValues when stored value fails validation', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
       provider.set({ count: 'invalid' })
 
       const store = createSchemaStore({
@@ -76,7 +63,7 @@ describe('createSchemaStore', () => {
     })
 
     it('returns default for invalid key and keeps valid key', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
       provider.set({ count: 'invalid', name: 'Test' })
 
       const store = createSchemaStore({
@@ -93,7 +80,7 @@ describe('createSchemaStore', () => {
 
   describe('set', () => {
     it('stores values in sessionStorage', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
 
       const store = createSchemaStore({
         schemas: {
@@ -109,7 +96,7 @@ describe('createSchemaStore', () => {
     })
 
     it('can set partial updates (only some keys)', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
 
       const store = createSchemaStore({
         schemas: {
@@ -126,7 +113,7 @@ describe('createSchemaStore', () => {
     })
 
     it('stores string values as-is without extra JSON encoding', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
 
       const store = createSchemaStore({
         schemas: {
@@ -142,7 +129,7 @@ describe('createSchemaStore', () => {
 
   describe('subscribe', () => {
     it('calls callback with current value when set is called', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
 
       const store = createSchemaStore({
         schemas: {
@@ -163,7 +150,7 @@ describe('createSchemaStore', () => {
     })
 
     it('stops calling callback after unsubscribe', () => {
-      const provider = createMemoryProvider()
+      const provider = createSchemaStoreMemoryProvider()
 
       const store = createSchemaStore({
         schemas: {
@@ -185,14 +172,13 @@ describe('createSchemaStore', () => {
     })
 
     it('calls callback with latest value after each set', () => {
-      const provider = createMemoryProvider()
       const store = createSchemaStore({
         schemas: {
           count: z.number(),
           name: z.string(),
         },
         defaultValues: { count: 0, name: '' },
-        provider,
+        provider: createSchemaStoreMemoryProvider(),
       })
       const callback = vi.fn()
       store.subscribe(callback)

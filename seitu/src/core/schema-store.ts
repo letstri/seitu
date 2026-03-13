@@ -4,6 +4,24 @@ import type { Readable, Subscribable, Writable } from './index'
 import { createSubscription } from '.'
 import { tryParseJson } from '../utils'
 
+export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
+  get: () => SchemaStoreOutput<S>
+  set: (value: Partial<SchemaStoreOutput<S>>) => void
+}
+
+export function createSchemaStoreMemoryProvider<S extends SchemaStoreSchema>(): SchemaStoreProvider<S> {
+  const state = new Map<string, unknown>()
+  return {
+    get: () => Object.fromEntries(state.entries()) as SchemaStoreOutput<S>,
+    set: (value: Partial<SchemaStoreOutput<S>>) => {
+      state.clear()
+      for (const [key, v] of Object.entries(value)) {
+        state.set(key, v as unknown)
+      }
+    },
+  }
+}
+
 export type SchemaStoreSchema = Record<string, StandardSchemaV1<unknown, unknown>>
 
 export type SchemaStoreOutput<S extends SchemaStoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
@@ -15,10 +33,7 @@ export interface SchemaStore<O extends Record<string, unknown>> extends Subscrib
 export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> {
   schemas: S
   defaultValues: SchemaStoreOutput<S>
-  provider: {
-    get: () => SchemaStoreOutput<S>
-    set: (value: Partial<SchemaStoreOutput<S>>) => void
-  }
+  provider: SchemaStoreProvider<S>
 }
 
 export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
