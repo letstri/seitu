@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.4.2",
   "private": false,
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@10.32.1",
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
