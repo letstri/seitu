@@ -27,8 +27,15 @@ export function createWebStorage<S extends SchemaStoreSchema>(
         const output = { ...rest.defaultValues }
 
         for (const key in output) {
-          const item = tryParseJson(storage.getItem(key))
-          const result = rest.schemas[key]['~standard'].validate(item)
+          const item = storage.getItem(key)
+
+          if (item === null) {
+            output[key] = rest.defaultValues[key]
+            continue
+          }
+
+          const parsed = tryParseJson(item)
+          const result = rest.schemas[key]['~standard'].validate(parsed)
 
           if (result instanceof Promise) {
             throw new TypeError('[createWebSchemaStore] Validation schema should not return a Promise.')
