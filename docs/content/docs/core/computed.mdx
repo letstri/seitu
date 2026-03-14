@@ -1,0 +1,28 @@
+---
+title: Computed
+---
+
+## createComputed()
+Creates a computed (derived) subscription from a subscription or an array of subscriptions.
+The computed value is updated whenever any subscription updates.
+
+### Examples
+
+```ts twoslash
+import { createComputed, createStore } from 'seitu'
+
+const count = createStore({ a: 1, b: 2 })
+const sum = createComputed(count, s => s.a + s.b)
+sum.get() // 3
+```
+```ts twoslash
+import { createComputed, createStore } from 'seitu'
+
+const a = createStore(1)
+const b = createStore(2)
+const sum = createComputed([a, b], ([a, b]) => a + b)
+sum.get() // 3
+```
+
+* * *
+

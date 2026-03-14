@@ -12,11 +12,10 @@ falls back to default values when validation fails.
 import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
 import * as z from 'zod'
 
-const provider = createSchemaStoreMemoryProvider()
 const store = createSchemaStore({
   schemas: { count: z.number(), name: z.string() },
   defaultValues: { count: 0, name: '' },
-  provider,
+  provider: createSchemaStoreMemoryProvider(),
 })
 store.get()
 store.set({ count: 1 })
@@ -35,11 +34,10 @@ need persistence (e.g. for testing or ephemeral UI state).
 import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
 import * as z from 'zod'
 
-const provider = createSchemaStoreMemoryProvider()
 const store = createSchemaStore({
   schemas: { count: z.number(), name: z.string() },
   defaultValues: { count: 0, name: '' },
-  provider,
+  provider: createSchemaStoreMemoryProvider(),
 })
 ```
 

@@ -18,19 +18,3 @@ store.subscribe(state => console.log(state))
 
 * * *
 
-## createComputed()
-Creates a computed (derived) store from a source store. The computed value is
-updated whenever the source updates; it is read-only (no set).
-
-### Examples
-
-```ts
-const count = createStore({ a: 1, b: 2 })
-const sum = createComputed(count, s => s.a + s.b)
-sum.get() // 3
-count.set({ a: 2, b: 2 })
-sum.get() // 4
-```
-
-* * *
-

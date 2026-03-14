@@ -80,4 +80,58 @@ describe('createComputed', () => {
       expect(squared.get()).toBe(16)
     })
   })
+
+  describe('multiple sources', () => {
+    it('derives from an array of sources', () => {
+      const a = createStore(1)
+      const b = createStore(2)
+      const sum = createComputed([a, b], ([a, b]) => a + b)
+      expect(sum.get()).toBe(3)
+    })
+
+    it('updates when any source changes', () => {
+      const a = createStore(1)
+      const b = createStore(10)
+      const combined = createComputed([a, b], ([a, b]) => a + b)
+      a.set(2)
+      expect(combined.get()).toBe(12)
+      b.set(20)
+      expect(combined.get()).toBe(22)
+    })
+
+    it('notifies subscribers when any source changes', () => {
+      const a = createStore(1)
+      const b = createStore(2)
+      const sum = createComputed([a, b], ([a, b]) => a + b)
+      const callback = vi.fn()
+      sum.subscribe(callback)
+      a.set(5)
+      expect(callback).toHaveBeenLastCalledWith(7)
+      b.set(10)
+      expect(callback).toHaveBeenLastCalledWith(15)
+      expect(callback).toHaveBeenCalledTimes(2)
+    })
+
+    it('works with mixed source types', () => {
+      const name = createStore('alice')
+      const age = createStore(30)
+      const label = createComputed(
+        [name, age],
+        ([n, a]) => `${n} is ${a}`,
+      )
+      expect(label.get()).toBe('alice is 30')
+      name.set('bob')
+      expect(label.get()).toBe('bob is 30')
+    })
+
+    it('can chain from another computed', () => {
+      const a = createStore(2)
+      const b = createStore(3)
+      const sum = createComputed([a, b], ([a, b]) => a + b)
+      const doubled = createComputed(sum, n => n * 2)
+      expect(doubled.get()).toBe(10)
+      a.set(5)
+      expect(doubled.get()).toBe(16)
+    })
+  })
 })

@@ -15,7 +15,11 @@ export interface SchemaStore<O extends Record<string, unknown>> extends Subscrib
 export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> {
   schemas: S
   defaultValues: SchemaStoreOutput<S>
-  provider: SchemaStoreProvider<S>
+  /**
+   * The provider to use for the schema store. If not provided, the schema store will
+   * use an in-memory provider.
+   */
+  provider?: SchemaStoreProvider<S>
 }
 
 /**
@@ -30,7 +34,6 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
  * const store = createSchemaStore({
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
- *   provider: createSchemaStoreMemoryProvider(),
  * })
  * store.get()
  * store.set({ count: 1 })
@@ -40,12 +43,13 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
 export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
   const { subscribe, notify } = createSubscription()
   const defaultValues = { ...options.defaultValues }
+  const provider = options.provider ?? createSchemaStoreMemoryProvider()
 
   const get = () => {
     const output = { ...defaultValues }
 
     for (const [key, schema] of Object.entries(options.schemas) as [keyof S, StandardSchemaV1<unknown, unknown>][]) {
-      const item = options.provider.get()[key]
+      const item = provider.get()[key]
 
       const result = schema['~standard'].validate(tryParseJson(item))
 
@@ -67,7 +71,7 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
     get,
     'set': (value) => {
       const newValue = typeof value === 'function' ? value(get()) : value
-      options.provider.set(newValue)
+      provider.set(newValue)
       notify()
     },
     'getDefaultValue': key => defaultValues[key],
