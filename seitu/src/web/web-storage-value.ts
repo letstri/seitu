@@ -1,10 +1,10 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Readable, Subscribable, Writable } from '../core/index'
+import type { Destroyable, Readable, Subscribable, Writable } from '../core/index'
 import type { WebStorage } from './web-storage'
 import { createSubscription } from '../core'
 import { tryParseJson } from '../utils'
 
-export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V> {}
+export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Destroyable {}
 
 export interface WebStorageValueOptionsWithStorage<
   Storage extends WebStorage<any>,
@@ -89,6 +89,22 @@ export function createWebStorageValue(
     }
   }
 
+  const listener = (event: StorageEvent) => {
+    if (event.key === options.key) {
+      notify()
+    }
+  }
+
+  const destroy = () => {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', listener)
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', listener)
+  }
+
   return {
     get,
     'set': (value) => {
@@ -103,22 +119,9 @@ export function createWebStorageValue(
       notify()
     },
     'subscribe': (callback) => {
-      const unsubscribe = subscribe(() => callback(get()))
-      const onStorage = (event: StorageEvent): void => {
-        if (event.key === options.key) {
-          callback(get())
-        }
-      }
-      if (typeof window !== 'undefined') {
-        window.addEventListener('storage', onStorage)
-      }
-      return () => {
-        unsubscribe()
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('storage', onStorage)
-        }
-      }
+      return subscribe(() => callback(get()))
     },
+    destroy,
     '~': {
       output: null as unknown,
       notify,

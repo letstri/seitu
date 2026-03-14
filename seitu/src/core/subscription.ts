@@ -17,6 +17,10 @@ export interface Readable<T> {
 export interface Writable<T, P = T> {
   set: (value: T | ((prev: P) => T)) => any
 }
+export interface Destroyable {
+  destroy: () => void
+}
+
 export function createSubscription<T = void>(): {
   subscribe: (callback: (payload: T) => any) => () => void
   notify: (payload: T) => void

@@ -2,7 +2,9 @@ import type { SchemaStore, SchemaStoreOptions, SchemaStoreOutput, SchemaStoreSch
 import { createSchemaStore } from '../core/index'
 import { tryParseJson } from '../utils'
 
-export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {}
+export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {
+  keyTransform?: (key: keyof S) => string
+}
 
 export interface WebStorage<O extends Record<string, unknown>> extends SchemaStore<O> {
   '~': {
@@ -13,29 +15,31 @@ export interface WebStorage<O extends Record<string, unknown>> extends SchemaSto
 export function createWebStorage<S extends SchemaStoreSchema>(
   options: WebStorageOptions<S> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorage<SchemaStoreOutput<S>> {
-  const { kind, ...rest } = options
+  const { kind, keyTransform, defaultValues, schemas } = options
+  let isInternalUpdate = false
 
   const store = createSchemaStore<S>({
-    ...rest,
+    defaultValues,
+    schemas,
     provider: {
       get: () => {
         if (typeof window === 'undefined') {
-          return rest.defaultValues
+          return defaultValues
         }
 
         const storage = window[kind]
-        const output = { ...rest.defaultValues }
+        const output = { ...defaultValues }
 
         for (const key in output) {
-          const item = storage.getItem(key)
+          const item = storage.getItem(keyTransform ? keyTransform(key) : key)
 
           if (item === null) {
-            output[key] = rest.defaultValues[key]
+            output[key] = defaultValues[key]
             continue
           }
 
           const parsed = tryParseJson(item)
-          const result = rest.schemas[key]['~standard'].validate(parsed)
+          const result = schemas[key]['~standard'].validate(parsed)
 
           if (result instanceof Promise) {
             throw new TypeError('[createWebSchemaStore] Validation schema should not return a Promise.')
@@ -45,7 +49,7 @@ export function createWebStorage<S extends SchemaStoreSchema>(
             console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
           }
 
-          output[key] = result.issues ? rest.defaultValues[key] : result.value
+          output[key] = result.issues ? defaultValues[key] : result.value
         }
 
         return output
@@ -57,21 +61,36 @@ export function createWebStorage<S extends SchemaStoreSchema>(
 
         const storage = window[kind]
 
+        isInternalUpdate = true
         Object.entries(value).forEach(([key, entryValue]) => {
-          storage.setItem(key, typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue))
+          storage.setItem(keyTransform ? keyTransform(key) : key, typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue))
         })
+        window.dispatchEvent(new Event('storage'))
+        isInternalUpdate = false
       },
     },
   })
 
+  const listener = () => {
+    if (isInternalUpdate) {
+      return
+    }
+
+    store['~'].notify()
+  }
+
   if (typeof window !== 'undefined') {
-    window.addEventListener('storage', () => {
-      store['~'].notify()
-    })
+    window.addEventListener('storage', listener)
   }
 
   return {
     ...store,
+    'destroy': () => {
+      store.destroy?.()
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', listener)
+      }
+    },
     '~': {
       kind,
       ...store['~'],

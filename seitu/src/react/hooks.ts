@@ -1,4 +1,4 @@
-import type { Readable, Subscribable } from '../core/index'
+import type { Destroyable, Readable, Subscribable } from '../core/index'
 import { deepEqual } from 'fast-equals'
 import * as React from 'react'
 
@@ -95,7 +95,7 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * ```
  */
 export function useSubscription<
-  S extends Subscribable<any> & Readable<any>,
+  S extends Subscribable<any> & Readable<any> & Partial<Destroyable>,
   R = S['~']['output'],
 >(
   source: S | (() => S),
@@ -141,7 +141,10 @@ export function useSubscription<
     const unsub = subscription.subscribe(sync)
     sync(subscription.get())
 
-    return unsub
+    return () => {
+      unsub()
+      subscription.destroy?.()
+    }
   }, [subscription, selector])
 
   return value

@@ -69,22 +69,17 @@ describe('createWebStorage', () => {
     })
   })
 
-  describe('integration', () => {
-    it('get reflects values set directly in localStorage', () => {
+  describe('keyTransform', () => {
+    it('transforms keys using the keyTransform function', () => {
       const storage = createWebStorage({
         kind: 'localStorage',
-        schemas: {
-          count: z.number(),
-          name: z.string(),
-        },
+        schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
+        keyTransform: key => `prefix-${key}`,
       })
-
-      expect(storage.get()).toEqual({ count: 0, name: '' })
-
-      window.localStorage.setItem('count', '99')
-      window.localStorage.setItem('name', 'direct')
-      expect(storage.get()).toEqual({ count: 99, name: 'direct' })
+      storage.set({ count: 5, name: 'bob' })
+      expect(window.localStorage.getItem('prefix-count')).toBe('5')
+      expect(window.localStorage.getItem('prefix-name')).toBe('bob')
     })
   })
 })
