@@ -144,6 +144,54 @@ describe('createWebStorageValue', () => {
     })
   })
 
+  describe('remove', () => {
+    it('removes the item from localStorage', () => {
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
+      value.set(42)
+      expect(window.localStorage.getItem(TEST_KEY)).toBe('42')
+
+      value.remove()
+      expect(window.localStorage.getItem(TEST_KEY)).toBeNull()
+    })
+
+    it('get returns defaultValue after remove', () => {
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.string(),
+        key: TEST_KEY,
+        defaultValue: 'fallback',
+      })
+      value.set('hello')
+      expect(value.get()).toBe('hello')
+
+      value.remove()
+      expect(value.get()).toBe('fallback')
+    })
+
+    it('does nothing when window is undefined (SSR)', () => {
+      const originalWindow = globalThis.window
+      vi.stubGlobal('window', undefined)
+
+      try {
+        const value = createWebStorageValue({
+          kind: 'localStorage',
+          schema: z.number(),
+          key: TEST_KEY,
+          defaultValue: 0,
+        })
+        expect(() => value.remove()).not.toThrow()
+      }
+      finally {
+        vi.stubGlobal('window', originalWindow)
+      }
+    })
+  })
+
   describe('subscribe', () => {
     it('calls callback with current value and event when storage event is dispatched', () => {
       const value = createWebStorageValue({
@@ -272,6 +320,23 @@ describe('createWebStorageValue', () => {
 
       expect(countValue.get()).toBe(6)
       expect(storage.get().count).toBe(6)
+    })
+
+    it('remove deletes key from localStorage and get returns default', () => {
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+      })
+      const countValue = createWebStorageValue({ storage, key: 'count' })
+
+      countValue.set(99)
+      expect(countValue.get()).toBe(99)
+
+      countValue.remove()
+      expect(window.localStorage.getItem('count')).toBeNull()
+      expect(countValue.get()).toBe(0)
+      expect(storage.get()).toEqual({ count: 0, name: '' })
     })
 
     it('multiple value instances for same storage key stay in sync', () => {

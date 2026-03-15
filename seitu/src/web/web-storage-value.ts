@@ -1,10 +1,10 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Destroyable, Readable, Subscribable, Writable } from '../core/index'
+import type { Destroyable, Readable, Removable, Subscribable, Writable } from '../core/index'
 import type { WebStorage } from './web-storage'
 import { createSubscription } from '../core'
 import { tryParseJson } from '../utils'
 
-export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Destroyable {}
+export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Destroyable, Removable {}
 
 export interface WebStorageValueOptionsWithStorage<
   Storage extends WebStorage<any>,
@@ -100,14 +100,14 @@ export function createWebStorageValue(
     }
   }
 
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', listener)
+  }
+
   const destroy = () => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('storage', listener)
     }
-  }
-
-  if (typeof window !== 'undefined') {
-    window.addEventListener('storage', listener)
   }
 
   return {
@@ -127,6 +127,13 @@ export function createWebStorageValue(
     },
     'subscribe': (callback) => {
       return subscribe(() => callback(get()))
+    },
+    'remove': () => {
+      if (typeof window === 'undefined') {
+        return
+      }
+
+      window[kind].removeItem(options.key)
     },
     destroy,
     '~': {
