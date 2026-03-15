@@ -75,7 +75,7 @@ describe('createMediaQuery', () => {
     it('calls callback when media query change fires and returns unsubscribe', () => {
       const query = createMediaQuery({ query: '(min-width: 768px)' })
       const callback = vi.fn()
-      const unsubscribe = query.subscribe(callback)
+      query.subscribe(callback)
 
       mql.dispatchEvent(new Event('change'))
       expect(callback).toHaveBeenCalledTimes(1)
@@ -86,9 +86,6 @@ describe('createMediaQuery', () => {
 
       expect(callback).toHaveBeenCalledTimes(2)
       expect(callback).toHaveBeenLastCalledWith(false)
-
-      unsubscribe()
-      expect(mql.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
     })
 
     it('stops calling callback after unsubscribe', () => {
@@ -104,30 +101,6 @@ describe('createMediaQuery', () => {
       mql.dispatchEvent(new Event('change'))
 
       expect(callback).toHaveBeenCalledTimes(1)
-    })
-
-    it('when window is undefined, calls callback once with get() and returns no-op unsubscribe', () => {
-      const originalWindow = globalThis.window
-      vi.stubGlobal('window', undefined)
-
-      try {
-        const query = createMediaQuery({
-          query: '(min-width: 768px)',
-          defaultMatches: true,
-        })
-        const callback = vi.fn()
-        const unsubscribe = query.subscribe(callback)
-
-        expect(callback).toHaveBeenCalledTimes(1)
-        expect(callback).toHaveBeenCalledWith(true)
-
-        expect(unsubscribe).not.toThrow()
-        unsubscribe()
-        expect(callback).toHaveBeenCalledTimes(1)
-      }
-      finally {
-        vi.stubGlobal('window', originalWindow)
-      }
     })
 
     it('passes the given query string to matchMedia', () => {
