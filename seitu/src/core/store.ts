@@ -10,9 +10,14 @@ export interface Store<T> extends Readable<T>, Writable<T, T>, Subscribable<T> {
  * - **With schema-store**: use as the state backing for a memory provider.
  *
  * @example
+ * ```ts twoslash
+ * import { createStore } from 'seitu'
+ *
  * const store = createStore({ count: 0 })
  * store.set(prev => ({ ...prev, count: prev.count + 1 }))
  * store.subscribe(state => console.log(state))
+ * store.get() // { count: 0 }
+ * ```
  */
 export function createStore<T>(initial: T): Store<T> {
   let state = initial
