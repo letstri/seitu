@@ -132,17 +132,11 @@ export interface MediaQueryOptions<T extends string> {
 export function createMediaQuery<T extends string>(options: MediaQueryOptions<T>): MediaQuery {
   const { subscribe, notify } = createSubscription()
 
-  const get = (): boolean => {
-    if (typeof window === 'undefined') {
-      return options.defaultMatches ?? false
-    }
-    try {
-      return window.matchMedia(options.query).matches
-    }
-    catch {
-      return options.defaultMatches ?? false
-    }
-  }
+  const match = typeof window === 'undefined' ? null : window.matchMedia(options.query)
+
+  const get = (): boolean => match?.matches ?? options.defaultMatches ?? false
+
+  match?.addEventListener('change', () => notify())
 
   return {
     get,
