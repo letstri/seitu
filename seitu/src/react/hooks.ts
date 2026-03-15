@@ -102,19 +102,7 @@ export function useSubscription<
   options?: UseSubscriptionOptions<S, R>,
 ): R {
   const { selector, deps = [] } = options ?? {}
-  const isFactory = typeof source === 'function'
-
-  const sourceRef = React.useRef(source)
-  if (!isFactory && source !== sourceRef.current) {
-    throw new Error(
-      'useSubscription detected a new object on re-render. '
-      + 'Either create the subscription outside the component or wrap it in a factory: '
-      + 'useSubscription(() => yourSubscription(...))',
-    )
-  }
-  sourceRef.current = source
-
-  const factoryFn = isFactory ? source : () => source
+  const factoryFn = typeof source === 'function' ? source : () => source
   const factoryRef = React.useRef(factoryFn)
   factoryRef.current = factoryFn
 

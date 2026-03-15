@@ -104,23 +104,6 @@ describe('hooks', () => {
       const { result } = renderHook(() => useSubscription(storage))
       expect(result.current).toBe(0)
     })
-
-    it('should throw when a new object is passed on re-render', () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {})
-
-      let error: Error | undefined
-      try {
-        const { rerender } = renderHook(() =>
-          useSubscription(createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })),
-        )
-        rerender()
-      }
-      catch (e) { error = e as Error }
-
-      expect(error?.message).toContain('useSubscription detected a new object on re-render')
-
-      vi.restoreAllMocks()
-    })
   })
 
   describe('useSubscription factory', () => {

@@ -35,6 +35,7 @@ export function createWebStorageValue(
     | WebStorageValueOptionsWithSchema<StandardSchemaV1<unknown>> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorageValue<unknown> {
   const kind = 'storage' in options ? options.storage['~'].kind : options.kind
+  let isInternalUpdate = false
   const label = `${kind}Value`
   if ('schema' in options && options.defaultValue === undefined) {
     throw new Error(`[${label}] Default value is required`)
@@ -90,6 +91,10 @@ export function createWebStorageValue(
   }
 
   const listener = (event: StorageEvent) => {
+    if (isInternalUpdate) {
+      return
+    }
+
     if (event.key === options.key) {
       notify()
     }
@@ -114,8 +119,10 @@ export function createWebStorageValue(
 
       const storage = window[kind]
       const newValue = typeof value === 'function' ? value(get()) : value
+      isInternalUpdate = true
       storage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
       window.dispatchEvent(new Event('storage'))
+      isInternalUpdate = false
       notify()
     },
     'subscribe': (callback) => {

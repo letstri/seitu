@@ -63,7 +63,12 @@ export function createWebStorage<S extends SchemaStoreSchema>(
 
         isInternalUpdate = true
         Object.entries(value).forEach(([key, entryValue]) => {
-          storage.setItem(keyTransform ? keyTransform(key) : key, typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue))
+          const newValue = typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue)
+
+          storage.setItem(
+            keyTransform ? keyTransform(key) : key,
+            newValue,
+          )
         })
         window.dispatchEvent(new Event('storage'))
         isInternalUpdate = false
