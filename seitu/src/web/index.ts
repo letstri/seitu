@@ -1,3 +1,4 @@
+export * from './is-online'
 export * from './local-storage'
 export * from './local-storage-value'
 export * from './media-query'
