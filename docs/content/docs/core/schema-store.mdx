@@ -15,7 +15,6 @@ import * as z from 'zod'
 const store = createSchemaStore({
   schemas: { count: z.number(), name: z.string() },
   defaultValues: { count: 0, name: '' },
-  provider: createSchemaStoreMemoryProvider(),
 })
 store.get()
 store.set({ count: 1 })

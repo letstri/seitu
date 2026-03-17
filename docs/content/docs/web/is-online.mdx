@@ -1,0 +1,39 @@
+---
+title: Is Online
+---
+
+## createIsOnline()
+Creates a reactive handle for browser online status.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash
+import { createIsOnline } from 'seitu/web'
+
+const isOnline = createIsOnline()
+
+isOnline.subscribe(value => {
+  console.log(value ? 'online' : 'offline')
+})
+
+console.log(isOnline.get())
+```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+import { createIsOnline } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+const isOnline = createIsOnline()
+
+function Status() {
+  const online = useSubscription(isOnline)
+  return online ? 'Connected' : 'Disconnected'
+}
+```
+
+* * *
+

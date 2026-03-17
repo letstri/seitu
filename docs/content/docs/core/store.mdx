@@ -10,10 +10,13 @@ Creates a simple reactive store (minimal TanStack Store–style API).
 
 ### Examples
 
-```ts
+```ts twoslash
+import { createStore } from 'seitu'
+
 const store = createStore({ count: 0 })
 store.set(prev => ({ ...prev, count: prev.count + 1 }))
 store.subscribe(state => console.log(state))
+store.get() // { count: 0 }
 ```
 
 * * *
