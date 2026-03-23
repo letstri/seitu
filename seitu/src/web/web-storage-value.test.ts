@@ -265,6 +265,95 @@ describe('createWebStorageValue', () => {
     })
   })
 
+  describe('clearOnValidationFailure', () => {
+    it('removes invalid item from storage when enabled', () => {
+      window.localStorage.setItem(TEST_KEY, '"not-a-number"')
+
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+        clearOnValidationFailure: true,
+      })
+
+      expect(value.get()).toBe(0)
+      expect(window.localStorage.getItem(TEST_KEY)).toBeNull()
+    })
+
+    it('returns default but does not remove item when disabled', () => {
+      window.localStorage.setItem(TEST_KEY, '"not-a-number"')
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+        clearOnValidationFailure: false,
+      })
+
+      expect(value.get()).toBe(0)
+      expect(window.localStorage.getItem(TEST_KEY)).toBe('"not-a-number"')
+      expect(warnSpy).toHaveBeenCalled()
+
+      warnSpy.mockRestore()
+    })
+
+    it('warns to console when clearOnValidationFailure is not set', () => {
+      window.localStorage.setItem(TEST_KEY, '"not-a-number"')
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+      })
+
+      expect(value.get()).toBe(0)
+      expect(window.localStorage.getItem(TEST_KEY)).toBe('"not-a-number"')
+      expect(warnSpy).toHaveBeenCalled()
+
+      warnSpy.mockRestore()
+    })
+
+    it('clears on each get call when invalid value is re-inserted', () => {
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+        clearOnValidationFailure: true,
+      })
+
+      window.localStorage.setItem(TEST_KEY, '"bad"')
+      expect(value.get()).toBe(0)
+      expect(window.localStorage.getItem(TEST_KEY)).toBeNull()
+
+      window.localStorage.setItem(TEST_KEY, '"still-bad"')
+      expect(value.get()).toBe(0)
+      expect(window.localStorage.getItem(TEST_KEY)).toBeNull()
+    })
+
+    it('does not remove valid items', () => {
+      window.localStorage.setItem(TEST_KEY, '42')
+
+      const value = createWebStorageValue({
+        kind: 'localStorage',
+        schema: z.number(),
+        key: TEST_KEY,
+        defaultValue: 0,
+        clearOnValidationFailure: true,
+      })
+
+      expect(value.get()).toBe(42)
+      expect(window.localStorage.getItem(TEST_KEY)).toBe('42')
+    })
+  })
+
   describe('with storage', () => {
     it('returns default value from storage when key is not set', () => {
       const storage = createWebStorage({

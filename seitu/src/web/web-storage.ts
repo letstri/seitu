@@ -4,6 +4,12 @@ import { tryParseJson } from '../utils'
 
 export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {
   keyTransform?: (key: keyof S) => string
+  /**
+   * If true, the stored value will be cleared if the validation fails.
+   *
+   * @default true
+   */
+  clearOnValidationFailure?: boolean
 }
 
 export interface WebStorage<O extends Record<string, unknown>> extends SchemaStore<O> {
@@ -15,7 +21,7 @@ export interface WebStorage<O extends Record<string, unknown>> extends SchemaSto
 export function createWebStorage<S extends SchemaStoreSchema>(
   options: WebStorageOptions<S> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorage<SchemaStoreOutput<S>> {
-  const { kind, keyTransform, defaultValues, schemas } = options
+  const { kind, keyTransform, defaultValues, schemas, clearOnValidationFailure } = options
   let isInternalUpdate = false
 
   const store = createSchemaStore<S>({
@@ -46,7 +52,12 @@ export function createWebStorage<S extends SchemaStoreSchema>(
           }
 
           if (result.issues) {
-            console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+            if (clearOnValidationFailure) {
+              storage.removeItem(keyTransform ? keyTransform(key) : key)
+            }
+            else {
+              console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+            }
           }
 
           output[key] = result.issues ? defaultValues[key] : result.value

@@ -161,7 +161,6 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
       }
 
       const unsubscribe = subscribe(() => callback(get()))
-
       const handler = () => callback(get())
       element.addEventListener('scroll', handler, { passive: true })
 

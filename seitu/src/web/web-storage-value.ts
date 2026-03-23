@@ -12,6 +12,12 @@ export interface WebStorageValueOptionsWithStorage<
 > {
   storage: Storage
   key: K
+  /**
+   * If true, the value will be cleared if the validation fails.
+   *
+   * @default true
+   */
+  clearOnValidationFailure?: boolean
 }
 
 export interface WebStorageValueOptionsWithSchema<
@@ -20,6 +26,10 @@ export interface WebStorageValueOptionsWithSchema<
   schema: S
   key: string
   defaultValue: StandardSchemaV1.InferOutput<S>
+  /**
+   * If true, the value will be cleared if the validation fails.
+   */
+  clearOnValidationFailure?: boolean
 }
 
 export function createWebStorageValue<
@@ -76,7 +86,12 @@ export function createWebStorageValue(
         }
 
         if (result.issues) {
-          console.error(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+          if (options.clearOnValidationFailure) {
+            storage.removeItem(options.key)
+          }
+          else {
+            console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+          }
           return defaultValue
         }
         return result.value

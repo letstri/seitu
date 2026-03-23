@@ -82,4 +82,90 @@ describe('createWebStorage', () => {
       expect(window.localStorage.getItem('prefix-name')).toBe('bob')
     })
   })
+
+  describe('clearOnValidationFailure', () => {
+    it('removes invalid items from storage when enabled', () => {
+      window.localStorage.setItem('count', '"not-a-number"')
+      window.localStorage.setItem('name', '42')
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+        clearOnValidationFailure: true,
+      })
+
+      expect(storage.get()).toEqual({ count: 0, name: '' })
+      expect(window.localStorage.getItem('count')).toBeNull()
+      expect(window.localStorage.getItem('name')).toBeNull()
+    })
+
+    it('returns defaults but does not remove items when disabled', () => {
+      window.localStorage.setItem('count', '"not-a-number"')
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number() },
+        defaultValues: { count: 0 },
+        clearOnValidationFailure: false,
+      })
+
+      expect(storage.get()).toEqual({ count: 0 })
+      expect(window.localStorage.getItem('count')).toBe('"not-a-number"')
+      expect(warnSpy).toHaveBeenCalled()
+
+      warnSpy.mockRestore()
+    })
+
+    it('warns to console when clearOnValidationFailure is not set', () => {
+      window.localStorage.setItem('count', '"not-a-number"')
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number() },
+        defaultValues: { count: 0 },
+      })
+
+      expect(storage.get()).toEqual({ count: 0 })
+      expect(window.localStorage.getItem('count')).toBe('"not-a-number"')
+      expect(warnSpy).toHaveBeenCalled()
+
+      warnSpy.mockRestore()
+    })
+
+    it('removes transformed keys when used with keyTransform', () => {
+      window.localStorage.setItem('app-count', '"invalid"')
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number() },
+        defaultValues: { count: 0 },
+        keyTransform: key => `app-${key}`,
+        clearOnValidationFailure: true,
+      })
+
+      expect(storage.get()).toEqual({ count: 0 })
+      expect(window.localStorage.getItem('app-count')).toBeNull()
+    })
+
+    it('only removes keys that fail validation', () => {
+      window.localStorage.setItem('count', '5')
+      window.localStorage.setItem('name', '123')
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+        clearOnValidationFailure: true,
+      })
+
+      expect(storage.get()).toEqual({ count: 5, name: '' })
+      expect(window.localStorage.getItem('count')).toBe('5')
+      expect(window.localStorage.getItem('name')).toBeNull()
+    })
+  })
 })
