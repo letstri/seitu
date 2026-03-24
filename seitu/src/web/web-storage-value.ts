@@ -143,7 +143,7 @@ export function createWebStorageValue(
       const newValue = typeof value === 'function' ? value(get()) : value
       isInternalUpdate = true
       storage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
-      window.dispatchEvent(new Event('storage'))
+      window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue }))
       isInternalUpdate = false
       notify()
     },

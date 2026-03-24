@@ -92,23 +92,22 @@ export function createWebStorage<S extends SchemaStoreSchema>(
             options.keyTransform ? options.keyTransform(key) : key,
             newValue,
           )
+          window.dispatchEvent(new StorageEvent('storage', {
+            key: options.keyTransform ? options.keyTransform(key) : key,
+            newValue,
+          }))
         })
-        window.dispatchEvent(new Event('storage'))
         isInternalUpdate = false
       },
     },
   })
 
-  const keys = Object.keys(options.schemas).map(key => options.keyTransform ? options.keyTransform(key) : key)
-
-  const listener = (e: StorageEvent) => {
+  const listener = () => {
     if (isInternalUpdate) {
       return
     }
 
-    if (e.key && keys.includes(e.key)) {
-      store['~'].notify()
-    }
+    store['~'].notify()
   }
 
   if (typeof window !== 'undefined') {
