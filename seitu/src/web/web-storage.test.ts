@@ -98,7 +98,7 @@ describe('createWebStorage', () => {
       expect(callback).toHaveBeenCalledTimes(1)
 
       window.localStorage.setItem('count', '99')
-      window.dispatchEvent(new Event('storage'))
+      window.dispatchEvent(new StorageEvent('storage', { key: 'count' }))
       expect(callback).toHaveBeenCalledTimes(2)
     })
   })
