@@ -12,12 +12,7 @@ export interface WebStorageValueOptionsWithStorage<
 > {
   storage: Storage
   key: K
-  /**
-   * If true, the value will be cleared if the validation fails.
-   *
-   * @default true
-   */
-  clearOnValidationFailure?: boolean
+  onValidationError?: (props: { issues: StandardSchemaV1.Issue[], value: unknown }) => void
 }
 
 export interface WebStorageValueOptionsWithSchema<
@@ -26,10 +21,7 @@ export interface WebStorageValueOptionsWithSchema<
   schema: S
   key: string
   defaultValue: StandardSchemaV1.InferOutput<S>
-  /**
-   * If true, the value will be cleared if the validation fails.
-   */
-  clearOnValidationFailure?: boolean
+  onValidationError?: (props: { issues: StandardSchemaV1.Issue[], value: unknown }) => void | StandardSchemaV1.InferOutput<S>
 }
 
 export function createWebStorageValue<
@@ -86,8 +78,23 @@ export function createWebStorageValue(
         }
 
         if (result.issues) {
-          if (options.clearOnValidationFailure) {
-            storage.removeItem(options.key)
+          if (options.onValidationError) {
+            const value = options.onValidationError({ issues: [...result.issues], value: parsed })
+
+            if (value !== undefined) {
+              const validated = options.schema['~standard'].validate(value)
+
+              if (validated instanceof Promise) {
+                throw new TypeError('Validation schema should not return a Promise.')
+              }
+
+              if (validated.issues) {
+                console.error('Returned value invalid, returned default value instead', JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
+              }
+              else {
+                return validated.value
+              }
+            }
           }
           else {
             console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })

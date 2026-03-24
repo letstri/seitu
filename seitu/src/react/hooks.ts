@@ -2,6 +2,8 @@ import type { Destroyable, Readable, Subscribable } from '../core/index'
 import { deepEqual } from 'fast-equals'
 import * as React from 'react'
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect
+
 export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
   selector?: (value: S['~']['output']) => R
   deps?: React.DependencyList
@@ -109,15 +111,11 @@ export function useSubscription<
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const subscription = React.useMemo(() => factoryRef.current(), deps)
 
-  if (!subscription.get || !subscription.subscribe) {
-    throw new Error('Subscription is not valid. It must have a get and subscribe method.')
-  }
-
   const [value, setValue] = React.useState(() => selector ? selector(subscription.get()) : subscription.get())
 
   const getValue = React.useEffectEvent(() => value)
 
-  React.useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const sync = (next: S['~']['output']) => {
       const nextSelected = selector ? selector(next) : next
       if (deepEqual(nextSelected, getValue()))
@@ -131,7 +129,9 @@ export function useSubscription<
 
     return () => {
       unsub()
-      subscription.destroy?.()
+      if (typeof source === 'function') {
+        subscription.destroy?.()
+      }
     }
   }, [subscription, selector])
 

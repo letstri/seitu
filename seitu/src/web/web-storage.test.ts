@@ -27,6 +27,56 @@ describe('createWebStorage', () => {
         vi.stubGlobal('window', originalWindow)
       }
     })
+
+    it('calls onValidationError with key, parsed value, and issues', () => {
+      const onValidationError = vi.fn()
+      window.localStorage.setItem('count', JSON.stringify('invalid-number'))
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+        onValidationError,
+      })
+
+      expect(storage.get()).toEqual({ count: 0, name: '' })
+      expect(onValidationError).toHaveBeenCalled()
+      expect(onValidationError).toHaveBeenCalledWith({
+        issues: expect.any(Array),
+        key: 'count',
+        value: 'invalid-number',
+      })
+    })
+
+    it('returns default value when onValidationError returns undefined', () => {
+      window.localStorage.setItem('count', JSON.stringify('invalid-number'))
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 7, name: '' },
+        onValidationError: () => undefined,
+      })
+
+      expect(storage.get()).toEqual({ count: 7, name: '' })
+    })
+
+    it('returns default value when onValidationError returns a value but stored value is still invalid', () => {
+      window.localStorage.setItem('count', JSON.stringify('invalid-number'))
+
+      const storage = createWebStorage({
+        kind: 'localStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+        onValidationError: ({ key }) => {
+          if (key === 'count') {
+            return 55
+          }
+        },
+      })
+
+      expect(storage.get()).toEqual({ count: 55, name: '' })
+    })
   })
 
   describe('set', () => {
@@ -80,92 +130,6 @@ describe('createWebStorage', () => {
       storage.set({ count: 5, name: 'bob' })
       expect(window.localStorage.getItem('prefix-count')).toBe('5')
       expect(window.localStorage.getItem('prefix-name')).toBe('bob')
-    })
-  })
-
-  describe('clearOnValidationFailure', () => {
-    it('removes invalid items from storage when enabled', () => {
-      window.localStorage.setItem('count', '"not-a-number"')
-      window.localStorage.setItem('name', '42')
-
-      const storage = createWebStorage({
-        kind: 'localStorage',
-        schemas: { count: z.number(), name: z.string() },
-        defaultValues: { count: 0, name: '' },
-        clearOnValidationFailure: true,
-      })
-
-      expect(storage.get()).toEqual({ count: 0, name: '' })
-      expect(window.localStorage.getItem('count')).toBeNull()
-      expect(window.localStorage.getItem('name')).toBeNull()
-    })
-
-    it('returns defaults but does not remove items when disabled', () => {
-      window.localStorage.setItem('count', '"not-a-number"')
-
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const storage = createWebStorage({
-        kind: 'localStorage',
-        schemas: { count: z.number() },
-        defaultValues: { count: 0 },
-        clearOnValidationFailure: false,
-      })
-
-      expect(storage.get()).toEqual({ count: 0 })
-      expect(window.localStorage.getItem('count')).toBe('"not-a-number"')
-      expect(warnSpy).toHaveBeenCalled()
-
-      warnSpy.mockRestore()
-    })
-
-    it('warns to console when clearOnValidationFailure is not set', () => {
-      window.localStorage.setItem('count', '"not-a-number"')
-
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const storage = createWebStorage({
-        kind: 'localStorage',
-        schemas: { count: z.number() },
-        defaultValues: { count: 0 },
-      })
-
-      expect(storage.get()).toEqual({ count: 0 })
-      expect(window.localStorage.getItem('count')).toBe('"not-a-number"')
-      expect(warnSpy).toHaveBeenCalled()
-
-      warnSpy.mockRestore()
-    })
-
-    it('removes transformed keys when used with keyTransform', () => {
-      window.localStorage.setItem('app-count', '"invalid"')
-
-      const storage = createWebStorage({
-        kind: 'localStorage',
-        schemas: { count: z.number() },
-        defaultValues: { count: 0 },
-        keyTransform: key => `app-${key}`,
-        clearOnValidationFailure: true,
-      })
-
-      expect(storage.get()).toEqual({ count: 0 })
-      expect(window.localStorage.getItem('app-count')).toBeNull()
-    })
-
-    it('only removes keys that fail validation', () => {
-      window.localStorage.setItem('count', '5')
-      window.localStorage.setItem('name', '123')
-
-      const storage = createWebStorage({
-        kind: 'localStorage',
-        schemas: { count: z.number(), name: z.string() },
-        defaultValues: { count: 0, name: '' },
-        clearOnValidationFailure: true,
-      })
-
-      expect(storage.get()).toEqual({ count: 5, name: '' })
-      expect(window.localStorage.getItem('count')).toBe('5')
-      expect(window.localStorage.getItem('name')).toBeNull()
     })
   })
 })

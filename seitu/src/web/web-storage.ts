@@ -1,15 +1,11 @@
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { SchemaStore, SchemaStoreOptions, SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
 import { createSchemaStore } from '../core/index'
 import { tryParseJson } from '../utils'
 
 export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {
   keyTransform?: (key: keyof S) => string
-  /**
-   * If true, the stored value will be cleared if the validation fails.
-   *
-   * @default true
-   */
-  clearOnValidationFailure?: boolean
+  onValidationError?: <K extends keyof S>(props: { issues: StandardSchemaV1.Issue[], key: K, value: unknown }) => void | StandardSchemaV1.InferOutput<S[K]>
 }
 
 export interface WebStorage<O extends Record<string, unknown>> extends SchemaStore<O> {
@@ -21,46 +17,62 @@ export interface WebStorage<O extends Record<string, unknown>> extends SchemaSto
 export function createWebStorage<S extends SchemaStoreSchema>(
   options: WebStorageOptions<S> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorage<SchemaStoreOutput<S>> {
-  const { kind, keyTransform, defaultValues, schemas, clearOnValidationFailure } = options
   let isInternalUpdate = false
 
   const store = createSchemaStore<S>({
-    defaultValues,
-    schemas,
+    defaultValues: options.defaultValues,
+    schemas: options.schemas,
     provider: {
       get: () => {
         if (typeof window === 'undefined') {
-          return defaultValues
+          return options.defaultValues
         }
 
-        const storage = window[kind]
-        const output = { ...defaultValues }
+        const storage = window[options.kind]
+        const output = { ...options.defaultValues }
 
         for (const key in output) {
-          const item = storage.getItem(keyTransform ? keyTransform(key) : key)
+          const item = storage.getItem(options.keyTransform ? options.keyTransform(key) : key)
 
           if (item === null) {
-            output[key] = defaultValues[key]
+            output[key] = options.defaultValues[key]
             continue
           }
 
           const parsed = tryParseJson(item)
-          const result = schemas[key]['~standard'].validate(parsed)
+          const result = options.schemas[key]['~standard'].validate(parsed)
 
           if (result instanceof Promise) {
             throw new TypeError('[createWebSchemaStore] Validation schema should not return a Promise.')
           }
 
           if (result.issues) {
-            if (clearOnValidationFailure) {
-              storage.removeItem(keyTransform ? keyTransform(key) : key)
+            if (options.onValidationError) {
+              const value = options.onValidationError({ issues: [...result.issues], key, value: parsed })
+
+              if (value !== undefined) {
+                const validated = options.schemas[key]['~standard'].validate(value)
+
+                if (validated instanceof Promise) {
+                  throw new TypeError('Validation schema should not return a Promise.')
+                }
+
+                if (validated.issues) {
+                  console.error('Returned value invalid, returned default value instead', JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
+                }
+                else {
+                  output[key] = validated.value
+                }
+              }
             }
             else {
               console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+              output[key] = options.defaultValues[key]
             }
           }
-
-          output[key] = result.issues ? defaultValues[key] : result.value
+          else {
+            output[key] = result.value
+          }
         }
 
         return output
@@ -70,14 +82,14 @@ export function createWebStorage<S extends SchemaStoreSchema>(
           return
         }
 
-        const storage = window[kind]
+        const storage = window[options.kind]
 
         isInternalUpdate = true
         Object.entries(value).forEach(([key, entryValue]) => {
           const newValue = typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue)
 
           storage.setItem(
-            keyTransform ? keyTransform(key) : key,
+            options.keyTransform ? options.keyTransform(key) : key,
             newValue,
           )
         })
@@ -108,7 +120,7 @@ export function createWebStorage<S extends SchemaStoreSchema>(
       }
     },
     '~': {
-      kind,
+      kind: options.kind,
       ...store['~'],
     },
   }

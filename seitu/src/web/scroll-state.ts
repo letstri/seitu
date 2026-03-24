@@ -125,7 +125,7 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
     ? { top: rawThreshold, bottom: rawThreshold, left: rawThreshold, right: rawThreshold }
     : { top: rawThreshold.top ?? 0, bottom: rawThreshold.bottom ?? 0, left: rawThreshold.left ?? 0, right: rawThreshold.right ?? 0 }
 
-  const resolveElement = (): Element | null =>
+  const resolveElement = () =>
     typeof options.element === 'function' ? options.element() : options.element
 
   const get = (): ScrollStateValue => {
