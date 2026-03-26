@@ -51,8 +51,8 @@ export function createIsOnline(): IsOnline {
 
   return {
     get,
-    'subscribe': (callback) => {
-      return subscribe(() => callback(get()))
+    'subscribe': (callback, options) => {
+      return subscribe(() => callback(get()), options)
     },
     'destroy': () => {
       if (typeof window !== 'undefined') {

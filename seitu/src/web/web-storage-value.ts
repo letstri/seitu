@@ -147,8 +147,8 @@ export function createWebStorageValue(
       isInternalUpdate = false
       notify()
     },
-    'subscribe': (callback) => {
-      return subscribe(() => callback(get()))
+    'subscribe': (callback, options) => {
+      return subscribe(() => callback(get()), options)
     },
     'remove': () => {
       if (typeof window === 'undefined') {

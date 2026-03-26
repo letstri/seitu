@@ -142,8 +142,8 @@ export function createMediaQuery<T extends string>(options: MediaQueryOptions<T>
 
   return {
     get,
-    'subscribe': (callback) => {
-      return subscribe(() => callback(get()))
+    'subscribe': (callback, options) => {
+      return subscribe(() => callback(get()), options)
     },
     'destroy': () => {
       match?.removeEventListener('change', listener)

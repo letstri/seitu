@@ -97,5 +97,31 @@ describe('createStore', () => {
       store.set(prev => ({ ...prev, step: 2 }))
       expect(received).toEqual([{ step: 1 }, { step: 2 }])
     })
+
+    it('calls callback immediately with current value when immediate is true', () => {
+      const store = createStore(42)
+      const callback = vi.fn()
+      store.subscribe(callback, { immediate: true })
+      expect(callback).toHaveBeenCalledTimes(1)
+      expect(callback).toHaveBeenCalledWith(42)
+    })
+
+    it('does not call callback immediately when immediate is false', () => {
+      const store = createStore(42)
+      const callback = vi.fn()
+      store.subscribe(callback, { immediate: false })
+      expect(callback).not.toHaveBeenCalled()
+    })
+
+    it('still receives future updates after immediate call', () => {
+      const store = createStore(0)
+      const callback = vi.fn()
+      store.subscribe(callback, { immediate: true })
+      expect(callback).toHaveBeenCalledTimes(1)
+      expect(callback).toHaveBeenCalledWith(0)
+      store.set(1)
+      expect(callback).toHaveBeenCalledWith(1)
+      expect(callback).toHaveBeenCalledTimes(2)
+    })
   })
 })

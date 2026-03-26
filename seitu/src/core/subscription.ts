@@ -1,5 +1,12 @@
+export interface SubscribeOptions {
+  /**
+   * When `true`, the callback is invoked immediately with the current value upon subscribing.
+   */
+  immediate?: boolean
+}
+
 export interface Subscribable<V> {
-  'subscribe': (callback: (value: V) => any) => () => void
+  'subscribe': (callback: (value: V) => any, options?: SubscribeOptions) => () => void
   '~': {
     /**
      * Type type with returned value of the subscription.
@@ -24,20 +31,23 @@ export interface Destroyable {
   destroy: () => void
 }
 
-export function createSubscription<T = void>(): {
-  subscribe: (callback: (payload: T) => any) => () => void
-  notify: (payload: T) => void
+export function createSubscription(): {
+  subscribe: (callback: () => any, options?: SubscribeOptions) => () => void
+  notify: () => void
 } {
-  const subscribers = new Set<(payload: T) => void>()
+  const subscribers = new Set<() => void>()
   return {
-    subscribe(callback) {
+    subscribe(callback, options) {
+      if (options?.immediate)
+        callback()
+
       subscribers.add(callback)
       return () => {
         subscribers.delete(callback)
       }
     },
-    notify(payload) {
-      subscribers.forEach(cb => cb(payload))
+    notify() {
+      subscribers.forEach(cb => cb())
     },
   }
 }

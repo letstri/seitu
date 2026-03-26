@@ -75,10 +75,8 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
       notify()
     },
     'getDefaultValue': key => defaultValues[key],
-    'subscribe': (callback) => {
-      return subscribe(() => {
-        callback(get())
-      })
+    'subscribe': (callback, options) => {
+      return subscribe(() => callback(get()), options)
     },
     'destroy': () => {
       provider.destroy?.()

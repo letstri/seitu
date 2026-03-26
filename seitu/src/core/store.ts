@@ -21,7 +21,7 @@ export interface Store<T> extends Readable<T>, Writable<T, T>, Subscribable<T> {
  */
 export function createStore<T>(initial: T): Store<T> {
   let state = initial
-  const { subscribe, notify } = createSubscription<void>()
+  const { subscribe, notify } = createSubscription()
 
   const get = (): T => state
 
@@ -34,8 +34,8 @@ export function createStore<T>(initial: T): Store<T> {
       state = next
       notify()
     },
-    subscribe(callback) {
-      return subscribe(() => callback(get()))
+    subscribe(callback, options) {
+      return subscribe(() => callback(get()), options)
     },
     '~': {
       output: null as unknown as T,

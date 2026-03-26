@@ -60,6 +60,35 @@ describe('createComputed', () => {
       source.set({ x: 2 })
       expect(received).toEqual([10, 20])
     })
+
+    it('calls callback immediately with current computed value when immediate is true', () => {
+      const source = createStore(5)
+      const doubled = createComputed(source, n => n * 2)
+      const callback = vi.fn()
+      doubled.subscribe(callback, { immediate: true })
+      expect(callback).toHaveBeenCalledTimes(1)
+      expect(callback).toHaveBeenCalledWith(10)
+    })
+
+    it('still receives future updates after immediate call', () => {
+      const source = createStore(1)
+      const derived = createComputed(source, n => n + 1)
+      const callback = vi.fn()
+      derived.subscribe(callback, { immediate: true })
+      expect(callback).toHaveBeenCalledWith(2)
+      source.set(5)
+      expect(callback).toHaveBeenCalledWith(6)
+      expect(callback).toHaveBeenCalledTimes(2)
+    })
+
+    it('calls callback immediately with computed value from multiple sources', () => {
+      const a = createStore(3)
+      const b = createStore(7)
+      const sum = createComputed([a, b], ([a, b]) => a + b)
+      const callback = vi.fn()
+      sum.subscribe(callback, { immediate: true })
+      expect(callback).toHaveBeenCalledWith(10)
+    })
   })
 
   describe('computed shape', () => {
