@@ -1,4 +1,4 @@
-import type { Destroyable, Readable, Subscribable } from '../core/index'
+import type { Readable, Subscribable } from '../core/index'
 import { deepEqual } from 'fast-equals'
 import * as React from 'react'
 
@@ -95,7 +95,7 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * ```
  */
 export function useSubscription<
-  S extends Subscribable<any> & Readable<any> & Partial<Destroyable>,
+  S extends Subscribable<any> & Readable<any>,
   R = S['~']['output'],
 >(
   source: S | (() => S),
@@ -111,46 +111,24 @@ export function useSubscription<
     isFactory ? deps : [source, ...deps],
   )
 
-  const subscriptionRef = React.useRef(subscription)
-  const prevSubscriptionRef = React.useRef(subscription)
   const lastSnapshotRef = React.useRef<R | undefined>(undefined)
-
-  if (prevSubscriptionRef.current !== subscription) {
-    const prev = prevSubscriptionRef.current
-    prevSubscriptionRef.current = subscription
-    subscriptionRef.current = subscription
-    lastSnapshotRef.current = undefined
-    if (isFactory)
-      prev.destroy?.()
-  }
-
-  React.useEffect(() => {
-    return () => {
-      if (isFactory)
-        subscriptionRef.current.destroy?.()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const subscribe = React.useCallback((onStoreChange: () => void) => subscription.subscribe(() => {
-    onStoreChange()
-  }), [subscription])
-
+  const subscriptionRef = React.useRef(subscription)
   const selectorRef = React.useRef(selector)
-  if (selectorRef.current !== selector) {
+  if (subscriptionRef.current !== subscription || selectorRef.current !== selector) {
+    subscriptionRef.current = subscription
     selectorRef.current = selector
     lastSnapshotRef.current = undefined
   }
 
   const getSnapshot = React.useCallback((): R => {
     const sel = selectorRef.current
-    const next = sel ? sel(subscription.get()) : subscription.get()
+    const next = sel ? sel(subscriptionRef.current.get()) : subscriptionRef.current.get()
     const prev = lastSnapshotRef.current
     if (prev !== undefined && deepEqual(prev, next))
       return prev
     lastSnapshotRef.current = next
     return next
-  }, [subscription])
+  }, [])
 
-  return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  return React.useSyncExternalStore(subscription.subscribe, getSnapshot, getSnapshot)
 }

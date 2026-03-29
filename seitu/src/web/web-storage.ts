@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { SchemaStore, SchemaStoreOptions, SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
-import { createSchemaStore } from '../core/index'
+import { createSubscription } from '../core/index'
 import { tryParseJson } from '../utils'
 
 export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {
@@ -18,113 +18,118 @@ export function createWebStorage<S extends SchemaStoreSchema>(
   options: WebStorageOptions<S> & { kind: 'sessionStorage' | 'localStorage' },
 ): WebStorage<SchemaStoreOutput<S>> {
   let isInternalUpdate = false
-
-  const store = createSchemaStore<S>({
-    defaultValues: options.defaultValues,
-    schemas: options.schemas,
-    provider: {
-      get: () => {
-        if (typeof window === 'undefined') {
-          return options.defaultValues
-        }
-
-        const storage = window[options.kind]
-        const output = { ...options.defaultValues }
-
-        for (const key in output) {
-          const item = storage.getItem(options.keyTransform ? options.keyTransform(key) : key)
-
-          if (item === null) {
-            output[key] = options.defaultValues[key]
-            continue
-          }
-
-          const parsed = tryParseJson(item)
-          const result = options.schemas[key]['~standard'].validate(parsed)
-
-          if (result instanceof Promise) {
-            throw new TypeError('[createWebSchemaStore] Validation schema should not return a Promise.')
-          }
-
-          if (result.issues) {
-            if (options.onValidationError) {
-              const value = options.onValidationError({ issues: [...result.issues], key, value: parsed })
-
-              if (value !== undefined) {
-                const validated = options.schemas[key]['~standard'].validate(value)
-
-                if (validated instanceof Promise) {
-                  throw new TypeError('Validation schema should not return a Promise.')
-                }
-
-                if (validated.issues) {
-                  console.error('Returned value invalid, returned default value instead', JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
-                }
-                else {
-                  output[key] = validated.value
-                }
-              }
-            }
-            else {
-              console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
-              output[key] = options.defaultValues[key]
-            }
-          }
-          else {
-            output[key] = result.value
-          }
-        }
-
-        return output
-      },
-      set: (value) => {
-        if (typeof window === 'undefined') {
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe: () => {
+      const listener = () => {
+        if (isInternalUpdate) {
           return
         }
 
-        const storage = window[options.kind]
+        notify()
+      }
 
-        isInternalUpdate = true
-        Object.entries(value).forEach(([key, entryValue]) => {
-          const newValue = typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue)
+      if (typeof window !== 'undefined') {
+        window.addEventListener('storage', listener)
+      }
 
-          storage.setItem(
-            options.keyTransform ? options.keyTransform(key) : key,
-            newValue,
-          )
-          window.dispatchEvent(new StorageEvent('storage', {
-            key: options.keyTransform ? options.keyTransform(key) : key,
-            newValue,
-          }))
-        })
-        isInternalUpdate = false
-      },
+      return () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('storage', listener)
+        }
+      }
     },
   })
+  const defaultValues = { ...options.defaultValues }
 
-  const listener = () => {
-    if (isInternalUpdate) {
-      return
+  const get = () => {
+    if (typeof window === 'undefined') {
+      return options.defaultValues
     }
 
-    store['~'].notify()
-  }
+    const storage = window[options.kind]
+    const output = { ...options.defaultValues }
 
-  if (typeof window !== 'undefined') {
-    window.addEventListener('storage', listener)
+    for (const key in output) {
+      const item = storage.getItem(options.keyTransform ? options.keyTransform(key) : key)
+
+      if (item === null) {
+        output[key] = options.defaultValues[key]
+        continue
+      }
+
+      const parsed = tryParseJson(item)
+      const result = options.schemas[key]['~standard'].validate(parsed)
+
+      if (result instanceof Promise) {
+        throw new TypeError('[createWebStorage] Validation schema should not return a Promise.')
+      }
+
+      if (result.issues) {
+        if (options.onValidationError) {
+          const value = options.onValidationError({ issues: [...result.issues], key, value: parsed })
+
+          if (value !== undefined) {
+            const validated = options.schemas[key]['~standard'].validate(value)
+
+            if (validated instanceof Promise) {
+              throw new TypeError('[createWebStorage] Validation schema should not return a Promise.')
+            }
+
+            if (validated.issues) {
+              console.error('[createWebStorage] Returned value invalid, returned default value instead', JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
+            }
+            else {
+              output[key] = validated.value
+            }
+          }
+        }
+        else {
+          console.warn('[createWebStorage] Returned value invalid, returned default value instead', JSON.stringify(result.issues, null, 2), { cause: result.issues })
+          output[key] = options.defaultValues[key]
+        }
+      }
+      else {
+        output[key] = result.value
+      }
+    }
+
+    return output
   }
 
   return {
-    ...store,
-    'destroy': () => {
-      store.destroy?.()
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('storage', listener)
+    get,
+    'set': (value) => {
+      const resolvedValue = typeof value === 'function' ? value(get()) : value
+      if (typeof window === 'undefined') {
+        return
       }
+
+      const storage = window[options.kind]
+
+      isInternalUpdate = true
+      Object.entries(resolvedValue).forEach(([key, entryValue]) => {
+        const newValue = typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue)
+
+        storage.setItem(
+          options.keyTransform ? options.keyTransform(key) : key,
+          newValue,
+        )
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: options.keyTransform ? options.keyTransform(key) : key,
+          newValue,
+        }))
+      })
+      isInternalUpdate = false
+      notify()
+    },
+    'getDefaultValue': key => defaultValues[key],
+    'subscribe': (callback, options = {}) => {
+      return subscribe(() => callback(get()), options)
     },
     '~': {
       kind: options.kind,
-      ...store['~'],
+      output: null as unknown as SchemaStoreOutput<S>,
+      notify,
     },
   }
 }

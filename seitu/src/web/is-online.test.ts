@@ -75,15 +75,4 @@ describe('createIsOnline', () => {
       expect(callback).toHaveBeenCalledTimes(1)
     })
   })
-
-  describe('destroy', () => {
-    it('removes event listeners', () => {
-      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
-      const state = createIsOnline()
-      state.destroy()
-
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('online', expect.any(Function))
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('offline', expect.any(Function))
-    })
-  })
 })

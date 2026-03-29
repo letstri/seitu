@@ -152,7 +152,7 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
 
   return {
     get,
-    'subscribe': (callback, options) => {
+    'subscribe': (callback, options = {}) => {
       const element = resolveElement()
 
       if (!element) {

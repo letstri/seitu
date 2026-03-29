@@ -2,7 +2,7 @@
   "name": "seitu",
   "displayName": "Seitu",
   "type": "module",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": false,
   "packageManager": "pnpm@10.33.0",
   "author": "Valerii Strilets",
@@ -20,6 +20,7 @@
   "keywords": [
     "typescript",
     "react",
+    "vue",
     "utils",
     "type-safe"
   ],
@@ -35,6 +36,10 @@
     "./react": {
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react.js"
+    },
+    "./vue": {
+      "types": "./dist/vue/index.d.ts",
+      "import": "./dist/vue.js"
     }
   },
   "main": "./dist/core.js",
@@ -54,13 +59,17 @@
   },
   "peerDependencies": {
     "react": ">=19",
-    "react-dom": ">=19"
+    "react-dom": ">=19",
+    "vue": ">=3.5"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "vue": {
       "optional": true
     }
   },
@@ -80,6 +89,7 @@
     "vite": "catalog:",
     "vite-plugin-dts": "catalog:",
     "vitest": "catalog:",
+    "vue": "catalog:",
     "zod": "catalog:"
   }
 }

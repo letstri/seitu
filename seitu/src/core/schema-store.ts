@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Simplify } from '../utils'
-import type { Destroyable, Readable, Subscribable, Writable } from './index'
+import type { Readable, Subscribable, Writable } from './index'
 import { createStore, createSubscription } from '.'
 import { tryParseJson } from '../utils'
 
@@ -8,7 +8,7 @@ export type SchemaStoreSchema = Record<string, StandardSchemaV1<unknown, unknown
 
 export type SchemaStoreOutput<S extends SchemaStoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
 
-export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O>, Destroyable {
+export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O> {
   getDefaultValue: <K extends keyof O>(key: K) => O[K]
 }
 
@@ -78,9 +78,6 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
     'subscribe': (callback, options) => {
       return subscribe(() => callback(get()), options)
     },
-    'destroy': () => {
-      provider.destroy?.()
-    },
     '~': {
       output: null as unknown as SchemaStoreOutput<S>,
       notify,
@@ -91,7 +88,6 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
 export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
   get: () => SchemaStoreOutput<S>
   set: (value: Partial<SchemaStoreOutput<S>>) => void
-  destroy?: () => void
 }
 
 /**

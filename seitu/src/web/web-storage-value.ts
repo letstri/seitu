@@ -1,10 +1,10 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Destroyable, Readable, Removable, Subscribable, Writable } from '../core/index'
+import type { Readable, Removable, Subscribable, Writable } from '../core/index'
 import type { WebStorage } from './web-storage'
 import { createSubscription } from '../core'
 import { tryParseJson } from '../utils'
 
-export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Destroyable, Removable {}
+export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Removable {}
 
 export interface WebStorageValueOptionsWithStorage<
   Storage extends WebStorage<any>,
@@ -53,7 +53,29 @@ export function createWebStorageValue(
 
   const defaultValue = ('schema' in options ? options.defaultValue : options.storage.getDefaultValue(options.key)) ?? null
 
-  const { subscribe, notify } = createSubscription()
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe: () => {
+      const listener = (event: StorageEvent) => {
+        if (isInternalUpdate) {
+          return
+        }
+
+        if (event.key === options.key) {
+          notify()
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        window.addEventListener('storage', listener)
+      }
+
+      return () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('storage', listener)
+        }
+      }
+    },
+  })
 
   const get = () => {
     if (typeof window === 'undefined') {
@@ -112,26 +134,6 @@ export function createWebStorageValue(
     }
   }
 
-  const listener = (event: StorageEvent) => {
-    if (isInternalUpdate) {
-      return
-    }
-
-    if (event.key === options.key) {
-      notify()
-    }
-  }
-
-  if (typeof window !== 'undefined') {
-    window.addEventListener('storage', listener)
-  }
-
-  const destroy = () => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('storage', listener)
-    }
-  }
-
   return {
     get,
     'set': (value) => {
@@ -147,7 +149,7 @@ export function createWebStorageValue(
       isInternalUpdate = false
       notify()
     },
-    'subscribe': (callback, options) => {
+    'subscribe': (callback, options = {}) => {
       return subscribe(() => callback(get()), options)
     },
     'remove': () => {
@@ -157,7 +159,6 @@ export function createWebStorageValue(
 
       window[kind].removeItem(options.key)
     },
-    destroy,
     '~': {
       output: null as unknown,
       notify,

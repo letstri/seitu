@@ -284,50 +284,37 @@ describe('hooks', () => {
     })
   })
 
-  describe('useSubscription factory destroy', () => {
-    it('should destroy factory-created subscription on unmount', () => {
-      const destroyFn = vi.fn()
+  describe('useSubscription cleanup', () => {
+    it('should unsubscribe factory-created subscription on unmount', () => {
+      const unsubscribe = vi.fn()
+      const subscribe = vi.fn(() => unsubscribe)
       const sub = {
         'get': () => 1,
-        'subscribe': () => () => {},
-        'destroy': destroyFn,
+        'subscribe': subscribe,
         '~': { notify: () => {}, output: null as unknown as number },
       }
 
       const { unmount } = renderHook(() => useSubscription(() => sub))
-      expect(destroyFn).not.toHaveBeenCalled()
+      expect(subscribe).toHaveBeenCalledTimes(1)
+      expect(unsubscribe).not.toHaveBeenCalled()
 
       unmount()
-      expect(destroyFn).toHaveBeenCalledTimes(1)
+      expect(unsubscribe).toHaveBeenCalledTimes(1)
     })
 
-    it('should not destroy externally-provided subscription on unmount', () => {
-      const destroyFn = vi.fn()
-      const sub = {
-        'get': () => 1,
-        'subscribe': () => () => {},
-        'destroy': destroyFn,
-        '~': { notify: () => {}, output: null as unknown as number },
-      }
-
-      const { unmount } = renderHook(() => useSubscription(sub))
-      unmount()
-      expect(destroyFn).not.toHaveBeenCalled()
-    })
-
-    it('should destroy old subscription when deps change in factory mode', () => {
-      const destroyA = vi.fn()
-      const destroyB = vi.fn()
+    it('should unsubscribe old subscription when deps change in factory mode', () => {
+      const unsubscribeA = vi.fn()
+      const unsubscribeB = vi.fn()
+      const subscribeA = vi.fn(() => unsubscribeA)
+      const subscribeB = vi.fn(() => unsubscribeB)
       const subA = {
         'get': () => 1,
-        'subscribe': () => () => {},
-        'destroy': destroyA,
+        'subscribe': subscribeA,
         '~': { notify: () => {}, output: null as unknown as number },
       }
       const subB = {
         'get': () => 2,
-        'subscribe': () => () => {},
-        'destroy': destroyB,
+        'subscribe': subscribeB,
         '~': { notify: () => {}, output: null as unknown as number },
       }
 
@@ -335,14 +322,16 @@ describe('hooks', () => {
         ({ key }) => useSubscription(() => key === 'a' ? subA : subB, { deps: [key] }),
         { initialProps: { key: 'a' } },
       )
-      expect(destroyA).not.toHaveBeenCalled()
+      expect(subscribeA).toHaveBeenCalledTimes(1)
+      expect(unsubscribeA).not.toHaveBeenCalled()
 
       rerender({ key: 'b' })
-      expect(destroyA).toHaveBeenCalledTimes(1)
-      expect(destroyB).not.toHaveBeenCalled()
+      expect(unsubscribeA).toHaveBeenCalledTimes(1)
+      expect(subscribeB).toHaveBeenCalledTimes(1)
+      expect(unsubscribeB).not.toHaveBeenCalled()
 
       unmount()
-      expect(destroyB).toHaveBeenCalledTimes(1)
+      expect(unsubscribeB).toHaveBeenCalledTimes(1)
     })
   })
 })

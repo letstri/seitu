@@ -1,7 +1,7 @@
-import type { Destroyable, Readable, Subscribable } from '../core/index'
+import type { Readable, Subscribable } from '../core/index'
 import { createSubscription } from '../core/index'
 
-export interface IsOnline extends Subscribable<boolean>, Readable<boolean>, Destroyable {}
+export interface IsOnline extends Subscribable<boolean>, Readable<boolean> {}
 
 /**
  * Creates a reactive handle for browser online status.
@@ -33,7 +33,21 @@ export interface IsOnline extends Subscribable<boolean>, Readable<boolean>, Dest
  * ```
  */
 export function createIsOnline(): IsOnline {
-  const { subscribe, notify } = createSubscription()
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe: () => {
+      if (typeof window !== 'undefined') {
+        window.addEventListener('online', notify)
+        window.addEventListener('offline', notify)
+      }
+
+      return () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('online', notify)
+          window.removeEventListener('offline', notify)
+        }
+      }
+    },
+  })
 
   const get = (): boolean => {
     if (typeof navigator === 'undefined') {
@@ -42,23 +56,10 @@ export function createIsOnline(): IsOnline {
     return navigator.onLine
   }
 
-  const listener = () => notify()
-
-  if (typeof window !== 'undefined') {
-    window.addEventListener('online', listener)
-    window.addEventListener('offline', listener)
-  }
-
   return {
     get,
     'subscribe': (callback, options) => {
       return subscribe(() => callback(get()), options)
-    },
-    'destroy': () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', listener)
-        window.removeEventListener('offline', listener)
-      }
     },
     '~': {
       output: null as unknown as boolean,

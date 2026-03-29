@@ -27,27 +27,34 @@ export interface Writable<T, P = T> {
 export interface Removable {
   remove: () => void
 }
-export interface Destroyable {
-  destroy: () => void
-}
 
-export function createSubscription(): {
+export function createSubscription(options?: {
+  onFirstSubscribe?: () => (void | (() => void))
+}): {
   subscribe: (callback: () => any, options?: SubscribeOptions) => () => void
   notify: () => void
 } {
   const subscribers = new Set<() => void>()
+  const notify = () => subscribers.forEach(cb => cb())
+  let onEmpty: (() => void) | undefined
+
   return {
-    subscribe(callback, options) {
-      if (options?.immediate)
+    subscribe(callback, opts) {
+      if (subscribers.size === 0 && options?.onFirstSubscribe)
+        onEmpty = options.onFirstSubscribe() ?? undefined
+
+      if (opts?.immediate)
         callback()
 
       subscribers.add(callback)
       return () => {
         subscribers.delete(callback)
+        if (subscribers.size === 0) {
+          onEmpty?.()
+          onEmpty = undefined
+        }
       }
     },
-    notify() {
-      subscribers.forEach(cb => cb())
-    },
+    notify,
   }
 }

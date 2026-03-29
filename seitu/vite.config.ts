@@ -14,6 +14,7 @@ export default defineConfig({
         core: './src/core/index.ts',
         web: './src/web/index.ts',
         react: './src/react/index.ts',
+        vue: './src/vue/index.ts',
       },
       formats: ['es'],
     },

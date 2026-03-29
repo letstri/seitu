@@ -16,4 +16,11 @@ export default antfu(
       'no-console': 'off',
     },
   },
+  {
+    files: ['seitu/src/vue/**/*'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+      'react/no-unnecessary-use-prefix': 'off',
+    },
+  },
 )

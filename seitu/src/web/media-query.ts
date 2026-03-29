@@ -1,7 +1,7 @@
-import type { Destroyable, Readable, Subscribable } from '../core/index'
+import type { Readable, Subscribable } from '../core/index'
 import { createSubscription } from '../core/index'
 
-export interface MediaQuery extends Subscribable<boolean>, Readable<boolean>, Destroyable {}
+export interface MediaQuery extends Subscribable<boolean>, Readable<boolean> {}
 
 type MinMaxPrefix = 'min-' | 'max-' | ''
 type CSSUnitSuffix = 'px' | 'em' | 'rem' | 'vw' | 'vh' | 'dvw' | 'dvh' | 'svw' | 'svh' | 'lvw' | 'lvh' | 'cqw' | 'cqh' | 'vmin' | 'vmax' | 'cm' | 'mm' | 'in' | 'pt' | 'pc'
@@ -130,23 +130,24 @@ export interface MediaQueryOptions<T extends string> {
  * ```
  */
 export function createMediaQuery<T extends string>(options: MediaQueryOptions<T>): MediaQuery {
-  const { subscribe, notify } = createSubscription()
-
   const match = typeof window === 'undefined' ? null : window.matchMedia(options.query)
+
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe: () => {
+      match?.addEventListener('change', notify)
+
+      return () => {
+        match?.removeEventListener('change', notify)
+      }
+    },
+  })
 
   const get = (): boolean => match?.matches ?? options.defaultMatches ?? false
 
-  const listener = () => notify()
-
-  match?.addEventListener('change', listener)
-
   return {
     get,
-    'subscribe': (callback, options) => {
+    'subscribe': (callback, options = {}) => {
       return subscribe(() => callback(get()), options)
-    },
-    'destroy': () => {
-      match?.removeEventListener('change', listener)
     },
     '~': {
       output: null as unknown as boolean,
