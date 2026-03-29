@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
+import packageJson from './package.json'
 
 export default defineConfig({
   plugins: [react()],
@@ -17,7 +18,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rolldownOptions: {
-      external: ['react', 'react-dom', 'fast-equals'],
+      external: [...Object.keys(packageJson.dependencies), ...Object.keys(packageJson.peerDependencies)],
       plugins: [dts()],
     },
   },
