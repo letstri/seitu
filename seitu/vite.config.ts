@@ -17,7 +17,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rolldownOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'fast-equals'],
       plugins: [dts()],
     },
   },
