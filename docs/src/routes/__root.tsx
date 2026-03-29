@@ -1,4 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { Analytics } from '@vercel/analytics/react'
 import { RootProvider } from 'fumadocs-ui/provider/tanstack'
 import appCss from '~/styles/app.css?url'
 
@@ -29,6 +30,7 @@ function RootComponent() {
       </head>
       <body className="flex flex-col min-h-screen">
         <RootProvider>
+          <Analytics />
           <Outlet />
         </RootProvider>
         <Scripts />
