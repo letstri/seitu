@@ -190,6 +190,161 @@ describe('hooks', () => {
       expect(factory).toHaveBeenCalledTimes(2)
     })
   })
+
+  describe('useSubscription with changing source object', () => {
+    it('should pick up a new subscription when source object changes', () => {
+      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 1 })
+      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 2 })
+
+      const { result, rerender } = renderHook(
+        ({ storage }) => useSubscription(storage),
+        { initialProps: { storage: storageA } },
+      )
+      expect(result.current).toBe(1)
+
+      rerender({ storage: storageB })
+      expect(result.current).toBe(2)
+    })
+
+    it('should subscribe to the new source after switching', () => {
+      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
+      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
+
+      const { result, rerender } = renderHook(
+        ({ storage }) => useSubscription(storage),
+        { initialProps: { storage: storageA as SessionStorageValue<number> } },
+      )
+      expect(result.current).toBe(0)
+
+      rerender({ storage: storageB })
+      expect(result.current).toBe(10)
+
+      act(() => {
+        storageB.set(20)
+      })
+      expect(result.current).toBe(20)
+    })
+
+    it('should not react to old source after switching', () => {
+      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
+      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
+
+      let renderCount = 0
+      const { result, rerender } = renderHook(
+        ({ storage }) => {
+          renderCount++
+          return useSubscription(storage)
+        },
+        { initialProps: { storage: storageA as SessionStorageValue<number> } },
+      )
+      expect(result.current).toBe(0)
+
+      rerender({ storage: storageB })
+      const countAfterSwitch = renderCount
+
+      act(() => {
+        storageA.set(99)
+      })
+      expect(renderCount).toBe(countAfterSwitch)
+      expect(result.current).toBe(10)
+    })
+  })
+
+  describe('useSubscription selector changes', () => {
+    it('should update when selector changes', () => {
+      const storage = createSessionStorage({
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 5, name: 'hello' },
+      })
+
+      const { result, rerender } = renderHook(
+        ({ sel }) => useSubscription(storage, { selector: sel }),
+        { initialProps: { sel: (v: { count: number, name: string }) => v.count as number | string } },
+      )
+      expect(result.current).toBe(5)
+
+      rerender({ sel: (v: { count: number, name: string }) => v.name })
+      expect(result.current).toBe('hello')
+    })
+
+    it('should recompute when selector changes even if values are deeply equal', () => {
+      const storage = createSessionStorage({
+        schemas: { a: z.number(), b: z.number() },
+        defaultValues: { a: 42, b: 42 },
+      })
+
+      const { result, rerender } = renderHook(
+        ({ sel }) => useSubscription(storage, { selector: sel }),
+        { initialProps: { sel: (v: { a: number, b: number }) => v.a } },
+      )
+      expect(result.current).toBe(42)
+
+      rerender({ sel: (v: { a: number, b: number }) => v.b })
+      expect(result.current).toBe(42)
+    })
+  })
+
+  describe('useSubscription factory destroy', () => {
+    it('should destroy factory-created subscription on unmount', () => {
+      const destroyFn = vi.fn()
+      const sub = {
+        'get': () => 1,
+        'subscribe': () => () => {},
+        'destroy': destroyFn,
+        '~': { notify: () => {}, output: null as unknown as number },
+      }
+
+      const { unmount } = renderHook(() => useSubscription(() => sub))
+      expect(destroyFn).not.toHaveBeenCalled()
+
+      unmount()
+      expect(destroyFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not destroy externally-provided subscription on unmount', () => {
+      const destroyFn = vi.fn()
+      const sub = {
+        'get': () => 1,
+        'subscribe': () => () => {},
+        'destroy': destroyFn,
+        '~': { notify: () => {}, output: null as unknown as number },
+      }
+
+      const { unmount } = renderHook(() => useSubscription(sub))
+      unmount()
+      expect(destroyFn).not.toHaveBeenCalled()
+    })
+
+    it('should destroy old subscription when deps change in factory mode', () => {
+      const destroyA = vi.fn()
+      const destroyB = vi.fn()
+      const subA = {
+        'get': () => 1,
+        'subscribe': () => () => {},
+        'destroy': destroyA,
+        '~': { notify: () => {}, output: null as unknown as number },
+      }
+      const subB = {
+        'get': () => 2,
+        'subscribe': () => () => {},
+        'destroy': destroyB,
+        '~': { notify: () => {}, output: null as unknown as number },
+      }
+
+      const { rerender, unmount } = renderHook(
+        ({ key }) => useSubscription(() => key === 'a' ? subA : subB, { deps: [key] }),
+        { initialProps: { key: 'a' } },
+      )
+      expect(destroyA).not.toHaveBeenCalled()
+
+      rerender({ key: 'b' })
+      expect(destroyA).toHaveBeenCalledTimes(1)
+      expect(destroyB).not.toHaveBeenCalled()
+
+      unmount()
+      expect(destroyB).toHaveBeenCalledTimes(1)
+    })
+  })
 })
 
 describe('createMediaQuery', () => {

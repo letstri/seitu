@@ -2,8 +2,6 @@ import type { Destroyable, Readable, Subscribable } from '../core/index'
 import { deepEqual } from 'fast-equals'
 import * as React from 'react'
 
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect
-
 export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
   selector?: (value: S['~']['output']) => R
   deps?: React.DependencyList
@@ -104,36 +102,55 @@ export function useSubscription<
   options?: UseSubscriptionOptions<S, R>,
 ): R {
   const { selector, deps = [] } = options ?? {}
-  const factoryFn = typeof source === 'function' ? source : () => source
-  const factoryRef = React.useRef(factoryFn)
-  factoryRef.current = factoryFn
+  const isFactory = typeof source === 'function'
+  const factoryFn = isFactory ? source : () => source
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const subscription = React.useMemo(() => factoryRef.current(), deps)
+  const subscription = React.useMemo(
+    () => factoryFn(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    isFactory ? deps : [source, ...deps],
+  )
 
-  const [value, setValue] = React.useState(() => selector ? selector(subscription.get()) : subscription.get())
+  const subscriptionRef = React.useRef(subscription)
+  const prevSubscriptionRef = React.useRef(subscription)
+  const lastSnapshotRef = React.useRef<R | undefined>(undefined)
 
-  const getValue = React.useEffectEvent(() => value)
+  if (prevSubscriptionRef.current !== subscription) {
+    const prev = prevSubscriptionRef.current
+    prevSubscriptionRef.current = subscription
+    subscriptionRef.current = subscription
+    lastSnapshotRef.current = undefined
+    if (isFactory)
+      prev.destroy?.()
+  }
 
-  useIsomorphicLayoutEffect(() => {
-    const sync = (next: S['~']['output']) => {
-      const nextSelected = selector ? selector(next) : next
-      if (deepEqual(nextSelected, getValue()))
-        return
-      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- intentional: sync value that may change between render and effect (e.g. lazy element getter)
-      setValue(nextSelected)
-    }
-
-    const unsub = subscription.subscribe(sync)
-    sync(subscription.get())
-
+  React.useEffect(() => {
     return () => {
-      unsub()
-      if (typeof source === 'function') {
-        subscription.destroy?.()
-      }
+      if (isFactory)
+        subscriptionRef.current.destroy?.()
     }
-  }, [subscription, selector])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  return value
+  const subscribe = React.useCallback((onStoreChange: () => void) => subscription.subscribe(() => {
+    onStoreChange()
+  }), [subscription])
+
+  const selectorRef = React.useRef(selector)
+  if (selectorRef.current !== selector) {
+    selectorRef.current = selector
+    lastSnapshotRef.current = undefined
+  }
+
+  const getSnapshot = React.useCallback((): R => {
+    const sel = selectorRef.current
+    const next = sel ? sel(subscription.get()) : subscription.get()
+    const prev = lastSnapshotRef.current
+    if (prev !== undefined && deepEqual(prev, next))
+      return prev
+    lastSnapshotRef.current = next
+    return next
+  }, [subscription])
+
+  return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
