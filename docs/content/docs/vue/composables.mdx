@@ -1,0 +1,72 @@
+---
+title: Composables
+---
+
+## useSubscription()
+Use this composable to subscribe to a reactive value. Accepts a subscription object
+directly or a ref/getter that returns one.
+
+### Examples
+
+#### Inline subscription
+
+```vue
+<script setup lang="ts">
+import { createSessionStorageValue } from 'seitu/web'
+import { useSubscription } from 'seitu/vue'
+import * as z from 'zod'
+
+const value = useSubscription(
+  createSessionStorageValue({ key: 'test', defaultValue: 0, schema: z.number() }),
+)
+</script>
+
+<template>
+  <div>{{ value }}</div>
+</template>
+```
+
+#### Instance outside of the subscription
+
+```vue
+<script setup lang="ts">
+import { createSessionStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/vue'
+import * as z from 'zod'
+
+const sessionStorage = createSessionStorage({
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+const value = useSubscription(sessionStorage)
+</script>
+
+<template>
+  <div>{{ value.count }}</div>
+</template>
+```
+
+#### With selector
+
+```vue
+<script setup lang="ts">
+import { createSessionStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/vue'
+import * as z from 'zod'
+
+const sessionStorage = createSessionStorage({
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+const count = useSubscription(sessionStorage, { selector: v => v.count })
+</script>
+
+<template>
+  <div>{{ count }}</div>
+</template>
+```
+
+* * *
+
