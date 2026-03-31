@@ -1,0 +1,22 @@
+---
+title: Throttle
+---
+
+## createThrottle()
+Creates a throttled readable that rate-limits updates from a source subscribable.
+
+Emits the latest value at most once every `wait` milliseconds. The first update
+fires immediately, then subsequent updates are batched until the interval elapses.
+
+### Examples
+
+```ts twoslash
+import { createStore, createThrottle } from 'seitu'
+
+const store = createStore('')
+const throttled = createThrottle(store, 300)
+throttled.subscribe(value => console.log('throttled:', value))
+```
+
+* * *
+

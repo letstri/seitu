@@ -111,7 +111,7 @@ export function createWebStorageValue(
               }
 
               if (validated.issues) {
-                console.error('Returned value invalid, returned default value instead', JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
+                console.warn(`[${label}] Returned value invalid for key ${options.key}, returned default value instead`, JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
               }
               else {
                 return validated.value
@@ -119,7 +119,7 @@ export function createWebStorageValue(
             }
           }
           else {
-            console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+            console.warn(`[${label}] Returned value invalid for key ${options.key}, returned default value instead`, JSON.stringify(result.issues, null, 2), { cause: result.issues })
           }
           return defaultValue
         }

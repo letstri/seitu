@@ -1,0 +1,22 @@
+---
+title: Debounce
+---
+
+## createDebounce()
+Creates a debounced readable that delays updates from a source subscribable.
+
+The debounced store will only emit the latest value after `wait` milliseconds
+of inactivity from the source.
+
+### Examples
+
+```ts twoslash
+import { createStore, createDebounce } from 'seitu'
+
+const store = createStore('')
+const debounced = createDebounce(store, 300)
+debounced.subscribe(value => console.log('debounced:', value))
+```
+
+* * *
+

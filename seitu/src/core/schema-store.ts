@@ -58,7 +58,7 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
       }
 
       if (result.issues) {
-        console.warn(JSON.stringify(result.issues, null, 2), { cause: result.issues })
+        console.warn(`[createSchemaStore] Returned value invalid for key ${String(key)}, returned default value instead`, JSON.stringify(result.issues, null, 2), { cause: result.issues })
       }
 
       output[key] = result.issues ? defaultValues[key] : result.value

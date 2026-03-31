@@ -76,7 +76,7 @@ export function createWebStorage<S extends SchemaStoreSchema>(
             }
 
             if (validated.issues) {
-              console.error('[createWebStorage] Returned value invalid, returned default value instead', JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
+              console.warn(`[createWebStorage] Returned value invalid for key ${key}, returned default value instead`, JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
             }
             else {
               output[key] = validated.value
@@ -84,7 +84,7 @@ export function createWebStorage<S extends SchemaStoreSchema>(
           }
         }
         else {
-          console.warn('[createWebStorage] Returned value invalid, returned default value instead', JSON.stringify(result.issues, null, 2), { cause: result.issues })
+          console.warn(`[createWebStorage] Returned value invalid for key ${key}, returned default value instead`, JSON.stringify(result.issues, null, 2), { cause: result.issues })
           output[key] = options.defaultValues[key]
         }
       }
