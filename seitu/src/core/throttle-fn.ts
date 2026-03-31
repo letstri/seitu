@@ -1,8 +1,8 @@
 import type { Readable, Subscribable } from './subscription'
 import { createSubscription } from './subscription'
 
-export interface ThrottledFn<A extends unknown[], R> extends Readable<R | undefined>, Subscribable<R | undefined> {
-  (...args: A): void
+export interface ThrottledFn<F extends (...args: any[]) => any> extends Readable<ReturnType<F> | undefined>, Subscribable<ReturnType<F> | undefined> {
+  (...args: Parameters<F>): void
 }
 
 /**
@@ -23,16 +23,16 @@ export interface ThrottledFn<A extends unknown[], R> extends Readable<R | undefi
  * log.get() // latest return value (undefined until first call)
  * ```
  */
-export function createThrottleFn<A extends unknown[], R>(fn: (...args: A) => R, wait: number): ThrottledFn<A, R> {
-  let state: R | undefined
+export function createThrottleFn<F extends (...args: any[]) => any>(fn: F, wait: number): ThrottledFn<F> {
+  let state: ReturnType<F> | undefined
   let timeoutId: ReturnType<typeof setTimeout> | undefined
-  let trailingArgs: A | undefined
+  let trailingArgs: Parameters<F> | undefined
   const { subscribe, notify } = createSubscription()
 
-  const get = (): R | undefined => state
+  const get = (): ReturnType<F> | undefined => state
 
-  const throttled: ThrottledFn<A, R> = Object.assign(
-    (...args: A) => {
+  const throttled: ThrottledFn<F> = Object.assign(
+    (...args: Parameters<F>) => {
       if (timeoutId) {
         trailingArgs = args
         return
@@ -53,7 +53,7 @@ export function createThrottleFn<A extends unknown[], R>(fn: (...args: A) => R, 
     },
     {
       get,
-      'subscribe': (callback: (value: R | undefined) => any, options?: any) => {
+      'subscribe': (callback: (value: ReturnType<F> | undefined) => any, options?: any) => {
         return subscribe(() => callback(get()), options)
       },
       '~': {
