@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Readable, Removable, Subscribable, Writable } from '../core/index'
-import type { ValidationSchemaErrorProps, ValidationSchemasErrorProps } from '../validate'
+import type { ValidationSchemaErrorProps, ValidationSchemaObjectErrorProps } from '../validate'
 import type { WebStorage } from './web-storage'
 import { createReadableSubscription, createSubscription } from '../core'
 import { tryParseJson } from '../utils'
@@ -14,7 +14,7 @@ export interface WebStorageValueOptionsWithStorage<
 > {
   storage: Storage
   key: K
-  onValidationError?: (props: ValidationSchemasErrorProps<Storage['~']['output']>) => void
+  onValidationError?: (props: ValidationSchemaObjectErrorProps<Storage['~']['output']>) => void
 }
 
 export interface WebStorageValueOptionsWithSchema<

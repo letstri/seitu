@@ -4,27 +4,56 @@ import { createSchemaStore } from './schema-store'
 
 describe('createSchemaStore', () => {
   describe('get', () => {
-    it('returns defaultValue when provider is empty', () => {
+    it('returns defaultValue initially', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
+        schema: z.object({ count: z.number(), name: z.string() }),
         defaultValue: { count: 0, name: '' },
       })
       expect(store.get()).toEqual({ count: 0, name: '' })
     })
 
-    it('returns parsed values when keys exist with valid stored data', () => {
+    it('returns defaultValue initially for primitive schema', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
+        schema: z.number(),
+        defaultValue: 0,
+      })
+      expect(store.get()).toBe(0)
+    })
+
+    it('returns set value after set', () => {
+      const store = createSchemaStore({
+        schema: z.object({ count: z.number(), name: z.string() }),
         defaultValue: { count: 0, name: '' },
       })
       store.set({ count: 42, name: 'alice' })
       expect(store.get()).toEqual({ count: 42, name: 'alice' })
+    })
+
+    it('returns set value for string schema', () => {
+      const store = createSchemaStore({
+        schema: z.string(),
+        defaultValue: '',
+      })
+      store.set('hello')
+      expect(store.get()).toBe('hello')
+    })
+
+    it('returns set value for number schema', () => {
+      const store = createSchemaStore({
+        schema: z.number(),
+        defaultValue: 0,
+      })
+      store.set(42)
+      expect(store.get()).toBe(42)
+    })
+
+    it('returns set value for array schema', () => {
+      const store = createSchemaStore({
+        schema: z.array(z.number()),
+        defaultValue: [],
+      })
+      store.set([1, 2, 3])
+      expect(store.get()).toEqual([1, 2, 3])
     })
 
     it('works with z.record schema', () => {
@@ -34,6 +63,26 @@ describe('createSchemaStore', () => {
       })
       store.set({ x: 10, y: 20 })
       expect(store.get()).toEqual({ x: 10, y: 20 })
+    })
+
+    it('returns defaultValue when stored value fails validation', () => {
+      const store = createSchemaStore({
+        schema: z.number(),
+        defaultValue: 0,
+      })
+      // @ts-expect-error - test invalid value
+      store.set('not-a-number')
+      expect(store.get()).toBe(0)
+    })
+
+    it('returns defaultValue when object validation fails', () => {
+      const store = createSchemaStore({
+        schema: z.object({ count: z.number(), name: z.string() }),
+        defaultValue: { count: 0, name: '' },
+      })
+      // @ts-expect-error - test invalid value
+      store.set({ count: 'invalid', name: 'test' })
+      expect(store.get()).toEqual({ count: 0, name: '' })
     })
 
     it('returns defaultValue with z.record when stored value fails validation', () => {
@@ -46,64 +95,18 @@ describe('createSchemaStore', () => {
       expect(store.get()).toEqual({ x: 0 })
     })
 
-    it('merges stored values with defaultValue for partial keys', () => {
-      const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: 'default' },
-      })
-      // @ts-expect-error - test invalid value
-      store.set({ count: 10 })
-      expect(store.get()).toEqual({ count: 10, name: 'default' })
-    })
-
-    it('returns defaultValue when stored value fails validation', () => {
-      const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
-      })
-      // @ts-expect-error - test invalid value
-      store.set({ count: 'invalid' })
-      expect(store.get()).toEqual({ count: 0, name: '' })
-    })
-
-    it('returns defaultValue when any key is invalid', () => {
-      const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
-      })
-      // @ts-expect-error - test invalid value
-      store.set({ count: 'invalid', name: 'Test' })
-      // With a single schema, entire validation fails so all defaults are returned
-      expect(store.get()).toEqual({ count: 0, name: '' })
-    })
-
-    it('returns defaultValue with strict schema when extra keys are present', () => {
-      const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }).strict(),
-        defaultValue: { count: 0, name: '' },
-      })
-      // @ts-expect-error - test invalid value
-      store.set({ count: 1, name: 'ok', extra: true })
-      expect(store.get()).toEqual({ count: 0, name: '' })
-    })
-
     it('applies schema transforms on get', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          label: z.string().transform(s => s.trim()),
-        }),
+        schema: z.string().transform(s => s.trim()),
+        defaultValue: '',
+      })
+      store.set('  hello  ')
+      expect(store.get()).toBe('hello')
+    })
+
+    it('applies object schema transforms on get', () => {
+      const store = createSchemaStore({
+        schema: z.object({ label: z.string().transform(s => s.trim()) }),
         defaultValue: { label: '' },
       })
       store.set({ label: '  hello  ' })
@@ -112,100 +115,90 @@ describe('createSchemaStore', () => {
   })
 
   describe('set', () => {
-    it('stores values in sessionStorage', () => {
+    it('stores and retrieves values', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
+        schema: z.object({ count: z.number(), name: z.string() }),
         defaultValue: { count: 0, name: '' },
       })
       store.set({ count: 5, name: 'bob' })
-      expect(store.get().count).toBe(5)
-      expect(store.get().name).toBe('bob')
+      expect(store.get()).toEqual({ count: 5, name: 'bob' })
     })
 
-    it('can set partial updates (only some keys)', () => {
+    it('supports updater function', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
+        schema: z.number(),
+        defaultValue: 0,
+      })
+      store.set(prev => prev + 10)
+      expect(store.get()).toBe(10)
+      store.set(prev => prev + 5)
+      expect(store.get()).toBe(15)
+    })
+
+    it('supports updater function for objects', () => {
+      const store = createSchemaStore({
+        schema: z.object({ count: z.number(), name: z.string() }),
         defaultValue: { count: 0, name: '' },
       })
-      // @ts-expect-error - test invalid value
-      store.set({ count: 3 })
-      expect(store.get().count).toBe(3)
-      expect(store.get().name).toBe('')
+      store.set(prev => ({ ...prev, count: 3 }))
+      expect(store.get()).toEqual({ count: 3, name: '' })
     })
 
-    it('stores string values as-is without extra JSON encoding', () => {
+    it('stores string values as-is', () => {
       const store = createSchemaStore({
-        schema: z.record(z.string(), z.string()),
-        defaultValue: {},
+        schema: z.string(),
+        defaultValue: '',
       })
-      store.set({ name: 'plain' })
-      expect(store.get().name).toBe('plain')
+      store.set('plain')
+      expect(store.get()).toBe('plain')
     })
   })
 
   describe('subscribe', () => {
     it('calls callback with current value when set is called', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
+        schema: z.number(),
+        defaultValue: 0,
       })
       const callback = vi.fn()
       store.subscribe(callback)
 
-      store.set({ count: 10, name: 'sub' })
+      store.set(10)
 
       expect(callback).toHaveBeenCalled()
-      expect(callback).toHaveBeenLastCalledWith({ count: 10, name: 'sub' })
-      expect(store.get()).toEqual({ count: 10, name: 'sub' })
+      expect(callback).toHaveBeenLastCalledWith(10)
+      expect(store.get()).toBe(10)
     })
 
     it('stops calling callback after unsubscribe', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
+        schema: z.number(),
+        defaultValue: 0,
       })
       const callback = vi.fn()
       const unsubscribe = store.subscribe(callback)
 
-      // @ts-expect-error - test invalid value
-      store.set({ count: 1 })
+      store.set(1)
       const callsAfterSet = callback.mock.calls.length
 
       unsubscribe()
-      // @ts-expect-error - test invalid value
-      store.set({ count: 2 })
+      store.set(2)
       expect(callback).toHaveBeenCalledTimes(callsAfterSet)
     })
 
     it('calls callback with latest value after each set', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
+        schema: z.string(),
+        defaultValue: '',
       })
       const callback = vi.fn()
       store.subscribe(callback)
 
-      store.set({ count: 5, name: 'test' })
-      expect(callback).toHaveBeenLastCalledWith({ count: 5, name: 'test' })
+      store.set('first')
+      expect(callback).toHaveBeenLastCalledWith('first')
 
-      // @ts-expect-error - test invalid value
-      store.set({ count: 0 })
-      expect(callback).toHaveBeenLastCalledWith({ count: 0, name: '' })
+      store.set('second')
+      expect(callback).toHaveBeenLastCalledWith('second')
     })
   })
 
@@ -214,14 +207,33 @@ describe('createSchemaStore', () => {
       const onValidationError = vi.fn()
 
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
+        schema: z.number(),
+        defaultValue: 0,
+        onValidationError,
+      })
+
+      // @ts-expect-error - test invalid value
+      store.set('invalid')
+
+      expect(store.get()).toBe(0)
+      expect(onValidationError).toHaveBeenCalled()
+      expect(onValidationError).toHaveBeenCalledWith(expect.objectContaining({
+        defaultValue: 0,
+        issues: expect.any(Array),
+        value: 'invalid',
+      }))
+    })
+
+    it('calls onValidationError for object schema', () => {
+      const onValidationError = vi.fn()
+
+      const store = createSchemaStore({
+        schema: z.object({ count: z.number(), name: z.string() }),
         defaultValue: { count: 0, name: '' },
         onValidationError,
       })
 
+      // @ts-expect-error - test invalid value
       store.set({ count: 'invalid', name: 'test' })
 
       expect(store.get()).toEqual({ count: 0, name: '' })
@@ -232,47 +244,28 @@ describe('createSchemaStore', () => {
       }))
     })
 
-    it('returns default value when onValidationError returns undefined', () => {
-      const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
-        onValidationError: () => undefined,
-      })
-
-      expect(store.get()).toEqual({ count: 0, name: '' })
-    })
-
     it('uses corrected value when onValidationError returns a valid value', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
-        onValidationError: () => ({ count: 99, name: 'corrected' }),
+        schema: z.number(),
+        defaultValue: 0,
+        onValidationError: () => 99,
       })
 
       // @ts-expect-error - test invalid value
-      store.set({ count: 'invalid', name: 'test' })
+      store.set('invalid')
 
-      expect(store.get()).toEqual({ count: 99, name: 'corrected' })
+      expect(store.get()).toBe(99)
     })
 
     it('returns default value when onValidationError returns an invalid value', () => {
       const store = createSchemaStore({
-        schema: z.object({
-          count: z.number(),
-          name: z.string(),
-        }),
-        defaultValue: { count: 0, name: '' },
+        schema: z.number(),
+        defaultValue: 0,
         // @ts-expect-error - test invalid value
-        onValidationError: () => ({ count: 'still-invalid', name: 'test' }),
+        onValidationError: () => 'still-invalid',
       })
 
-      expect(store.get()).toEqual({ count: 0, name: '' })
+      expect(store.get()).toBe(0)
     })
   })
 })

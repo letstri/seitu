@@ -1,10 +1,7 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Simplify } from './utils'
 import { tryParseJson } from './utils'
 
-export type ValidationObjectSchemas = Record<string, StandardSchemaV1<unknown, unknown>>
-
-export type ValidationObjectSchemasOutput<S extends ValidationObjectSchemas> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
+export type ValidationSchemaOutput<S extends StandardSchemaV1<unknown>> = StandardSchemaV1.InferOutput<S>
 
 export interface ValidationSchemaErrorProps<O> {
   defaultValue: O
@@ -12,7 +9,7 @@ export interface ValidationSchemaErrorProps<O> {
   value: unknown
 }
 
-export interface ValidationSchemasErrorProps<O extends Record<string, unknown>> {
+export interface ValidationSchemaObjectErrorProps<O extends Record<string, unknown>> {
   defaultValue: O[keyof O]
   issues: StandardSchemaV1.Issue[]
   value: unknown

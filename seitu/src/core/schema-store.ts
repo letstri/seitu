@@ -1,25 +1,21 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { ValidationSchemaErrorProps } from '../validate'
+import type { ValidationSchemaErrorProps, ValidationSchemaOutput } from '../validate'
 import type { Readable, Subscribable, Writable } from './index'
 import { createReadableSubscription, createStore, createSubscription } from '.'
 import { validateSchema } from '../validate'
 
-export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<O> {
-  '~': {
-    getDefaultValue: <K extends keyof O>(key: K) => O[K]
-  } & Subscribable<O>['~']
-}
+export interface SchemaStore<O> extends Subscribable<O>, Readable<O>, Writable<O, O> {}
 
-export interface SchemaStoreOptions<O extends Record<string, unknown>> {
-  schema: StandardSchemaV1<unknown, O>
-  defaultValue: O
+export interface SchemaStoreOptions<S extends StandardSchemaV1<unknown>> {
+  schema: S
+  defaultValue: ValidationSchemaOutput<S>
   /**
    * Handle validation errors.
    *
    * If returns a value, it will be validated and used as the store value.
    * If returns undefined, the default value will be returned.
    */
-  onValidationError?: (props: ValidationSchemaErrorProps<O>) => void | O
+  onValidationError?: (props: ValidationSchemaErrorProps<ValidationSchemaOutput<S>>) => void | ValidationSchemaOutput<S>
 }
 
 /**
@@ -28,7 +24,7 @@ export interface SchemaStoreOptions<O extends Record<string, unknown>> {
  *
  * @example
  * ```ts twoslash
- * import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
+ * import { createSchemaStore } from 'seitu'
  * import * as z from 'zod'
  *
  * const store = createSchemaStore({
@@ -36,40 +32,34 @@ export interface SchemaStoreOptions<O extends Record<string, unknown>> {
  *   defaultValue: { count: 0, name: '' },
  * })
  * store.get()
- * store.set({ count: 1 })
+ * store.set({ count: 1, name: 'alice' })
  * store.subscribe(console.log)
  * ```
  */
-export function createSchemaStore<O extends Record<string, unknown>>(options: SchemaStoreOptions<O>): SchemaStore<O> {
-  const store = createStore<O>(options.defaultValue)
+export function createSchemaStore<S extends StandardSchemaV1<unknown>>(options: SchemaStoreOptions<S>): SchemaStore<ValidationSchemaOutput<S>> {
+  const store = createStore<ValidationSchemaOutput<S>>(options.defaultValue)
   const { subscribe, notify } = createSubscription()
-  const defaultValue = { ...options.defaultValue }
 
-  const get = () => {
+  const get = (): ValidationSchemaOutput<S> => {
     const stored = store.get()
-    const merged = { ...defaultValue, ...stored }
 
-    return validateSchema(options.schema, merged, {
-      defaultValue,
+    return validateSchema(options.schema, stored, {
+      defaultValue: options.defaultValue,
       label: 'createSchemaStore',
       onError: options.onValidationError
-        ? (issues, parsed) => options.onValidationError!({ issues: [...issues], value: parsed, defaultValue })
+        ? (issues, parsed) => options.onValidationError!({ issues: [...issues], value: parsed, defaultValue: options.defaultValue })
         : undefined,
-    }) as O
+    }) as ValidationSchemaOutput<S>
   }
 
   const readable = createReadableSubscription(get, subscribe, notify)
 
   return {
     ...readable,
-    'set': (value) => {
-      const newValue = typeof value === 'function' ? value(get()) : value
+    set: (value) => {
+      const newValue = typeof value === 'function' ? (value as (prev: ValidationSchemaOutput<S>) => ValidationSchemaOutput<S>)(get()) : value
       store.set(newValue)
       notify()
-    },
-    '~': {
-      ...readable['~'],
-      getDefaultValue: key => defaultValue[key],
     },
   }
 }

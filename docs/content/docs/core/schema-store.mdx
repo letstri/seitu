@@ -9,7 +9,7 @@ falls back to default values when validation fails.
 ### Examples
 
 ```ts twoslash
-import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
+import { createSchemaStore } from 'seitu'
 import * as z from 'zod'
 
 const store = createSchemaStore({
@@ -17,27 +17,8 @@ const store = createSchemaStore({
   defaultValue: { count: 0, name: '' },
 })
 store.get()
-store.set({ count: 1 })
+store.set({ count: 1, name: 'alice' })
 store.subscribe(console.log)
-```
-
-* * *
-
-## createSchemaStoreMemoryProvider()
-Creates an in-memory provider for a schema store. Use as the state backing when you don't
-need persistence (e.g. for testing or ephemeral UI state).
-
-### Examples
-
-```ts twoslash
-import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
-import * as z from 'zod'
-
-const store = createSchemaStore({
-  schema: z.object({ count: z.number(), name: z.string() }),
-  defaultValue: { count: 0, name: '' },
-  provider: createSchemaStoreMemoryProvider(),
-})
 ```
 
 * * *

@@ -1,15 +1,19 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Readable, Subscribable, Writable } from '../core/index'
-import type { ValidationObjectSchemas, ValidationObjectSchemasOutput, ValidationSchemasErrorProps } from '../validate'
+import type { Simplify } from '../utils'
+import type { ValidationSchemaObjectErrorProps } from '../validate'
 import { createReadableSubscription, createSubscription } from '../core/index'
 import { validateSchema } from '../validate'
 
-export interface WebStorageOptions<S extends ValidationObjectSchemas> {
+export type WebStorageInput = Record<string, StandardSchemaV1<unknown, unknown>>
+export type WebStorageOutput<S extends WebStorageInput> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
+
+export interface WebStorageOptions<S extends WebStorageInput> {
   schemas: S
-  defaultValues: ValidationObjectSchemasOutput<S>
+  defaultValues: WebStorageOutput<S>
   type: 'localStorage' | 'sessionStorage'
   keyTransform?: (key: keyof S) => string
-  onValidationError?: (props: ValidationSchemasErrorProps<ValidationObjectSchemasOutput<S>>) => void | StandardSchemaV1.InferOutput<S[keyof S]>
+  onValidationError?: (props: ValidationSchemaObjectErrorProps<WebStorageOutput<S>>) => void | StandardSchemaV1.InferOutput<S[keyof S]>
 }
 
 export interface WebStorage<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O> {
@@ -67,9 +71,9 @@ export interface WebStorage<O extends Record<string, unknown>> extends Subscriba
  * }
  * ```
  */
-export function createWebStorage<S extends ValidationObjectSchemas>(
+export function createWebStorage<S extends WebStorageInput>(
   options: WebStorageOptions<S>,
-): WebStorage<ValidationObjectSchemasOutput<S>> {
+): WebStorage<WebStorageOutput<S>> {
   let isInternalUpdate = false
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
@@ -93,9 +97,9 @@ export function createWebStorage<S extends ValidationObjectSchemas>(
     },
   })
   const defaultValues = { ...options.defaultValues }
-  const keys = Object.keys(options.defaultValues) as (keyof ValidationObjectSchemasOutput<S>)[]
-  const cachedRaws = new Map<keyof ValidationObjectSchemasOutput<S>, string | null>()
-  let cachedOutput: ValidationObjectSchemasOutput<S> | undefined
+  const keys = Object.keys(options.defaultValues) as (keyof WebStorageOutput<S>)[]
+  const cachedRaws = new Map<keyof WebStorageOutput<S>, string | null>()
+  let cachedOutput: WebStorageOutput<S> | undefined
 
   const get = () => {
     if (typeof window === 'undefined') {
@@ -105,7 +109,7 @@ export function createWebStorage<S extends ValidationObjectSchemas>(
     const storage = window[options.type]
 
     let hasCache = cachedOutput !== undefined
-    const currentRaws: Record<keyof ValidationObjectSchemasOutput<S>, string | null> = {} as Record<keyof ValidationObjectSchemasOutput<S>, string | null>
+    const currentRaws: Record<keyof WebStorageOutput<S>, string | null> = {} as Record<keyof WebStorageOutput<S>, string | null>
 
     for (const key of keys) {
       const storageKey = String(options.keyTransform ? options.keyTransform(key) : key)

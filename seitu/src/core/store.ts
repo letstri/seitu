@@ -25,8 +25,10 @@ export function createStore<T>(initial: T): Store<T> {
 
   const get = (): T => state
 
+  const readable = createReadableSubscription(get, subscribe, notify)
+
   return {
-    ...createReadableSubscription(get, subscribe, notify),
+    ...readable,
     set: (value) => {
       const next = typeof value === 'function' ? (value as (prev: T) => T)(state) : value
       if (next === state)
