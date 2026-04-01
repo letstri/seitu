@@ -1,3 +1,5 @@
 export * from './is-online'
 export * from './media-query'
 export * from './scroll-state'
+export * from './web-storage'
+export * from './web-storage-value'
