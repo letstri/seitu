@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from './subscription'
-import { createSubscription } from './subscription'
+import { createReadableSubscription, createSubscription } from './subscription'
 
 export interface Debounced<T> extends Readable<T>, Subscribable<T> {}
 
@@ -41,14 +41,5 @@ export function createDebounce<T>(source: Readable<T> & Subscribable<T>, wait: n
 
   const get = () => state
 
-  return {
-    get,
-    subscribe(callback, options) {
-      return subscribe(() => callback(get()), options)
-    },
-    '~': {
-      output: null as unknown as T,
-      notify,
-    },
-  }
+  return createReadableSubscription(get, subscribe, notify)
 }

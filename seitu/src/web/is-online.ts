@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from '../core/index'
-import { createSubscription } from '../core/index'
+import { createReadableSubscription, createSubscription } from '../core/index'
 
 export interface IsOnline extends Subscribable<boolean>, Readable<boolean> {}
 
@@ -56,14 +56,5 @@ export function createIsOnline(): IsOnline {
     return navigator.onLine
   }
 
-  return {
-    get,
-    'subscribe': (callback, options) => {
-      return subscribe(() => callback(get()), options)
-    },
-    '~': {
-      output: null as unknown as boolean,
-      notify,
-    },
-  }
+  return createReadableSubscription(get, subscribe, notify)
 }

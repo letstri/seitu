@@ -28,6 +28,23 @@ export interface Removable {
   remove: () => void
 }
 
+export function createReadableSubscription<T>(
+  get: () => T,
+  subscribe: (callback: () => any, options?: SubscribeOptions) => () => void,
+  notify: () => void,
+): Readable<T> & Subscribable<T> {
+  return {
+    get,
+    subscribe(callback, options) {
+      return subscribe(() => callback(get()), options)
+    },
+    '~': {
+      output: null as unknown as T,
+      notify,
+    },
+  }
+}
+
 export function createSubscription(options?: {
   onFirstSubscribe?: () => (void | (() => void))
 }): {

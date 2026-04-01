@@ -1,22 +1,73 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { SchemaStore, SchemaStoreOptions, SchemaStoreOutput, SchemaStoreSchema } from '../core/index'
-import { createSubscription } from '../core/index'
-import { tryParseJson } from '../utils'
+import type { SchemaStore, SchemaStoreOptions } from '../core/index'
+import type { ValidationObjectSchemas, ValidationObjectSchemasOutput, ValidationSchemasErrorProps } from '../validate'
+import { createReadableSubscription, createSubscription } from '../core/index'
+import { validateSchema } from '../validate'
 
-export interface WebStorageOptions<S extends SchemaStoreSchema> extends Omit<SchemaStoreOptions<S>, 'provider'> {
+export interface WebStorageOptions<S extends ValidationObjectSchemas> extends Omit<SchemaStoreOptions<S>, 'provider'> {
+  type: 'localStorage' | 'sessionStorage'
   keyTransform?: (key: keyof S) => string
-  onValidationError?: <K extends keyof S>(props: { issues: StandardSchemaV1.Issue[], key: K, value: unknown }) => void | StandardSchemaV1.InferOutput<S[K]>
+  onValidationError?: (props: ValidationSchemasErrorProps<ValidationObjectSchemasOutput<S>>) => void | StandardSchemaV1.InferOutput<S[keyof S]>
 }
 
 export interface WebStorage<O extends Record<string, unknown>> extends SchemaStore<O> {
   '~': {
-    kind: 'sessionStorage' | 'localStorage'
+    getDefaultValue: <K extends keyof O>(key: K) => O[K]
+    type: 'localStorage' | 'sessionStorage'
   } & SchemaStore<O>['~']
 }
 
-export function createWebStorage<S extends SchemaStoreSchema>(
-  options: WebStorageOptions<S> & { kind: 'sessionStorage' | 'localStorage' },
-): WebStorage<SchemaStoreOutput<S>> {
+/**
+ * Creates a reactive handle for a localStorage or sessionStorage instance.
+ *
+ * @example Vanilla
+ * ```ts twoslash title="session-storage.ts"
+ * import { createWebStorage } from 'seitu/web'
+ * import * as z from 'zod'
+ *
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
+ *   schemas: {
+ *     token: z.string().nullable(),
+ *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
+ *   },
+ *   defaultValues: { token: null, preferences: { theme: 'light' } },
+ * })
+ *
+ * sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
+ * sessionStorage.set({ token: 'abc' })
+ * sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
+ * sessionStorage.subscribe(console.log)
+ * ```
+ *
+ * @example React
+ * ```tsx twoslash title="page.tsx"
+ * 'use client'
+ *
+ * import { createWebStorage } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ * import * as z from 'zod'
+ *
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
+ *   schemas: { count: z.number(), name: z.string() },
+ *   defaultValues: { count: 0, name: '' },
+ * })
+ *
+ * export default function Page() {
+ *   const value = useSubscription(sessionStorage)
+ *   return (
+ *     <div>
+ *       <span>{value.count}</span>
+ *       <span>{value.name}</span>
+ *     </div>
+ *   )
+ * }
+ * ```
+ */
+export function createWebStorage<S extends ValidationObjectSchemas>(
+  options: WebStorageOptions<S>,
+): WebStorage<ValidationObjectSchemasOutput<S>> {
   let isInternalUpdate = false
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
@@ -40,71 +91,71 @@ export function createWebStorage<S extends SchemaStoreSchema>(
     },
   })
   const defaultValues = { ...options.defaultValues }
+  const keys = Object.keys(options.defaultValues) as (keyof ValidationObjectSchemasOutput<S>)[]
+  const cachedRaws = new Map<keyof ValidationObjectSchemasOutput<S>, string | null>()
+  let cachedOutput: ValidationObjectSchemasOutput<S> | undefined
 
   const get = () => {
     if (typeof window === 'undefined') {
       return options.defaultValues
     }
 
-    const storage = window[options.kind]
-    const output = { ...options.defaultValues }
+    const storage = window[options.type]
 
-    for (const key in output) {
-      const item = storage.getItem(options.keyTransform ? options.keyTransform(key) : key)
+    let hasCache = cachedOutput !== undefined
+    const currentRaws: Record<keyof ValidationObjectSchemasOutput<S>, string | null> = {} as Record<keyof ValidationObjectSchemasOutput<S>, string | null>
 
-      if (item === null) {
-        output[key] = options.defaultValues[key]
-        continue
-      }
+    for (const key of keys) {
+      const storageKey = String(options.keyTransform ? options.keyTransform(key) : key)
+      const raw = storage.getItem(storageKey)
 
-      const parsed = tryParseJson(item)
-      const result = options.schemas[key]['~standard'].validate(parsed)
+      currentRaws[key] = raw
 
-      if (result instanceof Promise) {
-        throw new TypeError('[createWebStorage] Validation schema should not return a Promise.')
-      }
-
-      if (result.issues) {
-        if (options.onValidationError) {
-          const value = options.onValidationError({ issues: [...result.issues], key, value: parsed })
-
-          if (value !== undefined) {
-            const validated = options.schemas[key]['~standard'].validate(value)
-
-            if (validated instanceof Promise) {
-              throw new TypeError('[createWebStorage] Validation schema should not return a Promise.')
-            }
-
-            if (validated.issues) {
-              console.warn(`[createWebStorage] Returned value invalid for key ${key}, returned default value instead`, JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
-            }
-            else {
-              output[key] = validated.value
-            }
-          }
-        }
-        else {
-          console.warn(`[createWebStorage] Returned value invalid for key ${key}, returned default value instead`, JSON.stringify(result.issues, null, 2), { cause: result.issues })
-          output[key] = options.defaultValues[key]
-        }
-      }
-      else {
-        output[key] = result.value
+      if (hasCache && cachedRaws.get(key) !== raw) {
+        hasCache = false
       }
     }
 
+    if (hasCache) {
+      return cachedOutput!
+    }
+
+    const output = { ...options.defaultValues }
+
+    for (const key of keys) {
+      const raw = currentRaws[key]
+
+      if (raw === null) {
+        output[key] = options.defaultValues[key]
+      }
+      else {
+        output[key] = validateSchema(options.schemas[key], raw, {
+          defaultValue: options.defaultValues[key],
+          label: `createWebStorage:${String(key)}`,
+          onError: options.onValidationError
+            ? (issues, parsed) => options.onValidationError!({ issues: [...issues], key, value: parsed, defaultValue: options.defaultValues[key] })
+            : undefined,
+        })
+      }
+
+      cachedRaws.set(String(key), currentRaws[String(key)])
+    }
+
+    cachedOutput = output
     return output
   }
 
+  const readable = createReadableSubscription(get, subscribe, notify)
+
   return {
-    get,
+    ...readable,
     'set': (value) => {
       const resolvedValue = typeof value === 'function' ? value(get()) : value
       if (typeof window === 'undefined') {
         return
       }
 
-      const storage = window[options.kind]
+      const storage = window[options.type]
 
       isInternalUpdate = true
       Object.entries(resolvedValue).forEach(([key, entryValue]) => {
@@ -120,16 +171,13 @@ export function createWebStorage<S extends SchemaStoreSchema>(
         }))
       })
       isInternalUpdate = false
+      cachedOutput = undefined
       notify()
     },
-    'getDefaultValue': key => defaultValues[key],
-    'subscribe': (callback, options = {}) => {
-      return subscribe(() => callback(get()), options)
-    },
     '~': {
-      kind: options.kind,
-      output: null as unknown as SchemaStoreOutput<S>,
-      notify,
+      ...readable['~'],
+      getDefaultValue: key => defaultValues[key],
+      type: options.type,
     },
   }
 }

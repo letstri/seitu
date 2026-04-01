@@ -1,8 +1,10 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Readable, Removable, Subscribable, Writable } from '../core/index'
+import type { ValidationSchemaErrorProps, ValidationSchemasErrorProps } from '../validate'
 import type { WebStorage } from './web-storage'
-import { createSubscription } from '../core'
+import { createReadableSubscription, createSubscription } from '../core'
 import { tryParseJson } from '../utils'
+import { validateSchema } from '../validate'
 
 export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Removable {}
 
@@ -12,46 +14,90 @@ export interface WebStorageValueOptionsWithStorage<
 > {
   storage: Storage
   key: K
-  onValidationError?: (props: { issues: StandardSchemaV1.Issue[], value: unknown }) => void
+  onValidationError?: (props: ValidationSchemasErrorProps<Storage['~']['output']>) => void
 }
 
 export interface WebStorageValueOptionsWithSchema<
   S extends StandardSchemaV1<unknown>,
 > {
+  type: 'localStorage' | 'sessionStorage'
   schema: S
   key: string
   defaultValue: StandardSchemaV1.InferOutput<S>
-  onValidationError?: (props: { issues: StandardSchemaV1.Issue[], value: unknown }) => void | StandardSchemaV1.InferOutput<S>
+  /**
+   * Handle validation errors.
+   *
+   * If returns a value, it will be used as the value to validate and return.
+   * If returns undefined, the default value will be returned.
+   */
+  onValidationError?: (props: ValidationSchemaErrorProps<StandardSchemaV1.InferOutput<S>>) => void | StandardSchemaV1.InferOutput<S>
 }
 
+const NO_CACHE = Symbol('no-cache')
+
+/**
+ * Creates a reactive handle for a localStorage or sessionStorage instance.
+ *
+ * @example Vanilla
+ * ```ts twoslash title="session-storage.ts"
+ * import { createWebStorage } from 'seitu/web'
+ * import * as z from 'zod'
+ *
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
+ *   schemas: {
+ *     token: z.string().nullable(),
+ *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
+ *   },
+ *   defaultValues: { token: null, preferences: { theme: 'light' } },
+ * })
+ *
+ * sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
+ * sessionStorage.set({ token: 'abc' })
+ * sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
+ * sessionStorage.subscribe(console.log)
+ * ```
+ *
+ * @example React
+ * ```tsx twoslash title="page.tsx"
+ * 'use client'
+ *
+ * import { createWebStorage } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ * import * as z from 'zod'
+ *
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
+ *   schemas: { count: z.number(), name: z.string() },
+ *   defaultValues: { count: 0, name: '' },
+ * })
+ *
+ * export default function Page() {
+ *   const value = useSubscription(sessionStorage)
+ *   return (
+ *     <div>
+ *       <span>{value.count}</span>
+ *       <span>{value.name}</span>
+ *     </div>
+ *   )
+ * }
+ * ```
+ */
 export function createWebStorageValue<
   Storage extends WebStorage<any>,
   K extends keyof Storage['~']['output'],
 >(options: WebStorageValueOptionsWithStorage<Storage, K>): WebStorageValue<Storage['~']['output'][K]>
 export function createWebStorageValue<S extends StandardSchemaV1<unknown>>(
-  options: WebStorageValueOptionsWithSchema<S> & { kind: 'sessionStorage' | 'localStorage' },
+  options: WebStorageValueOptionsWithSchema<S>,
 ): WebStorageValue<StandardSchemaV1.InferOutput<S>>
 export function createWebStorageValue(
   options:
     | WebStorageValueOptionsWithStorage<WebStorage<any>, string>
-    | WebStorageValueOptionsWithSchema<StandardSchemaV1<unknown>> & { kind: 'sessionStorage' | 'localStorage' },
+    | WebStorageValueOptionsWithSchema<StandardSchemaV1<unknown>>,
 ): WebStorageValue<unknown> {
-  const kind = 'storage' in options ? options.storage['~'].kind : options.kind
+  const type = 'storage' in options ? options.storage['~'].type : options.type
   let isInternalUpdate = false
-  const label = `${kind}Value`
-  if ('schema' in options && options.defaultValue === undefined) {
-    throw new Error(`[${label}] Default value is required`)
-  }
-
-  if (options.key === undefined) {
-    throw new Error(`[${label}] Key is required`)
-  }
-
-  if (!('schema' in options || 'storage' in options)) {
-    throw new Error(`[${label}] Either schema or storage must be provided`)
-  }
-
-  const defaultValue = ('schema' in options ? options.defaultValue : options.storage.getDefaultValue(options.key)) ?? null
+  const defaultValue = ('schema' in options ? options.defaultValue : options.storage['~'].getDefaultValue(options.key)) ?? null
 
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
@@ -77,91 +123,78 @@ export function createWebStorageValue(
     },
   })
 
+  let cachedRaw: string | null | typeof NO_CACHE = NO_CACHE
+  let cachedValue: unknown
+
   const get = () => {
     if (typeof window === 'undefined') {
       return defaultValue
     }
 
-    const storage = window[kind]
-    const item = storage.getItem(options.key)
+    const storage = window[type]
+    const raw = storage.getItem(options.key)
 
-    if (item === null) {
-      return defaultValue
+    if (cachedRaw !== NO_CACHE && raw === cachedRaw) {
+      return cachedValue
     }
 
-    const parsed = tryParseJson(item)
+    cachedRaw = raw
+
+    if (raw === null) {
+      cachedValue = defaultValue
+      return cachedValue
+    }
+
+    const parsed = tryParseJson(raw)
 
     try {
       if ('schema' in options) {
-        const result = options.schema['~standard'].validate(parsed)
-
-        if (result instanceof Promise) {
-          throw new TypeError('Validation schema should not return a Promise.')
-        }
-
-        if (result.issues) {
-          if (options.onValidationError) {
-            const value = options.onValidationError({ issues: [...result.issues], value: parsed })
-
-            if (value !== undefined) {
-              const validated = options.schema['~standard'].validate(value)
-
-              if (validated instanceof Promise) {
-                throw new TypeError('Validation schema should not return a Promise.')
-              }
-
-              if (validated.issues) {
-                console.warn(`[${label}] Returned value invalid for key ${options.key}, returned default value instead`, JSON.stringify(validated.issues, null, 2), { cause: validated.issues })
-              }
-              else {
-                return validated.value
-              }
-            }
-          }
-          else {
-            console.warn(`[${label}] Returned value invalid for key ${options.key}, returned default value instead`, JSON.stringify(result.issues, null, 2), { cause: result.issues })
-          }
-          return defaultValue
-        }
-        return result.value
+        cachedValue = validateSchema(options.schema, raw, {
+          defaultValue,
+          label: `createWebStorageValue:${options.key}`,
+          onError: options.onValidationError
+            ? (issues, parsed) => options.onValidationError!({ defaultValue, issues: [...issues], value: parsed })
+            : undefined,
+        })
+        return cachedValue
       }
       else {
-        return parsed
+        cachedValue = parsed
+        return cachedValue
       }
     }
     catch {
-      return (defaultValue !== undefined && typeof defaultValue !== 'string' ? defaultValue : parsed)
+      cachedValue = (defaultValue !== undefined && typeof defaultValue !== 'string' ? defaultValue : parsed)
+      return cachedValue
     }
   }
 
+  const readable = createReadableSubscription(get, subscribe, notify)
+
   return {
-    get,
-    'set': (value) => {
+    ...readable,
+    set: (value) => {
       if (typeof window === 'undefined') {
         return
       }
 
-      const storage = window[kind]
+      const storage = window[type]
       const newValue = typeof value === 'function' ? value(get()) : value
       isInternalUpdate = true
       storage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
       window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue }))
       isInternalUpdate = false
+
+      cachedRaw = NO_CACHE
       notify()
     },
-    'subscribe': (callback, options = {}) => {
-      return subscribe(() => callback(get()), options)
-    },
-    'remove': () => {
+    remove: () => {
       if (typeof window === 'undefined') {
         return
       }
 
-      window[kind].removeItem(options.key)
-    },
-    '~': {
-      output: null as unknown,
-      notify,
+      window[type].removeItem(options.key)
+      cachedRaw = NO_CACHE
     },
   }
 }

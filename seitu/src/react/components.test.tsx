@@ -2,8 +2,8 @@ import { act, cleanup, render, screen } from '@testing-library/react'
 import * as React from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 import * as z from 'zod'
-import { createSessionStorage } from '../web/session-storage'
-import { createSessionStorageValue } from '../web/session-storage-value'
+import { createWebStorage } from '../web/web-storage'
+import { createWebStorageValue } from '../web/web-storage-value'
 import { Subscription } from './components'
 import '@testing-library/jest-dom/vitest'
 
@@ -17,7 +17,8 @@ const TEST_KEY = 'seitu-components-test-key'
 describe('subscription', () => {
   describe('without selector', () => {
     it('should render children with the current value', () => {
-      const storage = createSessionStorageValue({
+      const storage = createWebStorageValue({
+        type: 'sessionStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 42,
@@ -32,7 +33,8 @@ describe('subscription', () => {
     })
 
     it('should update children when subscription value changes', () => {
-      const storage = createSessionStorageValue({
+      const storage = createWebStorageValue({
+        type: 'sessionStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -54,7 +56,8 @@ describe('subscription', () => {
 
   describe('with selector', () => {
     it('should render children with the selected value', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: { count: z.number() },
         defaultValues: { count: 10 },
       })
@@ -71,7 +74,8 @@ describe('subscription', () => {
     })
 
     it('should update children when subscription value changes', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })
@@ -93,7 +97,8 @@ describe('subscription', () => {
     })
 
     it('should not re-render when value is the same', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })

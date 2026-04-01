@@ -1,13 +1,13 @@
-import type { SessionStorage } from '../web/session-storage'
-import type { SessionStorageValue } from '../web/session-storage-value'
+import type { WebStorage } from '../web/web-storage'
+import type { WebStorageValue } from '../web/web-storage-value'
 import { act, cleanup, render, renderHook, screen } from '@testing-library/react'
 import * as React from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
 import { createMediaQuery } from '../web/media-query'
 import { createScrollState } from '../web/scroll-state'
-import { createSessionStorage } from '../web/session-storage'
-import { createSessionStorageValue } from '../web/session-storage-value'
+import { createWebStorage } from '../web/web-storage'
+import { createWebStorageValue } from '../web/web-storage-value'
 import { useSubscription } from './hooks'
 import '@testing-library/jest-dom/vitest'
 
@@ -18,12 +18,12 @@ afterEach(() => {
 
 const TEST_KEY = 'seitu-hooks-test-key'
 
-function TestComponent({ storage }: { storage: SessionStorageValue<number> }) {
+function TestComponent({ storage }: { storage: WebStorageValue<number> }) {
   const value = useSubscription(storage)
   return <span data-testid="subscription-value">{value}</span>
 }
 
-function TestComponentWithSelector({ storage }: { storage: SessionStorage<{ count: number }> }) {
+function TestComponentWithSelector({ storage }: { storage: WebStorage<{ count: number }> }) {
   const value = useSubscription(storage, { selector: value => value.count })
   return <span data-testid="subscription-value">{value}</span>
 }
@@ -44,7 +44,7 @@ describe('hooks', () => {
     })
 
     it('should update when session storage value changes', () => {
-      const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: TEST_KEY, defaultValue: 0 })
 
       render(<TestComponent storage={storage} />)
       expect(screen.getByTestId('subscription-value').textContent).toBe('0')
@@ -58,7 +58,7 @@ describe('hooks', () => {
 
   describe('useSubscription with selector', () => {
     it('should update when selector changes', () => {
-      const storage = createSessionStorage({ schemas: { count: z.number() }, defaultValues: { count: 0 } })
+      const storage = createWebStorage({ type: 'sessionStorage', schemas: { count: z.number() }, defaultValues: { count: 0 } })
 
       render(<TestComponentWithSelector storage={storage} />)
       expect(screen.getByTestId('subscription-value').textContent).toBe('0')
@@ -70,10 +70,10 @@ describe('hooks', () => {
     })
 
     it('should not re-render when value is the same', () => {
-      const storage = createSessionStorage({ schemas: { count: z.number() }, defaultValues: { count: 0 } })
+      const storage = createWebStorage({ type: 'sessionStorage', schemas: { count: z.number() }, defaultValues: { count: 0 } })
       let renderCount = 0
 
-      function TestWithRenderCount({ storage: s }: { storage: SessionStorage<{ count: number }> }) {
+      function TestWithRenderCount({ storage: s }: { storage: WebStorage<{ count: number }> }) {
         renderCount++
         const value = useSubscription(() => s, { selector: value => value.count })
         return <span data-testid="subscription-value">{value}</span>
@@ -99,7 +99,7 @@ describe('hooks', () => {
 
   describe('useSubscription with direct object', () => {
     it('should accept a stable subscription object', () => {
-      const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: TEST_KEY, defaultValue: 0 })
 
       const { result } = renderHook(() => useSubscription(storage))
       expect(result.current).toBe(0)
@@ -109,7 +109,7 @@ describe('hooks', () => {
   describe('useSubscription factory', () => {
     it('should call factory only once across re-renders', () => {
       const factory = vi.fn(() =>
-        createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 }),
+        createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: TEST_KEY, defaultValue: 0 }),
       )
 
       const { result, rerender } = renderHook(() => useSubscription(factory))
@@ -122,11 +122,11 @@ describe('hooks', () => {
     })
 
     it('should update when subscription created by factory changes', () => {
-      let storage: SessionStorageValue<number> | undefined
+      let storage: WebStorageValue<number> | undefined
 
       function TestFactory() {
         const value = useSubscription(() => {
-          storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+          storage = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: TEST_KEY, defaultValue: 0 })
           return storage
         })
         return <span data-testid="subscription-value">{value}</span>
@@ -144,7 +144,8 @@ describe('hooks', () => {
     it('should not re-render when factory value is deeply equal', () => {
       let renderCount = 0
 
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: {
           count: z.number(),
           name: z.string(),
@@ -173,7 +174,7 @@ describe('hooks', () => {
 
     it('should recreate subscription when deps change', () => {
       const factory = vi.fn((key: string) =>
-        createSessionStorageValue({ schema: z.number(), key, defaultValue: 0 }),
+        createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key, defaultValue: 0 }),
       )
 
       const { result, rerender } = renderHook(
@@ -193,8 +194,8 @@ describe('hooks', () => {
 
   describe('useSubscription with changing source object', () => {
     it('should pick up a new subscription when source object changes', () => {
-      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 1 })
-      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 2 })
+      const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 1 })
+      const storageB = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 2 })
 
       const { result, rerender } = renderHook(
         ({ storage }) => useSubscription(storage),
@@ -207,12 +208,12 @@ describe('hooks', () => {
     })
 
     it('should subscribe to the new source after switching', () => {
-      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
-      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
+      const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
+      const storageB = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
 
       const { result, rerender } = renderHook(
         ({ storage }) => useSubscription(storage),
-        { initialProps: { storage: storageA as SessionStorageValue<number> } },
+        { initialProps: { storage: storageA as WebStorageValue<number> } },
       )
       expect(result.current).toBe(0)
 
@@ -226,8 +227,8 @@ describe('hooks', () => {
     })
 
     it('should not react to old source after switching', () => {
-      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
-      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
+      const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
+      const storageB = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
 
       let renderCount = 0
       const { result, rerender } = renderHook(
@@ -235,7 +236,7 @@ describe('hooks', () => {
           renderCount++
           return useSubscription(storage)
         },
-        { initialProps: { storage: storageA as SessionStorageValue<number> } },
+        { initialProps: { storage: storageA as WebStorageValue<number> } },
       )
       expect(result.current).toBe(0)
 
@@ -252,7 +253,8 @@ describe('hooks', () => {
 
   describe('useSubscription selector changes', () => {
     it('should update when selector changes', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 5, name: 'hello' },
       })
@@ -268,7 +270,8 @@ describe('hooks', () => {
     })
 
     it('should recompute when selector changes even if values are deeply equal', () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: { a: z.number(), b: z.number() },
         defaultValues: { a: 42, b: 42 },
       })

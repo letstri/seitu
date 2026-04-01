@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from './subscription'
-import { createSubscription } from './subscription'
+import { createReadableSubscription, createSubscription } from './subscription'
 
 export interface Throttled<T> extends Readable<T>, Subscribable<T> {}
 
@@ -55,14 +55,5 @@ export function createThrottle<T>(source: Readable<T> & Subscribable<T>, wait: n
 
   const get = (): T => state
 
-  return {
-    get,
-    subscribe(callback: any, options: any) {
-      return subscribe(() => callback(get()), options)
-    },
-    '~': {
-      output: null as unknown as T,
-      notify,
-    },
-  }
+  return createReadableSubscription(get, subscribe, notify)
 }

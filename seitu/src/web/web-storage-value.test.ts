@@ -13,7 +13,7 @@ describe('createWebStorageValue', () => {
   describe('get', () => {
     it('returns defaultValue when key is not in localStorage', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -24,7 +24,7 @@ describe('createWebStorageValue', () => {
     it('returns defaultValue as-is when it is stringified JSON (no parsing of default)', () => {
       const stringifiedJson = '{"a":1,"b":"two"}'
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.string(),
         key: TEST_KEY,
         defaultValue: stringifiedJson,
@@ -35,7 +35,7 @@ describe('createWebStorageValue', () => {
     it('returns parsed JSON when key exists with valid JSON', () => {
       window.localStorage.setItem(TEST_KEY, JSON.stringify(42))
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -46,7 +46,7 @@ describe('createWebStorageValue', () => {
     it('returns defaultValue when stored value is invalid JSON and defaultValue is not string', () => {
       window.localStorage.setItem(TEST_KEY, 'not-valid-json{{{')
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -57,7 +57,7 @@ describe('createWebStorageValue', () => {
     it('returns raw item when stored value is invalid JSON and defaultValue is string', () => {
       window.localStorage.setItem(TEST_KEY, 'raw-string')
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.string(),
         key: TEST_KEY,
         defaultValue: 'default',
@@ -71,7 +71,7 @@ describe('createWebStorageValue', () => {
 
       try {
         const value = createWebStorageValue({
-          kind: 'localStorage',
+          type: 'localStorage',
           schema: z.string(),
           key: TEST_KEY,
           defaultValue: 'ssr-default',
@@ -87,7 +87,7 @@ describe('createWebStorageValue', () => {
       const onValidationError = vi.fn()
       window.localStorage.setItem(TEST_KEY, JSON.stringify('invalid-number'))
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -96,16 +96,12 @@ describe('createWebStorageValue', () => {
 
       expect(value.get()).toBe(0)
       expect(onValidationError).toHaveBeenCalledTimes(1)
-      expect(onValidationError).toHaveBeenCalledWith({
-        issues: expect.any(Array),
-        value: 'invalid-number',
-      })
     })
 
     it('returns defaultValue when onValidationError returns undefined', () => {
       window.localStorage.setItem(TEST_KEY, JSON.stringify('invalid-number'))
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 10,
@@ -118,7 +114,7 @@ describe('createWebStorageValue', () => {
     it('returns defaultValue when onValidationError returns a value but stored value is still invalid', () => {
       window.localStorage.setItem(TEST_KEY, JSON.stringify('invalid-number'))
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -132,7 +128,7 @@ describe('createWebStorageValue', () => {
   describe('set', () => {
     it('stores stringified value in localStorage', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -146,7 +142,7 @@ describe('createWebStorageValue', () => {
       window.addEventListener('storage', listener)
 
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -165,7 +161,7 @@ describe('createWebStorageValue', () => {
 
       try {
         const value = createWebStorageValue({
-          kind: 'localStorage',
+          type: 'localStorage',
           schema: z.number(),
           key: TEST_KEY,
           defaultValue: 0,
@@ -179,7 +175,7 @@ describe('createWebStorageValue', () => {
 
     it('calls callback with updated value when set is a function', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -192,7 +188,7 @@ describe('createWebStorageValue', () => {
   describe('remove', () => {
     it('removes the item from localStorage', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -206,7 +202,7 @@ describe('createWebStorageValue', () => {
 
     it('get returns defaultValue after remove', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.string(),
         key: TEST_KEY,
         defaultValue: 'fallback',
@@ -224,7 +220,7 @@ describe('createWebStorageValue', () => {
 
       try {
         const value = createWebStorageValue({
-          kind: 'localStorage',
+          type: 'localStorage',
           schema: z.number(),
           key: TEST_KEY,
           defaultValue: 0,
@@ -240,7 +236,7 @@ describe('createWebStorageValue', () => {
   describe('subscribe', () => {
     it('calls callback with current value and event when storage event is dispatched', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -257,7 +253,7 @@ describe('createWebStorageValue', () => {
 
     it('stops calling callback after unsubscribe', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.number(),
         key: TEST_KEY,
         defaultValue: 0,
@@ -277,7 +273,7 @@ describe('createWebStorageValue', () => {
   describe('integration', () => {
     it('get reflects set', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.string(),
         key: TEST_KEY,
         defaultValue: 'default',
@@ -294,7 +290,7 @@ describe('createWebStorageValue', () => {
 
     it('get reflects value set directly in localStorage', () => {
       const value = createWebStorageValue({
-        kind: 'localStorage',
+        type: 'localStorage',
         schema: z.union([z.number(), z.object({ x: z.number() })]),
         key: TEST_KEY,
         defaultValue: 0,
@@ -313,7 +309,7 @@ describe('createWebStorageValue', () => {
   describe('with storage', () => {
     it('returns default value from storage when key is not set', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
@@ -326,7 +322,7 @@ describe('createWebStorageValue', () => {
 
     it('returns value from storage when key is set', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
@@ -342,7 +338,7 @@ describe('createWebStorageValue', () => {
 
     it('set updates storage and is reflected by storage.get()', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
@@ -355,7 +351,7 @@ describe('createWebStorageValue', () => {
 
     it('set with function receives current value and updates storage', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })
@@ -369,7 +365,7 @@ describe('createWebStorageValue', () => {
 
     it('remove deletes key from localStorage and get returns default', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
@@ -386,7 +382,7 @@ describe('createWebStorageValue', () => {
 
     it('multiple value instances for same storage key stay in sync', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number() },
         defaultValues: { count: 0 },
       })

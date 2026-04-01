@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from './subscription'
-import { createSubscription } from './subscription'
+import { createReadableSubscription, createSubscription } from './subscription'
 
 export interface DebouncedFn<F extends (...args: any[]) => any> extends Readable<ReturnType<F> | undefined>, Subscribable<ReturnType<F> | undefined> {
   (...args: Parameters<F>): void
@@ -36,16 +36,7 @@ export function createDebounceFn<F extends (...args: any[]) => any>(fn: F, wait:
         notify()
       }, wait)
     },
-    {
-      get,
-      'subscribe': (callback: (value: ReturnType<F> | undefined) => any, options?: any) => {
-        return subscribe(() => callback(get()), options)
-      },
-      '~': {
-        output: undefined!,
-        notify,
-      },
-    },
+    createReadableSubscription(get, subscribe, notify),
   )
 
   return debounced

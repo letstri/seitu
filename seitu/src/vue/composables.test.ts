@@ -1,10 +1,10 @@
-import type { SessionStorageValue } from '../web/session-storage-value'
+import type { WebStorageValue } from '../web/web-storage-value'
 import { afterEach, describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import * as z from 'zod'
 import { createStore } from '../core/store'
-import { createSessionStorage } from '../web/session-storage'
-import { createSessionStorageValue } from '../web/session-storage-value'
+import { createWebStorage } from '../web/web-storage'
+import { createWebStorageValue } from '../web/web-storage-value'
 import { useSubscription } from './composables'
 import { mount } from './test-utils'
 
@@ -38,7 +38,7 @@ describe('useSubscription', () => {
     })
 
     it('should update when session storage value changes', async () => {
-      const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: TEST_KEY, defaultValue: 0 })
 
       const comp = defineComponent({
         setup() {
@@ -58,7 +58,7 @@ describe('useSubscription', () => {
 
   describe('with selector', () => {
     it('should update when selected value changes', async () => {
-      const storage = createSessionStorage({ schemas: { count: z.number() }, defaultValues: { count: 0 } })
+      const storage = createWebStorage({ type: 'sessionStorage', schemas: { count: z.number() }, defaultValues: { count: 0 } })
 
       const comp = defineComponent({
         setup() {
@@ -76,7 +76,8 @@ describe('useSubscription', () => {
     })
 
     it('should not trigger when selected value is deeply equal', async () => {
-      const storage = createSessionStorage({
+      const storage = createWebStorage({
+        type: 'sessionStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
@@ -111,10 +112,10 @@ describe('useSubscription', () => {
 
   describe('with getter source', () => {
     it('should resubscribe when getter returns new subscription', async () => {
-      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 1 })
-      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 2 })
+      const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 1 })
+      const storageB = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 2 })
 
-      const current = ref<SessionStorageValue<number>>(storageA)
+      const current = ref<WebStorageValue<number>>(storageA)
 
       const comp = defineComponent({
         setup() {
@@ -132,10 +133,10 @@ describe('useSubscription', () => {
     })
 
     it('should subscribe to the new source after switching', async () => {
-      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
-      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
+      const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
+      const storageB = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
 
-      const current = ref<SessionStorageValue<number>>(storageA)
+      const current = ref<WebStorageValue<number>>(storageA)
 
       const comp = defineComponent({
         setup() {
@@ -157,10 +158,10 @@ describe('useSubscription', () => {
     })
 
     it('should not react to old source after switching', async () => {
-      const storageA = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
-      const storageB = createSessionStorageValue({ schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
+      const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 0 })
+      const storageB = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-b`, defaultValue: 10 })
 
-      const current = ref<SessionStorageValue<number>>(storageA)
+      const current = ref<WebStorageValue<number>>(storageA)
       let renderCount = 0
 
       const comp = defineComponent({
@@ -188,7 +189,7 @@ describe('useSubscription', () => {
 
   describe('with ref source', () => {
     it('should work with a ref wrapping the subscription', async () => {
-      const storage = createSessionStorageValue({ schema: z.number(), key: TEST_KEY, defaultValue: 0 })
+      const storage = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: TEST_KEY, defaultValue: 0 })
       const storageRef = ref(storage)
 
       const comp = defineComponent({

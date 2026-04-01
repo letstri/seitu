@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from './subscription'
-import { createSubscription } from './subscription'
+import { createReadableSubscription, createSubscription } from './subscription'
 
 export interface Computed<T> extends Readable<T>, Subscribable<T> {}
 
@@ -43,23 +43,18 @@ export function createComputed(
   source: Source | Source[],
   transform: (value: any) => any,
 ): Computed<any> {
-  const { subscribe, notify } = createSubscription()
   const sources = Array.isArray(source) ? source : [source]
   const isSingle = !Array.isArray(source)
+
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe() {
+      const unsubscribes = sources.map(s => s.subscribe(() => notify()))
+      return () => unsubscribes.forEach(u => u())
+    },
+  })
 
   const get = () =>
     transform(isSingle ? sources[0].get() : sources.map(s => s.get()))
 
-  for (const s of sources) s.subscribe(() => notify())
-
-  return {
-    get,
-    subscribe(callback, options) {
-      return subscribe(() => callback(get()), options)
-    },
-    '~': {
-      output: null as unknown,
-      notify,
-    },
-  }
+  return createReadableSubscription(get, subscribe, notify)
 }

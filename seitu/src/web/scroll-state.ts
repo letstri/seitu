@@ -119,7 +119,6 @@ const inactive: ScrollStateEdge = { reached: false, remaining: 0 }
  */
 export function createScrollState(options: ScrollStateOptions): ScrollState {
   const { direction = 'both', threshold: rawThreshold = 0 } = options
-  const { subscribe, notify } = createSubscription()
 
   const t = typeof rawThreshold === 'number'
     ? { top: rawThreshold, bottom: rawThreshold, left: rawThreshold, right: rawThreshold }
@@ -150,9 +149,21 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
     }
   }
 
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe() {
+      const element = resolveElement()
+      if (!element)
+        return
+
+      const handler = () => notify()
+      element.addEventListener('scroll', handler, { passive: true })
+      return () => element.removeEventListener('scroll', handler)
+    },
+  })
+
   return {
     get,
-    'subscribe': (callback, options = {}) => {
+    'subscribe': (callback, opts = {}) => {
       const element = resolveElement()
 
       if (!element) {
@@ -160,14 +171,7 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
         return () => {}
       }
 
-      const unsubscribe = subscribe(() => callback(get()), options)
-      const handler = () => callback(get())
-      element.addEventListener('scroll', handler, { passive: true })
-
-      return () => {
-        unsubscribe()
-        element.removeEventListener('scroll', handler)
-      }
+      return subscribe(() => callback(get()), opts)
     },
     '~': {
       output: null as unknown as ScrollStateValue,

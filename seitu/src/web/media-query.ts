@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from '../core/index'
-import { createSubscription } from '../core/index'
+import { createReadableSubscription, createSubscription } from '../core/index'
 
 export interface MediaQuery extends Subscribable<boolean>, Readable<boolean> {}
 
@@ -144,14 +144,5 @@ export function createMediaQuery<T extends string>(options: MediaQueryOptions<T>
 
   const get = (): boolean => match?.matches ?? options.defaultMatches ?? false
 
-  return {
-    get,
-    'subscribe': (callback, options = {}) => {
-      return subscribe(() => callback(get()), options)
-    },
-    '~': {
-      output: null as unknown as boolean,
-      notify,
-    },
-  }
+  return createReadableSubscription(get, subscribe, notify)
 }

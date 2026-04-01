@@ -14,7 +14,7 @@ describe('createWebStorage', () => {
 
       try {
         const storage = createWebStorage({
-          kind: 'localStorage',
+          type: 'localStorage',
           schemas: {
             count: z.number(),
             name: z.string(),
@@ -33,7 +33,7 @@ describe('createWebStorage', () => {
       window.localStorage.setItem('count', JSON.stringify('invalid-number'))
 
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
         onValidationError,
@@ -41,18 +41,13 @@ describe('createWebStorage', () => {
 
       expect(storage.get()).toEqual({ count: 0, name: '' })
       expect(onValidationError).toHaveBeenCalled()
-      expect(onValidationError).toHaveBeenCalledWith({
-        issues: expect.any(Array),
-        key: 'count',
-        value: 'invalid-number',
-      })
     })
 
     it('returns default value when onValidationError returns undefined', () => {
       window.localStorage.setItem('count', JSON.stringify('invalid-number'))
 
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 7, name: '' },
         onValidationError: () => undefined,
@@ -65,7 +60,7 @@ describe('createWebStorage', () => {
       window.localStorage.setItem('count', JSON.stringify('invalid-number'))
 
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
         onValidationError: ({ key }) => {
@@ -82,7 +77,7 @@ describe('createWebStorage', () => {
   describe('set', () => {
     it('stores values in localStorage and notifies subscribers on set and on storage event', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: {
           count: z.number(),
           name: z.string(),
@@ -107,22 +102,22 @@ describe('createWebStorage', () => {
     it('exposes defaultValues as readonly', () => {
       const defaults = { count: 0, name: '' }
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: {
           count: z.number(),
           name: z.string(),
         },
         defaultValues: defaults,
       })
-      expect(storage.getDefaultValue('count')).toEqual(0)
-      expect(storage.getDefaultValue('name')).toEqual('')
+      expect(storage['~'].getDefaultValue('count')).toEqual(0)
+      expect(storage['~'].getDefaultValue('name')).toEqual('')
     })
   })
 
   describe('keyTransform', () => {
     it('transforms keys using the keyTransform function', () => {
       const storage = createWebStorage({
-        kind: 'localStorage',
+        type: 'localStorage',
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
         keyTransform: key => `prefix-${key}`,

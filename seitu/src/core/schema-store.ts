@@ -1,20 +1,18 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Simplify } from '../utils'
+import type { ValidationObjectSchemas, ValidationObjectSchemasOutput } from '../validate'
 import type { Readable, Subscribable, Writable } from './index'
-import { createStore, createSubscription } from '.'
-import { tryParseJson } from '../utils'
-
-export type SchemaStoreSchema = Record<string, StandardSchemaV1<unknown, unknown>>
-
-export type SchemaStoreOutput<S extends SchemaStoreSchema> = Simplify<{ [K in keyof S]: StandardSchemaV1.InferOutput<S[K]> }>
+import { createReadableSubscription, createStore, createSubscription } from '.'
+import { validateSchema } from '../validate'
 
 export interface SchemaStore<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O> {
-  getDefaultValue: <K extends keyof O>(key: K) => O[K]
+  '~': {
+    getDefaultValue: <K extends keyof O>(key: K) => O[K]
+  } & Subscribable<O>['~']
 }
 
 export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> {
   schemas: S
-  defaultValues: SchemaStoreOutput<S>
+  defaultValues: ValidationObjectSchemasOutput<S>
   /**
    * The provider to use for the schema store. If not provided, the schema store will
    * use an in-memory provider.
@@ -40,7 +38,7 @@ export interface SchemaStoreOptions<S extends Record<string, StandardSchemaV1>> 
  * store.subscribe(console.log)
  * ```
  */
-export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<SchemaStoreOutput<S>> {
+export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(options: SchemaStoreOptions<S>): SchemaStore<ValidationObjectSchemasOutput<S>> {
   const { subscribe, notify } = createSubscription()
   const defaultValues = { ...options.defaultValues }
   const provider = options.provider ?? createSchemaStoreMemoryProvider()
@@ -49,45 +47,34 @@ export function createSchemaStore<S extends Record<string, StandardSchemaV1>>(op
     const output = { ...defaultValues }
 
     for (const [key, schema] of Object.entries(options.schemas) as [keyof S, StandardSchemaV1<unknown, unknown>][]) {
-      const item = provider.get()[key]
-
-      const result = schema['~standard'].validate(tryParseJson(item))
-
-      if (result instanceof Promise) {
-        throw new TypeError('[createStorage] Validation schema should not return a Promise.')
-      }
-
-      if (result.issues) {
-        console.warn(`[createSchemaStore] Returned value invalid for key ${String(key)}, returned default value instead`, JSON.stringify(result.issues, null, 2), { cause: result.issues })
-      }
-
-      output[key] = result.issues ? defaultValues[key] : result.value
+      output[key] = validateSchema(schema, provider.get()[key], {
+        defaultValue: defaultValues[key],
+        label: `createSchemaStore:${String(key)}`,
+      })
     }
 
     return output
   }
 
+  const readable = createReadableSubscription(get, subscribe, notify)
+
   return {
-    get,
+    ...readable,
     'set': (value) => {
       const newValue = typeof value === 'function' ? value(get()) : value
       provider.set(newValue)
       notify()
     },
-    'getDefaultValue': key => defaultValues[key],
-    'subscribe': (callback, options) => {
-      return subscribe(() => callback(get()), options)
-    },
     '~': {
-      output: null as unknown as SchemaStoreOutput<S>,
-      notify,
+      ...readable['~'],
+      getDefaultValue: key => defaultValues[key],
     },
   }
 }
 
-export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
-  get: () => SchemaStoreOutput<S>
-  set: (value: Partial<SchemaStoreOutput<S>>) => void
+export interface SchemaStoreProvider<S extends ValidationObjectSchemas> {
+  get: () => ValidationObjectSchemasOutput<S>
+  set: (value: Partial<ValidationObjectSchemasOutput<S>>) => void
 }
 
 /**
@@ -106,12 +93,12 @@ export interface SchemaStoreProvider<S extends SchemaStoreSchema> {
  * })
  * ```
  */
-export function createSchemaStoreMemoryProvider<S extends SchemaStoreSchema>(): SchemaStoreProvider<S> {
-  const store = createStore<SchemaStoreOutput<S>>({} as SchemaStoreOutput<S>)
+export function createSchemaStoreMemoryProvider<S extends ValidationObjectSchemas>(): SchemaStoreProvider<S> {
+  const store = createStore<ValidationObjectSchemasOutput<S>>({} as ValidationObjectSchemasOutput<S>)
   return {
     get: () => store.get(),
     set: (value) => {
-      store.set(value as SchemaStoreOutput<S>)
+      store.set(value as ValidationObjectSchemasOutput<S>)
     },
   }
 }

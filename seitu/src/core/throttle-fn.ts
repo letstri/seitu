@@ -1,5 +1,5 @@
 import type { Readable, Subscribable } from './subscription'
-import { createSubscription } from './subscription'
+import { createReadableSubscription, createSubscription } from './subscription'
 
 export interface ThrottledFn<F extends (...args: any[]) => any> extends Readable<ReturnType<F> | undefined>, Subscribable<ReturnType<F> | undefined> {
   (...args: Parameters<F>): void
@@ -51,16 +51,7 @@ export function createThrottleFn<F extends (...args: any[]) => any>(fn: F, wait:
         }
       }, wait)
     },
-    {
-      get,
-      'subscribe': (callback: (value: ReturnType<F> | undefined) => any, options?: any) => {
-        return subscribe(() => callback(get()), options)
-      },
-      '~': {
-        output: undefined!,
-        notify,
-      },
-    },
+    createReadableSubscription(get, subscribe, notify),
   )
 
   return throttled
