@@ -15,6 +15,7 @@ export default defineConfig({
         web: './src/web/index.ts',
         react: './src/react/index.ts',
         vue: './src/vue/index.ts',
+        utils: './src/utils/index.ts',
       },
       formats: ['es'],
     },
