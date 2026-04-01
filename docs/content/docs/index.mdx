@@ -26,10 +26,11 @@ One of the painful spots for me was `localStorage`. I wanted typed storage that 
 With Seitu you get a reactive, typed value that works both inside and outside components:
 
 ```ts twoslash
-import { createLocalStorageValue } from 'seitu/web'
+import { createWebStorageValue } from 'seitu/web'
 import * as z from 'zod'
 
-const count = createLocalStorageValue({
+const count = createWebStorageValue({
+  type: 'localStorage',
   key: 'count',
   defaultValue: 0,
   schema: z.number(),
@@ -46,12 +47,13 @@ In React, subscribe with `useSubscription`:
 ```tsx twoslash
 'use client'
 
-import { createLocalStorageValue } from 'seitu/web'
+import { createWebStorageValue } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 import * as z from 'zod'
 
 export default function Page() {
-  const count = useSubscription(() => createLocalStorageValue({
+  const count = useSubscription(() => createWebStorageValue({
+    type: 'localStorage',
     key: 'count',
     defaultValue: 0,
     schema: z.number(),

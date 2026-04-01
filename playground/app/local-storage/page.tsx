@@ -2,10 +2,11 @@
 
 import { createComputed } from 'seitu'
 import { Subscription, useSubscription } from 'seitu/react'
-import { createLocalStorage } from 'seitu/web'
+import { createWebStorage } from 'seitu/web'
 import * as z from 'zod'
 
-const localStorage = createLocalStorage({
+const localStorage = createWebStorage({
+  type: 'localStorage',
   schemas: {
     firstName: z.string(),
     lastName: z.string(),

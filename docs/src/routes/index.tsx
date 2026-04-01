@@ -9,12 +9,13 @@ export const Route = createFileRoute('/')({
 })
 
 const initCode = `// Import needed function, e.g. local storage
-import { createLocalStorage } from 'seitu/web'
+import { createWebStorage } from 'seitu/web'
 // Use any Standard Schema library you want
 import * as z from 'zod'
 
 // Create an instance of the function
-const localStorage = createLocalStorage({
+const localStorage = createWebStorage({
+  type: 'localStorage',
   schemas: { count: z.number(), name: z.string() },
   defaultValues: { count: 0, name: '' },
 })`
