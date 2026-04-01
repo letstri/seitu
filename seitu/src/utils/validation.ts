@@ -27,7 +27,7 @@ export function repairWebStorageValueObjectWithDefault<O extends Record<string, 
   return {
     ...props.defaultValue,
     ...(typeof props.value === 'object' && props.value !== null
-      ? Object.fromEntries(Object.entries(props.value).filter(([key]) => key in props.defaultValue))
+      ? Object.fromEntries(Object.entries(props.value).filter(([key, val]) => key in props.defaultValue && typeof val === typeof props.defaultValue[key]))
       : {}),
   }
 }
