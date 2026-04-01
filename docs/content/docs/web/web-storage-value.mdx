@@ -1,0 +1,58 @@
+---
+title: Web Storage Value
+---
+
+## createWebStorageValue()
+Creates a reactive handle for a localStorage or sessionStorage instance.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="session-storage.ts"
+import { createWebStorage } from 'seitu/web'
+import * as z from 'zod'
+
+const sessionStorage = createWebStorage({
+  type: 'sessionStorage',
+  schemas: {
+    token: z.string().nullable(),
+    preferences: z.object({ theme: z.enum(['light', 'dark']) }),
+  },
+  defaultValues: { token: null, preferences: { theme: 'light' } },
+})
+
+sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
+sessionStorage.set({ token: 'abc' })
+sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
+sessionStorage.subscribe(console.log)
+```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import { createWebStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const sessionStorage = createWebStorage({
+  type: 'sessionStorage',
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+export default function Page() {
+  const value = useSubscription(sessionStorage)
+  return (
+    <div>
+      <span>{value.count}</span>
+      <span>{value.name}</span>
+    </div>
+  )
+}
+```
+
+* * *
+

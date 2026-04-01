@@ -1,19 +1,20 @@
 ---
-title: Session Storage
+title: Web Storage
 ---
 
-## createSessionStorage()
-Creates a reactive handle for a sessionStorage instance.
+## createWebStorage()
+Creates a reactive handle for a localStorage or sessionStorage instance.
 
 ### Examples
 
 #### Vanilla
 
 ```ts twoslash title="session-storage.ts"
-import { createSessionStorage } from 'seitu/web'
+import { createWebStorage } from 'seitu/web'
 import * as z from 'zod'
 
-const sessionStorage = createSessionStorage({
+const sessionStorage = createWebStorage({
+  type: 'sessionStorage',
   schemas: {
     token: z.string().nullable(),
     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
@@ -32,11 +33,12 @@ sessionStorage.subscribe(console.log)
 ```tsx twoslash title="page.tsx"
 'use client'
 
-import { createSessionStorage } from 'seitu/web'
+import { createWebStorage } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 import * as z from 'zod'
 
-const sessionStorage = createSessionStorage({
+const sessionStorage = createWebStorage({
+  type: 'sessionStorage',
   schemas: { count: z.number(), name: z.string() },
   defaultValues: { count: 0, name: '' },
 })
