@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import * as z from 'zod'
 import { createSchemaStore } from '../core/schema-store'
 import { createWebStorageValue } from '../web/web-storage-value'
-import { repairWebStorageValueObjectWithDefault } from './validation'
+import { repairValueObjectWithDefault } from './validation'
 
 const TEST_KEY = 'seitu-session-storage-value-test-key'
 
@@ -11,13 +11,13 @@ const value = createWebStorageValue({
   schema: z.object({ a: z.number(), b: z.string() }),
   key: 'storage-key',
   defaultValue: { a: 0, b: 'default' },
-  onValidationError: repairWebStorageValueObjectWithDefault,
+  onValidationError: repairValueObjectWithDefault,
 })
 value.get() // { a: 0, b: 'default' }
 window.localStorage.setItem('storage-key', JSON.stringify({ a: 1, b: 'test' }))
 value.get() // { a: 1, b: 'default' }
 
-describe('repairWebStorageValueObjectWithDefault', () => {
+describe('repairValueObjectWithDefault', () => {
   beforeEach(() => {
     window.localStorage.clear()
   })
@@ -34,7 +34,7 @@ describe('repairWebStorageValueObjectWithDefault', () => {
         a: 0,
         b: 'default',
       },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     window.localStorage.setItem(TEST_KEY, JSON.stringify({
       a: 1,
@@ -57,7 +57,7 @@ describe('repairWebStorageValueObjectWithDefault', () => {
         meta: { x: 0, y: 'y-default' },
         b: 'default',
       },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     window.localStorage.setItem(
       TEST_KEY,
@@ -82,7 +82,7 @@ describe('repairWebStorageValueObjectWithDefault', () => {
       defaultValue: {
         token: null,
       },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     window.localStorage.setItem(
       TEST_KEY,
@@ -111,7 +111,7 @@ describe('repairWebStorageValueObjectWithDefault', () => {
           language: 'en',
         },
       },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     window.localStorage.setItem(
       TEST_KEY,
@@ -130,7 +130,7 @@ describe('repairWebStorageValueObjectWithDefault', () => {
   })
 })
 
-describe('repairWebStorageValueObjectWithDefault with createSchemaStore', () => {
+describe('repairValueObjectWithDefault with createSchemaStore', () => {
   it('repairs partially invalid stored data by merging with defaults', () => {
     const store = createSchemaStore({
       schema: z.object({
@@ -138,7 +138,7 @@ describe('repairWebStorageValueObjectWithDefault with createSchemaStore', () => 
         name: z.string(),
       }),
       defaultValue: { count: 0, name: '' },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     // @ts-expect-error - test invalid value
     store.set({ count: 'invalid', name: 'alice' })
@@ -153,7 +153,7 @@ describe('repairWebStorageValueObjectWithDefault with createSchemaStore', () => 
         name: z.string(),
       }),
       defaultValue: { count: 0, name: 'default' },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     // @ts-expect-error - test invalid value
     store.set({ count: 'bad', name: 42 })
@@ -168,7 +168,7 @@ describe('repairWebStorageValueObjectWithDefault with createSchemaStore', () => 
         name: z.string(),
       }).strict(),
       defaultValue: { count: 0, name: '' },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     // @ts-expect-error - test invalid value
     store.set({ count: 5, name: 'bob', extra: true })
@@ -183,7 +183,7 @@ describe('repairWebStorageValueObjectWithDefault with createSchemaStore', () => 
         label: z.string(),
       }),
       defaultValue: { meta: { x: 0, y: 'y-default' }, label: '' },
-      onValidationError: repairWebStorageValueObjectWithDefault,
+      onValidationError: repairValueObjectWithDefault,
     })
     // @ts-expect-error - test invalid value
     store.set({ meta: { wrong: 'shape' }, label: 'ok' })
