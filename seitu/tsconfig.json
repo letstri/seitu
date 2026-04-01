@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "jsx": "react-jsx",
-    "rootDir": ".",
+    "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
