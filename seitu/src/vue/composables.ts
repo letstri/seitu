@@ -14,12 +14,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * @example Inline subscription
  * ```vue
  * <script setup lang="ts">
- * import { createSessionStorageValue } from 'seitu/web'
+ * import { createWebStorageValue } from 'seitu/web'
  * import { useSubscription } from 'seitu/vue'
  * import * as z from 'zod'
  *
  * const value = useSubscription(
- *   createSessionStorageValue({ key: 'test', defaultValue: 0, schema: z.number() }),
+ *   createWebStorageValue({ type: 'sessionStorage', key: 'test', defaultValue: 0, schema: z.number() }),
  * )
  * </script>
  *
@@ -31,11 +31,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * @example Instance outside of the subscription
  * ```vue
  * <script setup lang="ts">
- * import { createSessionStorage } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { useSubscription } from 'seitu/vue'
  * import * as z from 'zod'
  *
- * const sessionStorage = createSessionStorage({
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
  * })
@@ -51,11 +52,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * @example With selector
  * ```vue
  * <script setup lang="ts">
- * import { createSessionStorage } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { useSubscription } from 'seitu/vue'
  * import * as z from 'zod'
  *
- * const sessionStorage = createSessionStorage({
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
  * })

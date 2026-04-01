@@ -16,11 +16,12 @@ export interface SubscriptionProps<S extends Subscribable<any> & Readable<any>, 
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorage } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { Subscription } from 'seitu/react'
  * import * as z from 'zod'
  *
- * const sessionStorage = createSessionStorage({
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
  * })
@@ -38,11 +39,12 @@ export interface SubscriptionProps<S extends Subscribable<any> & Readable<any>, 
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorage } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { Subscription } from 'seitu/react'
  * import * as z from 'zod'
  *
- * const sessionStorage = createSessionStorage({
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
  * })

@@ -15,10 +15,11 @@ To quick start you only need to write the following code:
 
 ```tsx
 import { useSubscription } from 'seitu/react'
-import { createSessionStorageValue } from 'seitu/web'
+import { createWebStorageValue } from 'seitu/web'
 import * as z from 'zod'
 
-const value = createSessionStorageValue({
+const value = createWebStorageValue({
+  type: 'sessionStorage',
   key: 'test',
   defaultValue: 0,
   schema: z.number(),

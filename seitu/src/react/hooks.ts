@@ -16,12 +16,13 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorageValue } from 'seitu/web'
+ * import { createWebStorageValue } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
  * export default function Page() {
- *   const value = useSubscription(() => createSessionStorageValue({
+ *   const value = useSubscription(() => createWebStorageValue({
+ *     type: 'sessionStorage',
  *     key: 'test',
  *     defaultValue: 0,
  *     schema: z.number(),
@@ -35,11 +36,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorage } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
- * const sessionStorage = createSessionStorage({
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
  *   schemas: { count: z.number(), name: z.string() },
  *   defaultValues: { count: 0, name: '' },
  * })
@@ -54,11 +56,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
- * import { createSessionStorage } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  * import * as z from 'zod'
  *
- * const sessionStorage = createSessionStorage({
+ * const sessionStorage = createWebStorage({
+ *   type: 'sessionStorage',
  *   schemas: {
  *     count: z.number(),
  *     name: z.string(),
@@ -79,12 +82,12 @@ export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<a
  * 'use client'
  *
  * import * as React from 'react'
- * import { createScrollState } from 'seitu/web'
+ * import { createWebStorage } from 'seitu/web'
  * import { useSubscription } from 'seitu/react'
  *
  * export default function Page() {
  *   const ref = React.useRef<HTMLDivElement>(null)
- *   const state = useSubscription(() => createScrollState({ element: () => ref.current, direction: 'vertical' }))
+ *   const state = useSubscription(() => createWebStorage({ type: 'scrollState', element: () => ref.current, direction: 'vertical' }))
  *
  *   return (
  *     <div ref={ref}>
