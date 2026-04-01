@@ -13,8 +13,8 @@ import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
 import * as z from 'zod'
 
 const store = createSchemaStore({
-  schemas: { count: z.number(), name: z.string() },
-  defaultValues: { count: 0, name: '' },
+  schema: z.object({ count: z.number(), name: z.string() }),
+  defaultValue: { count: 0, name: '' },
 })
 store.get()
 store.set({ count: 1 })
@@ -34,8 +34,8 @@ import { createSchemaStore, createSchemaStoreMemoryProvider } from 'seitu'
 import * as z from 'zod'
 
 const store = createSchemaStore({
-  schemas: { count: z.number(), name: z.string() },
-  defaultValues: { count: 0, name: '' },
+  schema: z.object({ count: z.number(), name: z.string() }),
+  defaultValue: { count: 0, name: '' },
   provider: createSchemaStoreMemoryProvider(),
 })
 ```

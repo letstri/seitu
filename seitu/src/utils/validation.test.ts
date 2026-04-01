@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import * as z from 'zod'
+import { createSchemaStore } from '../core/schema-store'
 import { createWebStorageValue } from '../web/web-storage-value'
 import { repairWebStorageValueObjectWithDefault } from './validation'
 
@@ -126,5 +127,69 @@ describe('repairWebStorageValueObjectWithDefault', () => {
         language: 'en',
       },
     })
+  })
+})
+
+describe('repairWebStorageValueObjectWithDefault with createSchemaStore', () => {
+  it('repairs partially invalid stored data by merging with defaults', () => {
+    const store = createSchemaStore({
+      schema: z.object({
+        count: z.number(),
+        name: z.string(),
+      }),
+      defaultValue: { count: 0, name: '' },
+      onValidationError: repairWebStorageValueObjectWithDefault,
+    })
+    // @ts-expect-error - test invalid value
+    store.set({ count: 'invalid', name: 'alice' })
+
+    expect(store.get()).toEqual({ count: 0, name: 'alice' })
+  })
+
+  it('returns full default when stored value is completely invalid', () => {
+    const store = createSchemaStore({
+      schema: z.object({
+        count: z.number(),
+        name: z.string(),
+      }),
+      defaultValue: { count: 0, name: 'default' },
+      onValidationError: repairWebStorageValueObjectWithDefault,
+    })
+    // @ts-expect-error - test invalid value
+    store.set({ count: 'bad', name: 42 })
+
+    expect(store.get()).toEqual({ count: 0, name: 'default' })
+  })
+
+  it('keeps all valid keys when stored data has extra unknown keys', () => {
+    const store = createSchemaStore({
+      schema: z.object({
+        count: z.number(),
+        name: z.string(),
+      }).strict(),
+      defaultValue: { count: 0, name: '' },
+      onValidationError: repairWebStorageValueObjectWithDefault,
+    })
+    // @ts-expect-error - test invalid value
+    store.set({ count: 5, name: 'bob', extra: true })
+
+    expect(store.get()).toEqual({ count: 5, name: 'bob' })
+  })
+
+  it('falls back to full default when nested object has wrong shape', () => {
+    const store = createSchemaStore({
+      schema: z.object({
+        meta: z.object({ x: z.number(), y: z.string() }),
+        label: z.string(),
+      }),
+      defaultValue: { meta: { x: 0, y: 'y-default' }, label: '' },
+      onValidationError: repairWebStorageValueObjectWithDefault,
+    })
+    // @ts-expect-error - test invalid value
+    store.set({ meta: { wrong: 'shape' }, label: 'ok' })
+
+    // repair keeps meta (both are typeof 'object') but re-validation still fails,
+    // so the full default is returned
+    expect(store.get()).toEqual({ meta: { x: 0, y: 'y-default' }, label: '' })
   })
 })

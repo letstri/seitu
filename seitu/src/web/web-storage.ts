@@ -1,20 +1,22 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { SchemaStore, SchemaStoreOptions } from '../core/index'
+import type { Readable, Subscribable, Writable } from '../core/index'
 import type { ValidationObjectSchemas, ValidationObjectSchemasOutput, ValidationSchemasErrorProps } from '../validate'
 import { createReadableSubscription, createSubscription } from '../core/index'
 import { validateSchema } from '../validate'
 
-export interface WebStorageOptions<S extends ValidationObjectSchemas> extends Omit<SchemaStoreOptions<S>, 'provider'> {
+export interface WebStorageOptions<S extends ValidationObjectSchemas> {
+  schemas: S
+  defaultValues: ValidationObjectSchemasOutput<S>
   type: 'localStorage' | 'sessionStorage'
   keyTransform?: (key: keyof S) => string
   onValidationError?: (props: ValidationSchemasErrorProps<ValidationObjectSchemasOutput<S>>) => void | StandardSchemaV1.InferOutput<S[keyof S]>
 }
 
-export interface WebStorage<O extends Record<string, unknown>> extends SchemaStore<O> {
+export interface WebStorage<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O> {
   '~': {
     getDefaultValue: <K extends keyof O>(key: K) => O[K]
     type: 'localStorage' | 'sessionStorage'
-  } & SchemaStore<O>['~']
+  } & Subscribable<O>['~']
 }
 
 /**
