@@ -90,11 +90,11 @@ describe('createWebStorage', () => {
       storage.set({ count: 5, name: 'bob' })
       expect(window.localStorage.getItem('count')).toBe('5')
       expect(window.localStorage.getItem('name')).toBe('bob')
-      expect(callback).toHaveBeenCalledTimes(1)
+      expect(callback).toHaveBeenCalledTimes(2)
 
       window.localStorage.setItem('count', '99')
       window.dispatchEvent(new StorageEvent('storage', { key: 'count' }))
-      expect(callback).toHaveBeenCalledTimes(2)
+      expect(callback).toHaveBeenCalledTimes(3)
     })
   })
 

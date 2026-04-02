@@ -96,16 +96,11 @@ export function createWebStorageValue(
     | WebStorageValueOptionsWithSchema<StandardSchemaV1<unknown>>,
 ): WebStorageValue<unknown> {
   const type = 'storage' in options ? options.storage['~'].type : options.type
-  let isInternalUpdate = false
   const defaultValue = ('schema' in options ? options.defaultValue : options.storage['~'].getDefaultValue(options.key)) ?? null
 
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
       const listener = (event: StorageEvent) => {
-        if (isInternalUpdate) {
-          return
-        }
-
         if (event.key === options.key) {
           notify()
         }
@@ -180,13 +175,10 @@ export function createWebStorageValue(
 
       const storage = window[type]
       const newValue = typeof value === 'function' ? value(get()) : value
-      isInternalUpdate = true
       storage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
       window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue }))
-      isInternalUpdate = false
 
       cachedRaw = NO_CACHE
-      notify()
     },
     remove: () => {
       if (typeof window === 'undefined') {

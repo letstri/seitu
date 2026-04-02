@@ -74,15 +74,13 @@ export interface WebStorage<O extends Record<string, unknown>> extends Subscriba
 export function createWebStorage<S extends WebStorageInput>(
   options: WebStorageOptions<S>,
 ): WebStorage<WebStorageOutput<S>> {
-  let isInternalUpdate = false
+  const defaultValues = { ...options.defaultValues }
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
-      const listener = () => {
-        if (isInternalUpdate) {
-          return
+      const listener = (event: StorageEvent) => {
+        if (Object.keys(defaultValues).some(key => String(options.keyTransform ? options.keyTransform(key) : key) === event.key)) {
+          notify()
         }
-
-        notify()
       }
 
       if (typeof window !== 'undefined') {
@@ -96,7 +94,6 @@ export function createWebStorage<S extends WebStorageInput>(
       }
     },
   })
-  const defaultValues = { ...options.defaultValues }
   const keys = Object.keys(options.defaultValues) as (keyof WebStorageOutput<S>)[]
   const cachedRaws = new Map<keyof WebStorageOutput<S>, string | null>()
   let cachedOutput: WebStorageOutput<S> | undefined
@@ -163,9 +160,8 @@ export function createWebStorage<S extends WebStorageInput>(
 
       const storage = window[options.type]
 
-      isInternalUpdate = true
-      Object.entries(resolvedValue).forEach(([key, entryValue]) => {
-        const newValue = typeof entryValue === 'string' ? entryValue : JSON.stringify(entryValue)
+      Object.entries(resolvedValue).forEach(([key, value]) => {
+        const newValue = typeof value === 'string' ? value : JSON.stringify(value)
 
         storage.setItem(
           options.keyTransform ? options.keyTransform(key) : key,
@@ -176,9 +172,7 @@ export function createWebStorage<S extends WebStorageInput>(
           newValue,
         }))
       })
-      isInternalUpdate = false
       cachedOutput = undefined
-      notify()
     },
     '~': {
       ...readable['~'],
