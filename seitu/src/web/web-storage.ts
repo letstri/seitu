@@ -153,10 +153,11 @@ export function createWebStorage<S extends WebStorageInput>(
   return {
     ...readable,
     'set': (value) => {
-      const resolvedValue = typeof value === 'function' ? value(get()) : value
       if (typeof window === 'undefined') {
         return
       }
+
+      const resolvedValue = typeof value === 'function' ? value(get()) : value
 
       const storage = window[options.type]
 

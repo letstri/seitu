@@ -33,8 +33,6 @@ export interface WebStorageValueOptionsWithSchema<
   onValidationError?: (props: ValidationSchemaErrorProps<StandardSchemaV1.InferOutput<S>>) => void | StandardSchemaV1.InferOutput<S>
 }
 
-const NO_CACHE = Symbol('no-cache')
-
 /**
  * Creates a reactive handle for a localStorage or sessionStorage instance.
  *
@@ -118,9 +116,6 @@ export function createWebStorageValue(
     },
   })
 
-  let cachedRaw: string | null | typeof NO_CACHE = NO_CACHE
-  let cachedValue: unknown
-
   const get = () => {
     if (typeof window === 'undefined') {
       return defaultValue
@@ -129,38 +124,28 @@ export function createWebStorageValue(
     const storage = window[type]
     const raw = storage.getItem(options.key)
 
-    if (cachedRaw !== NO_CACHE && raw === cachedRaw) {
-      return cachedValue
-    }
-
-    cachedRaw = raw
-
     if (raw === null) {
-      cachedValue = defaultValue
-      return cachedValue
+      return defaultValue
     }
 
     const parsed = tryParseJson(raw)
 
     try {
       if ('schema' in options) {
-        cachedValue = validateSchema(options.schema, raw, {
+        return validateSchema(options.schema, raw, {
           defaultValue,
           label: `createWebStorageValue:${options.key}`,
           onError: options.onValidationError
             ? (issues, parsed) => options.onValidationError!({ defaultValue, issues: [...issues], value: parsed })
             : undefined,
         })
-        return cachedValue
       }
       else {
-        cachedValue = parsed
-        return cachedValue
+        return parsed
       }
     }
     catch {
-      cachedValue = (defaultValue !== undefined && typeof defaultValue !== 'string' ? defaultValue : parsed)
-      return cachedValue
+      return defaultValue !== undefined && typeof defaultValue !== 'string' ? defaultValue : parsed
     }
   }
 
@@ -177,8 +162,6 @@ export function createWebStorageValue(
       const newValue = typeof value === 'function' ? value(get()) : value
       storage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
       window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue }))
-
-      cachedRaw = NO_CACHE
     },
     remove: () => {
       if (typeof window === 'undefined') {
@@ -186,7 +169,6 @@ export function createWebStorageValue(
       }
 
       window[type].removeItem(options.key)
-      cachedRaw = NO_CACHE
     },
   }
 }
