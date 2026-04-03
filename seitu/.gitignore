@@ -1,2 +1,4 @@
 dist
 README.md
+tsconfig.tsbuildinfo
+.DS_Store
