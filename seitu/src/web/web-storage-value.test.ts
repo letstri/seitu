@@ -155,6 +155,25 @@ describe('createWebStorageValue', () => {
       window.removeEventListener('storage', listener)
     })
 
+    it('dispatches storage event with JSON-stringified newValue for object values', () => {
+      const listener = vi.fn()
+      window.addEventListener('storage', listener)
+
+      const value = createWebStorageValue({
+        type: 'localStorage',
+        schema: z.object({ theme: z.string() }),
+        key: TEST_KEY,
+        defaultValue: { theme: 'light' },
+      })
+      value.set({ theme: 'dark' })
+
+      expect(listener).toHaveBeenCalledTimes(1)
+      const event: StorageEvent = listener.mock.calls[0][0]
+      expect(event.newValue).toBe(JSON.stringify({ theme: 'dark' }))
+
+      window.removeEventListener('storage', listener)
+    })
+
     it('does nothing when window is undefined (SSR)', () => {
       const originalWindow = globalThis.window
       vi.stubGlobal('window', undefined)

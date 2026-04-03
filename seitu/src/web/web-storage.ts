@@ -162,15 +162,15 @@ export function createWebStorage<S extends WebStorageInput>(
       const storage = window[options.type]
 
       Object.entries(resolvedValue).forEach(([key, value]) => {
-        const newValue = typeof value === 'string' ? value : JSON.stringify(value)
+        const storageValue = typeof value === 'string' ? value : JSON.stringify(value)
 
         storage.setItem(
           options.keyTransform ? options.keyTransform(key) : key,
-          newValue,
+          storageValue,
         )
         window.dispatchEvent(new StorageEvent('storage', {
           key: options.keyTransform ? options.keyTransform(key) : key,
-          newValue,
+          newValue: storageValue,
         }))
       })
       cachedOutput = undefined

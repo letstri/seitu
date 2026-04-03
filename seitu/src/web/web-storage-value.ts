@@ -116,6 +116,9 @@ export function createWebStorageValue(
     },
   })
 
+  let cachedRaw: string | null | undefined
+  let cachedValue: unknown
+
   const get = () => {
     if (typeof window === 'undefined') {
       return defaultValue
@@ -124,28 +127,38 @@ export function createWebStorageValue(
     const storage = window[type]
     const raw = storage.getItem(options.key)
 
+    if (cachedRaw !== undefined && raw === cachedRaw) {
+      return cachedValue
+    }
+
+    cachedRaw = raw
+
     if (raw === null) {
-      return defaultValue
+      cachedValue = defaultValue
+      return cachedValue
     }
 
     const parsed = tryParseJson(raw)
 
     try {
       if ('schema' in options) {
-        return validateSchema(options.schema, raw, {
+        cachedValue = validateSchema(options.schema, raw, {
           defaultValue,
           label: `createWebStorageValue:${options.key}`,
           onError: options.onValidationError
             ? (issues, parsed) => options.onValidationError!({ defaultValue, issues: [...issues], value: parsed })
             : undefined,
         })
+        return cachedValue
       }
       else {
-        return parsed
+        cachedValue = parsed
+        return cachedValue
       }
     }
     catch {
-      return defaultValue !== undefined && typeof defaultValue !== 'string' ? defaultValue : parsed
+      cachedValue = (defaultValue !== undefined && typeof defaultValue !== 'string' ? defaultValue : parsed)
+      return cachedValue
     }
   }
 
@@ -160,8 +173,10 @@ export function createWebStorageValue(
 
       const storage = window[type]
       const newValue = typeof value === 'function' ? value(get()) : value
-      storage.setItem(options.key, typeof newValue === 'string' ? newValue : JSON.stringify(newValue))
-      window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue }))
+      const storageValue = typeof newValue === 'string' ? newValue : JSON.stringify(newValue)
+      storage.setItem(options.key, storageValue)
+      window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue: storageValue }))
+      cachedRaw = undefined
     },
     remove: () => {
       if (typeof window === 'undefined') {
@@ -169,6 +184,7 @@ export function createWebStorageValue(
       }
 
       window[type].removeItem(options.key)
+      cachedRaw = undefined
     },
   }
 }
