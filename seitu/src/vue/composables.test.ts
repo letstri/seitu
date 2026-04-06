@@ -110,6 +110,78 @@ describe('useSubscription', () => {
     })
   })
 
+  describe('with custom isEqual', () => {
+    it('should use custom comparator instead of deepEqual', async () => {
+      const storage = createWebStorage({
+        type: 'sessionStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+      })
+
+      let renderCount = 0
+
+      const comp = defineComponent({
+        setup() {
+          const value = useSubscription(storage, {
+            isEqual: (a, b) => a.count === b.count,
+          })
+          return () => {
+            renderCount++
+            return h('span', null, value.value.name)
+          }
+        },
+      })
+
+      const wrapper = mount(comp)
+      expect(renderCount).toBe(1)
+      expect(wrapper.textContent).toBe('')
+
+      storage.set({ count: 0, name: 'changed' })
+      await nextTick()
+      expect(renderCount).toBe(1)
+      expect(wrapper.textContent).toBe('')
+
+      storage.set({ count: 1, name: 'changed' })
+      await nextTick()
+      expect(renderCount).toBe(2)
+      expect(wrapper.textContent).toBe('changed')
+    })
+
+    it('should use Object.is when passed as comparator', async () => {
+      const storage = createWebStorage({
+        type: 'sessionStorage',
+        schemas: { count: z.number() },
+        defaultValues: { count: 0 },
+      })
+
+      let renderCount = 0
+
+      const comp = defineComponent({
+        setup() {
+          const value = useSubscription(storage, {
+            selector: v => v.count,
+            isEqual: Object.is,
+          })
+          return () => {
+            renderCount++
+            return h('span', null, String(value.value))
+          }
+        },
+      })
+
+      mount(comp)
+      expect(renderCount).toBe(1)
+
+      storage.set({ count: 1 })
+      await nextTick()
+      expect(renderCount).toBe(2)
+
+      storage.set({ count: 1 })
+      await nextTick()
+      expect(renderCount).toBe(2)
+    })
+  })
+
   describe('with getter source', () => {
     it('should resubscribe when getter returns new subscription', async () => {
       const storageA = createWebStorageValue({ type: 'sessionStorage', schema: z.number(), key: `${TEST_KEY}-a`, defaultValue: 1 })

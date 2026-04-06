@@ -251,6 +251,72 @@ describe('hooks', () => {
     })
   })
 
+  describe('useSubscription with custom isEqual', () => {
+    it('should use custom comparator instead of deepEqual', () => {
+      const storage = createWebStorage({
+        type: 'sessionStorage',
+        schemas: { count: z.number(), name: z.string() },
+        defaultValues: { count: 0, name: '' },
+      })
+      let renderCount = 0
+
+      function TestCustomIsEqual() {
+        renderCount++
+        const value = useSubscription(storage, {
+          isEqual: (a, b) => a.count === b.count,
+        })
+        return <span data-testid="subscription-value">{value.name}</span>
+      }
+
+      render(<TestCustomIsEqual />)
+      expect(renderCount).toBe(1)
+      expect(screen.getByTestId('subscription-value').textContent).toBe('')
+
+      act(() => {
+        storage.set({ count: 0, name: 'changed' })
+      })
+      expect(renderCount).toBe(1)
+      expect(screen.getByTestId('subscription-value').textContent).toBe('')
+
+      act(() => {
+        storage.set({ count: 1, name: 'changed' })
+      })
+      expect(renderCount).toBe(2)
+      expect(screen.getByTestId('subscription-value').textContent).toBe('changed')
+    })
+
+    it('should use Object.is when passed as comparator', () => {
+      const storage = createWebStorage({
+        type: 'sessionStorage',
+        schemas: { count: z.number() },
+        defaultValues: { count: 0 },
+      })
+      let renderCount = 0
+
+      function TestObjectIs() {
+        renderCount++
+        const value = useSubscription(storage, {
+          selector: v => v.count,
+          isEqual: Object.is,
+        })
+        return <span data-testid="subscription-value">{value}</span>
+      }
+
+      render(<TestObjectIs />)
+      expect(renderCount).toBe(1)
+
+      act(() => {
+        storage.set({ count: 1 })
+      })
+      expect(renderCount).toBe(2)
+
+      act(() => {
+        storage.set({ count: 1 })
+      })
+      expect(renderCount).toBe(2)
+    })
+  })
+
   describe('useSubscription selector changes', () => {
     it('should update when selector changes', () => {
       const storage = createWebStorage({

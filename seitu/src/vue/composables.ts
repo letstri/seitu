@@ -5,6 +5,7 @@ import { computed, onWatcherCleanup, readonly, shallowRef, toValue, watch } from
 
 export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
   selector?: (value: S['~']['output']) => R
+  isEqual?: (prev: R, next: R) => boolean
 }
 
 /**
@@ -77,7 +78,7 @@ export function useSubscription<
   source: MaybeRefOrGetter<S>,
   options?: UseSubscriptionOptions<S, R>,
 ): Readonly<ShallowRef<R>> {
-  const { selector } = options ?? {}
+  const { selector, isEqual = deepEqual } = options ?? {}
 
   function getSnapshot(sub: S): R {
     return selector ? selector(sub.get()) : sub.get()
@@ -93,7 +94,7 @@ export function useSubscription<
 
       const unsubscribe = sub.subscribe(() => {
         const next = getSnapshot(sub)
-        if (!deepEqual(state.value, next)) {
+        if (!isEqual(state.value, next)) {
           state.value = next
         }
       })

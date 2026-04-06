@@ -5,6 +5,7 @@ import * as React from 'react'
 export interface UseSubscriptionOptions<S extends Subscribable<any> & Readable<any>, R = S['~']['output']> {
   selector?: (value: S['~']['output']) => R
   deps?: React.DependencyList
+  isEqual?: (prev: R, next: R) => boolean
 }
 
 /**
@@ -104,7 +105,7 @@ export function useSubscription<
   source: S | (() => S),
   options?: UseSubscriptionOptions<S, R>,
 ): R {
-  const { selector, deps = [] } = options ?? {}
+  const { selector, deps = [], isEqual = deepEqual } = options ?? {}
   const isFactory = typeof source === 'function'
   const factoryFn = isFactory ? source : () => source
 
@@ -117,17 +118,19 @@ export function useSubscription<
   const lastSnapshotRef = React.useRef<R | undefined>(undefined)
   const subscriptionRef = React.useRef(subscription)
   const selectorRef = React.useRef(selector)
+  const isEqualRef = React.useRef(isEqual)
   if (subscriptionRef.current !== subscription || selectorRef.current !== selector) {
     subscriptionRef.current = subscription
     selectorRef.current = selector
     lastSnapshotRef.current = undefined
   }
+  isEqualRef.current = isEqual
 
   const getSnapshot = React.useCallback((): R => {
     const sel = selectorRef.current
     const next = sel ? sel(subscriptionRef.current.get()) : subscriptionRef.current.get()
     const prev = lastSnapshotRef.current
-    if (prev !== undefined && deepEqual(prev, next))
+    if (prev !== undefined && isEqualRef.current(prev, next))
       return prev
     lastSnapshotRef.current = next
     return next
