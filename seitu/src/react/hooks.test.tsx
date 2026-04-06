@@ -19,13 +19,15 @@ afterEach(() => {
 const TEST_KEY = 'seitu-hooks-test-key'
 
 function TestComponent({ storage }: { storage: WebStorageValue<number> }) {
+  const renderCount = React.useRef(1).current++
   const value = useSubscription(storage)
-  return <span data-testid="subscription-value">{value}</span>
+  return <span data-testid="subscription-value" data-render-count={renderCount}>{value}</span>
 }
 
 function TestComponentWithSelector({ storage }: { storage: WebStorage<{ count: number }> }) {
+  const renderCount = React.useRef(1).current++
   const value = useSubscription(storage, { selector: value => value.count })
-  return <span data-testid="subscription-value">{value}</span>
+  return <span data-testid="subscription-value" data-render-count={renderCount}>{value}</span>
 }
 
 describe('hooks', () => {
