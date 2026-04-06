@@ -119,11 +119,11 @@ export function useSubscription<
   const subscriptionRef = React.useRef(subscription)
   const selectorRef = React.useRef(selector)
   const isEqualRef = React.useRef(isEqual)
-  if (subscriptionRef.current !== subscription || selectorRef.current !== selector) {
+  if (subscriptionRef.current !== subscription) {
     subscriptionRef.current = subscription
-    selectorRef.current = selector
     lastSnapshotRef.current = undefined
   }
+  selectorRef.current = selector
   isEqualRef.current = isEqual
 
   const getSnapshot = React.useCallback((): R => {
