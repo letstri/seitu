@@ -24,8 +24,8 @@ export interface Readable<T> {
 export interface Writable<T, P = T> {
   set: (value: T | ((prev: P) => T)) => any
 }
-export interface Removable {
-  remove: () => void
+export interface Clearable {
+  clear: () => void
 }
 
 export function createReadableSubscription<T>(

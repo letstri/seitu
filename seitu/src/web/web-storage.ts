@@ -1,5 +1,5 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Readable, Subscribable, Writable } from '../core/index'
+import type { Clearable, Readable, Subscribable, Writable } from '../core/index'
 import type { Simplify } from '../utils'
 import type { ValidationSchemaObjectErrorProps } from '../validate'
 import { createReadableSubscription, createSubscription } from '../core/index'
@@ -16,7 +16,7 @@ export interface WebStorageOptions<S extends WebStorageInput> {
   onValidationError?: (props: ValidationSchemaObjectErrorProps<WebStorageOutput<S>>) => void | StandardSchemaV1.InferOutput<S[keyof S]>
 }
 
-export interface WebStorage<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O> {
+export interface WebStorage<O extends Record<string, unknown>> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O>, Clearable {
   '~': {
     getDefaultValue: <K extends keyof O>(key: K) => O[K]
     type: 'localStorage' | 'sessionStorage'
@@ -173,6 +173,20 @@ export function createWebStorage<S extends WebStorageInput>(
           newValue: storageValue,
         }))
       })
+      cachedOutput = undefined
+    },
+    'clear': () => {
+      if (typeof window === 'undefined') {
+        return
+      }
+
+      const storage = window[options.type]
+
+      for (const key of keys) {
+        const storageKey = String(options.keyTransform ? options.keyTransform(key) : key)
+        storage.removeItem(storageKey)
+        window.dispatchEvent(new StorageEvent('storage', { key: storageKey, newValue: null }))
+      }
       cachedOutput = undefined
     },
     '~': {

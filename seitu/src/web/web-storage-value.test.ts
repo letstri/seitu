@@ -215,7 +215,7 @@ describe('createWebStorageValue', () => {
       value.set(42)
       expect(window.localStorage.getItem(TEST_KEY)).toBe('42')
 
-      value.remove()
+      value.clear()
       expect(window.localStorage.getItem(TEST_KEY)).toBeNull()
     })
 
@@ -229,7 +229,7 @@ describe('createWebStorageValue', () => {
       value.set('hello')
       expect(value.get()).toBe('hello')
 
-      value.remove()
+      value.clear()
       expect(value.get()).toBe('fallback')
     })
 
@@ -244,7 +244,7 @@ describe('createWebStorageValue', () => {
           key: TEST_KEY,
           defaultValue: 0,
         })
-        expect(() => value.remove()).not.toThrow()
+        expect(() => value.clear()).not.toThrow()
       }
       finally {
         vi.stubGlobal('window', originalWindow)
@@ -393,7 +393,7 @@ describe('createWebStorageValue', () => {
       countValue.set(99)
       expect(countValue.get()).toBe(99)
 
-      countValue.remove()
+      countValue.clear()
       expect(window.localStorage.getItem('count')).toBeNull()
       expect(countValue.get()).toBe(0)
       expect(storage.get()).toEqual({ count: 0, name: '' })

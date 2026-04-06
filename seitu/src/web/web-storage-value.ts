@@ -1,12 +1,12 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Readable, Removable, Subscribable, Writable } from '../core/index'
+import type { Clearable, Readable, Subscribable, Writable } from '../core/index'
 import type { ValidationSchemaErrorProps, ValidationSchemaObjectErrorProps } from '../validate'
 import type { WebStorage } from './web-storage'
 import { createReadableSubscription, createSubscription } from '../core'
 import { tryParseJson } from '../utils'
 import { validateSchema } from '../validate'
 
-export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Removable {}
+export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Clearable {}
 
 export interface WebStorageValueOptionsWithStorage<
   Storage extends WebStorage<any>,
@@ -178,7 +178,7 @@ export function createWebStorageValue(
       window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue: storageValue }))
       cachedRaw = undefined
     },
-    remove: () => {
+    clear: () => {
       if (typeof window === 'undefined') {
         return
       }
