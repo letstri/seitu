@@ -1,18 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createThrottleFn } from './throttle-fn'
+import { createThrottledFn } from './throttled-fn'
 
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => vi.restoreAllMocks())
 
-describe('createThrottleFn', () => {
+describe('createThrottledFn', () => {
   it('get() returns undefined before first call', () => {
-    const throttled = createThrottleFn(() => 42, 100)
+    const throttled = createThrottledFn(() => 42, 100)
     expect(throttled.get()).toBeUndefined()
   })
 
   it('fires immediately on first call', () => {
     const fn = vi.fn((x: number) => x * 2)
-    const throttled = createThrottleFn(fn, 100)
+    const throttled = createThrottledFn(fn, 100)
 
     throttled(5)
     expect(fn).toHaveBeenCalledTimes(1)
@@ -22,7 +22,7 @@ describe('createThrottleFn', () => {
 
   it('throttles subsequent calls within the interval', () => {
     const fn = vi.fn((x: number) => x)
-    const throttled = createThrottleFn(fn, 100)
+    const throttled = createThrottledFn(fn, 100)
 
     throttled(1) // fires immediately
     throttled(2) // throttled
@@ -38,7 +38,7 @@ describe('createThrottleFn', () => {
 
   it('does not fire trailing if no calls during interval', () => {
     const fn = vi.fn()
-    const throttled = createThrottleFn(fn, 100)
+    const throttled = createThrottledFn(fn, 100)
 
     throttled()
     expect(fn).toHaveBeenCalledTimes(1)
@@ -48,7 +48,7 @@ describe('createThrottleFn', () => {
   })
 
   it('notifies subscribers with the return value', () => {
-    const throttled = createThrottleFn((x: string) => x.toUpperCase(), 100)
+    const throttled = createThrottledFn((x: string) => x.toUpperCase(), 100)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -63,7 +63,7 @@ describe('createThrottleFn', () => {
   })
 
   it('supports async return values', async () => {
-    const throttled = createThrottleFn(async (x: string) => x.toUpperCase(), 100)
+    const throttled = createThrottledFn(async (x: string) => x.toUpperCase(), 100)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -77,7 +77,7 @@ describe('createThrottleFn', () => {
 
   it('handles multiple throttle cycles', () => {
     const fn = vi.fn((x: number) => x)
-    const throttled = createThrottleFn(fn, 50)
+    const throttled = createThrottledFn(fn, 50)
 
     // First cycle
     throttled(1)
@@ -95,7 +95,7 @@ describe('createThrottleFn', () => {
   })
 
   it('is callable and subscribable at the same time', () => {
-    const throttled = createThrottleFn((a: number, b: number) => a + b, 50)
+    const throttled = createThrottledFn((a: number, b: number) => a + b, 50)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -111,7 +111,7 @@ describe('createThrottleFn', () => {
   })
 
   it('unsubscribe stops receiving updates', () => {
-    const throttled = createThrottleFn(() => 1, 100)
+    const throttled = createThrottledFn(() => 1, 100)
     const callback = vi.fn()
     const unsub = throttled.subscribe(callback)
 
@@ -121,7 +121,7 @@ describe('createThrottleFn', () => {
   })
 
   it('supports immediate subscribe option', () => {
-    const throttled = createThrottleFn(() => 1, 100)
+    const throttled = createThrottledFn(() => 1, 100)
     const callback = vi.fn()
     throttled.subscribe(callback, { immediate: true })
     expect(callback).toHaveBeenCalledTimes(1)
@@ -130,7 +130,7 @@ describe('createThrottleFn', () => {
 
   it('passes multiple arguments through', () => {
     const fn = vi.fn()
-    const throttled = createThrottleFn(fn, 100)
+    const throttled = createThrottledFn(fn, 100)
 
     throttled('a', 1, true)
     expect(fn).toHaveBeenCalledWith('a', 1, true)

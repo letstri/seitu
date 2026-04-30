@@ -1,7 +1,7 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { ValidationSchemaErrorProps, ValidationSchemaOutput } from '../validate'
 import type { Readable, Subscribable, Writable } from './index'
-import { createReadableSubscription, createStore, createSubscription } from '.'
+import { createReadableSubscription, createStore } from '.'
 import { validateSchema } from '../validate'
 
 export interface SchemaStore<O> extends Subscribable<O>, Readable<O>, Writable<O, O> {}
@@ -38,7 +38,6 @@ export interface SchemaStoreOptions<S extends StandardSchemaV1<unknown>> {
  */
 export function createSchemaStore<S extends StandardSchemaV1<unknown>>(options: SchemaStoreOptions<S>): SchemaStore<ValidationSchemaOutput<S>> {
   const store = createStore<ValidationSchemaOutput<S>>(options.defaultValue)
-  const { subscribe, notify } = createSubscription()
 
   const get = (): ValidationSchemaOutput<S> => {
     const stored = store.get()
@@ -52,14 +51,13 @@ export function createSchemaStore<S extends StandardSchemaV1<unknown>>(options: 
     }) as ValidationSchemaOutput<S>
   }
 
-  const readable = createReadableSubscription(get, subscribe, notify)
+  const readable = createReadableSubscription(get, store.subscribe, store['~'].notify)
 
   return {
     ...readable,
     set: (value) => {
       const newValue = typeof value === 'function' ? (value as (prev: ValidationSchemaOutput<S>) => ValidationSchemaOutput<S>)(get()) : value
       store.set(newValue)
-      notify()
     },
   }
 }

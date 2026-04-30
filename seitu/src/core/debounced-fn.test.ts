@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDebounceFn } from './debounce-fn'
+import { createDebouncedFn } from './debounced-fn'
 
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => vi.restoreAllMocks())
 
-describe('createDebounceFn', () => {
+describe('createDebouncedFn', () => {
   it('get() returns undefined before first call', () => {
-    const debounced = createDebounceFn(() => 42, 100)
+    const debounced = createDebouncedFn(() => 42, 100)
     expect(debounced.get()).toBeUndefined()
   })
 
   it('debounces calls and updates state with return value', () => {
-    const debounced = createDebounceFn((x: number) => x * 2, 100)
+    const debounced = createDebouncedFn((x: number) => x * 2, 100)
 
     debounced(1)
     debounced(2)
@@ -23,7 +23,7 @@ describe('createDebounceFn', () => {
   })
 
   it('notifies subscribers with the return value', () => {
-    const debounced = createDebounceFn((x: string) => x.toUpperCase(), 100)
+    const debounced = createDebouncedFn((x: string) => x.toUpperCase(), 100)
     const callback = vi.fn()
     debounced.subscribe(callback)
 
@@ -36,7 +36,7 @@ describe('createDebounceFn', () => {
   })
 
   it('supports async return values', async () => {
-    const debounced = createDebounceFn(async (x: string) => x.toUpperCase(), 100)
+    const debounced = createDebouncedFn(async (x: string) => x.toUpperCase(), 100)
     const callback = vi.fn()
     debounced.subscribe(callback)
 
@@ -52,7 +52,7 @@ describe('createDebounceFn', () => {
 
   it('resets the timer on each call', () => {
     const fn = vi.fn((x: number) => x)
-    const debounced = createDebounceFn(fn, 100)
+    const debounced = createDebouncedFn(fn, 100)
 
     debounced(1)
     vi.advanceTimersByTime(80)
@@ -66,7 +66,7 @@ describe('createDebounceFn', () => {
   })
 
   it('is callable and subscribable at the same time', () => {
-    const debounced = createDebounceFn((a: number, b: number) => a + b, 50)
+    const debounced = createDebouncedFn((a: number, b: number) => a + b, 50)
     const callback = vi.fn()
     debounced.subscribe(callback)
 
@@ -82,7 +82,7 @@ describe('createDebounceFn', () => {
   })
 
   it('unsubscribe stops receiving updates', () => {
-    const debounced = createDebounceFn(() => 1, 100)
+    const debounced = createDebouncedFn(() => 1, 100)
     const callback = vi.fn()
     const unsub = debounced.subscribe(callback)
 
@@ -93,7 +93,7 @@ describe('createDebounceFn', () => {
   })
 
   it('supports immediate subscribe option', () => {
-    const debounced = createDebounceFn(() => 1, 100)
+    const debounced = createDebouncedFn(() => 1, 100)
     const callback = vi.fn()
     debounced.subscribe(callback, { immediate: true })
     expect(callback).toHaveBeenCalledTimes(1)

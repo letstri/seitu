@@ -11,14 +11,14 @@ export interface Debounced<T> extends Readable<T>, Subscribable<T> {}
  *
  * @example
  * ```ts twoslash
- * import { createStore, createDebounce } from 'seitu'
+ * import { createStore, createDebounced } from 'seitu'
  *
  * const store = createStore('')
- * const debounced = createDebounce(store, 300)
+ * const debounced = createDebounced(store, 300)
  * debounced.subscribe(value => console.log('debounced:', value))
  * ```
  */
-export function createDebounce<T>(source: Readable<T> & Subscribable<T>, wait: number): Debounced<T> {
+export function createDebounced<T>(source: Readable<T> & Subscribable<T>, wait: number): Debounced<T> {
   let state = source.get()
   let timeoutId: ReturnType<typeof setTimeout> | undefined
 

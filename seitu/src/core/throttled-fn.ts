@@ -14,16 +14,16 @@ export interface ThrottledFn<F extends (...args: any[]) => any> extends Readable
  *
  * @example
  * ```ts twoslash
- * import { createThrottleFn } from 'seitu'
+ * import { createThrottledFn } from 'seitu'
  *
- * const log = createThrottleFn((msg: string) => console.log(msg), 300)
+ * const log = createThrottledFn((msg: string) => console.log(msg), 300)
  * log.subscribe(result => console.log('result:', result))
  * log('hello') // fires immediately
  * log('world') // throttled — fires after 300ms
  * log.get() // latest return value (undefined until first call)
  * ```
  */
-export function createThrottleFn<F extends (...args: any[]) => any>(fn: F, wait: number): ThrottledFn<F> {
+export function createThrottledFn<F extends (...args: any[]) => any>(fn: F, wait: number): ThrottledFn<F> {
   let state: ReturnType<F> | undefined
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   let trailingArgs: Parameters<F> | undefined

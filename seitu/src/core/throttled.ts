@@ -11,14 +11,14 @@ export interface Throttled<T> extends Readable<T>, Subscribable<T> {}
  *
  * @example
  * ```ts twoslash
- * import { createStore, createThrottle } from 'seitu'
+ * import { createStore, createThrottled } from 'seitu'
  *
  * const store = createStore('')
- * const throttled = createThrottle(store, 300)
+ * const throttled = createThrottled(store, 300)
  * throttled.subscribe(value => console.log('throttled:', value))
  * ```
  */
-export function createThrottle<T>(source: Readable<T> & Subscribable<T>, wait: number): Throttled<T> {
+export function createThrottled<T>(source: Readable<T> & Subscribable<T>, wait: number): Throttled<T> {
   let state = source.get()
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   let hasTrailing = false

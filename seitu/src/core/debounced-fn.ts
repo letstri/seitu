@@ -13,15 +13,15 @@ export interface DebouncedFn<F extends (...args: any[]) => any> extends Readable
  *
  * @example
  * ```ts twoslash
- * import { createDebounceFn } from 'seitu'
+ * import { createDebouncedFn } from 'seitu'
  *
- * const search = createDebounceFn((query: string) => fetch(`/api?q=${query}`), 300)
+ * const search = createDebouncedFn((query: string) => fetch(`/api?q=${query}`), 300)
  * search.subscribe(result => console.log('result:', result))
  * search('hello') // debounced — fires after 300ms of inactivity
  * search.get() // latest return value (undefined until first call)
  * ```
  */
-export function createDebounceFn<F extends (...args: any[]) => any>(fn: F, wait: number): DebouncedFn<F> {
+export function createDebouncedFn<F extends (...args: any[]) => any>(fn: F, wait: number): DebouncedFn<F> {
   let state: ReturnType<F> | undefined
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   const { subscribe, notify } = createSubscription()

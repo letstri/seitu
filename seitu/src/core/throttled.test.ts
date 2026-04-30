@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from './store'
-import { createThrottle } from './throttle'
+import { createThrottled } from './throttled'
 
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => vi.restoreAllMocks())
 
-describe('createThrottle', () => {
+describe('createThrottled', () => {
   it('returns initial value immediately via get()', () => {
     const store = createStore(10)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
     expect(throttled.get()).toBe(10)
   })
 
   it('fires immediately on first source update', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -26,7 +26,7 @@ describe('createThrottle', () => {
 
   it('throttles subsequent updates within the interval', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -44,7 +44,7 @@ describe('createThrottle', () => {
 
   it('does not fire trailing if no updates during interval', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -57,7 +57,7 @@ describe('createThrottle', () => {
 
   it('handles multiple throttle cycles', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 50)
+    const throttled = createThrottled(store, 50)
     const callback = vi.fn()
     throttled.subscribe(callback)
 
@@ -84,7 +84,7 @@ describe('createThrottle', () => {
 
   it('supports immediate subscribe option', () => {
     const store = createStore(5)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
     const callback = vi.fn()
     throttled.subscribe(callback, { immediate: true })
     expect(callback).toHaveBeenCalledTimes(1)
@@ -93,7 +93,7 @@ describe('createThrottle', () => {
 
   it('unsubscribe stops receiving updates', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
     const callback = vi.fn()
     const unsub = throttled.subscribe(callback)
 
@@ -104,7 +104,7 @@ describe('createThrottle', () => {
 
   it('lazily subscribes to source on first subscriber', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
 
     store.set(1)
     expect(throttled.get()).toBe(0)
@@ -117,7 +117,7 @@ describe('createThrottle', () => {
 
   it('cleans up source subscription when all subscribers leave', () => {
     const store = createStore(0)
-    const throttled = createThrottle(store, 100)
+    const throttled = createThrottled(store, 100)
 
     const cb1 = vi.fn()
     const cb2 = vi.fn()

@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDebounce } from './debounce'
+import { createDebounced } from './debounced'
 import { createStore } from './store'
 
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => vi.restoreAllMocks())
 
-describe('createDebounce', () => {
+describe('createDebounced', () => {
   it('returns initial value immediately via get()', () => {
     const store = createStore(10)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
     expect(debounced.get()).toBe(10)
   })
 
   it('debounces notifications from the source', () => {
     const store = createStore(0)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
     const callback = vi.fn()
     debounced.subscribe(callback)
 
@@ -31,7 +31,7 @@ describe('createDebounce', () => {
 
   it('resets the timer on each source update', () => {
     const store = createStore(0)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
     const callback = vi.fn()
     debounced.subscribe(callback)
 
@@ -50,7 +50,7 @@ describe('createDebounce', () => {
 
   it('supports immediate subscribe option', () => {
     const store = createStore(5)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
     const callback = vi.fn()
     debounced.subscribe(callback, { immediate: true })
     expect(callback).toHaveBeenCalledTimes(1)
@@ -59,7 +59,7 @@ describe('createDebounce', () => {
 
   it('unsubscribe stops receiving updates', () => {
     const store = createStore(0)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
     const callback = vi.fn()
     const unsub = debounced.subscribe(callback)
 
@@ -71,7 +71,7 @@ describe('createDebounce', () => {
 
   it('lazily subscribes to source on first subscriber', () => {
     const store = createStore(0)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
 
     // No subscriber yet — source updates should not schedule anything
     store.set(1)
@@ -88,7 +88,7 @@ describe('createDebounce', () => {
 
   it('cleans up source subscription when all subscribers leave', () => {
     const store = createStore(0)
-    const debounced = createDebounce(store, 100)
+    const debounced = createDebounced(store, 100)
 
     const cb1 = vi.fn()
     const cb2 = vi.fn()
@@ -107,7 +107,7 @@ describe('createDebounce', () => {
 
   it('handles multiple debounce cycles', () => {
     const store = createStore(0)
-    const debounced = createDebounce(store, 50)
+    const debounced = createDebounced(store, 50)
     const callback = vi.fn()
     debounced.subscribe(callback)
 
