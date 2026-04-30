@@ -6,8 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
+    "noEmit": true,
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true

@@ -38,30 +38,25 @@ export interface WebStorageValueOptionsWithSchema<
  *
  * @example Vanilla
  * ```ts twoslash title="session-storage.ts"
- * import { createWebStorage } from 'seitu/web'
+ * import { createWebStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
- * const sessionStorage = createWebStorage({
+ * const tokenStorage = createWebStorageValue({
  *   type: 'sessionStorage',
- *   schemas: {
- *     token: z.string().nullable(),
- *     preferences: z.object({ theme: z.enum(['light', 'dark']) }),
- *   },
- *   defaultValues: { token: null, preferences: { theme: 'light' } },
+ *   key: 'token',
+ *   schema: z.string().nullable(),
+ *   defaultValue: null,
  * })
  *
- * sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
- * sessionStorage.set({ token: 'abc' })
- * sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
- * sessionStorage.subscribe(console.log)
+ * tokenStorage.get() // null
+ * tokenStorage.set('abc')
+ * tokenStorage.get() // 'abc'
+ * tokenStorage.subscribe(console.log)
  * ```
  *
- * @example React
- * ```tsx twoslash title="page.tsx"
- * 'use client'
- *
- * import { createWebStorage } from 'seitu/web'
- * import { useSubscription } from 'seitu/react'
+ * @example With storage
+ * ```ts twoslash title="session-storage.ts"
+ * import { createWebStorage, createWebStorageValue } from 'seitu/web'
  * import * as z from 'zod'
  *
  * const sessionStorage = createWebStorage({
@@ -70,12 +65,36 @@ export interface WebStorageValueOptionsWithSchema<
  *   defaultValues: { count: 0, name: '' },
  * })
  *
+ * const countStorage = createWebStorageValue({
+ *   storage: sessionStorage,
+ *   key: 'count',
+ * })
+ *
+ * countStorage.get() // 0
+ * countStorage.set(1)
+ * countStorage.get() // 1
+ * ```
+ *
+ * @example React
+ * ```tsx twoslash title="page.tsx"
+ * 'use client'
+ *
+ * import { createWebStorageValue } from 'seitu/web'
+ * import { useSubscription } from 'seitu/react'
+ * import * as z from 'zod'
+ *
+ * const countStorage = createWebStorageValue({
+ *   type: 'sessionStorage',
+ *   key: 'count',
+ *   schema: z.number(),
+ *   defaultValue: 0,
+ * })
+ *
  * export default function Page() {
- *   const value = useSubscription(sessionStorage)
+ *   const value = useSubscription(countStorage)
  *   return (
  *     <div>
- *       <span>{value.count}</span>
- *       <span>{value.name}</span>
+ *       <span>{value}</span>
  *     </div>
  *   )
  * }
@@ -142,7 +161,7 @@ export function createWebStorageValue(
 
     try {
       if ('schema' in options) {
-        cachedValue = validateSchema(options.schema, raw, {
+        cachedValue = validateSchema(options.schema, parsed, {
           defaultValue,
           label: `createWebStorageValue:${options.key}`,
           onError: options.onValidationError

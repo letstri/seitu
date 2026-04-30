@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.12.1",
   "private": false,
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@10.33.2",
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
@@ -26,28 +26,28 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core.js"
+      "types": "./dist/core/index.d.mts",
+      "import": "./dist/core.mjs"
     },
     "./web": {
-      "types": "./dist/web/index.d.ts",
-      "import": "./dist/web.js"
+      "types": "./dist/web/index.d.mts",
+      "import": "./dist/web.mjs"
     },
     "./react": {
-      "types": "./dist/react/index.d.ts",
-      "import": "./dist/react.js"
+      "types": "./dist/react/index.d.mts",
+      "import": "./dist/react.mjs"
     },
     "./vue": {
-      "types": "./dist/vue/index.d.ts",
-      "import": "./dist/vue.js"
+      "types": "./dist/vue/index.d.mts",
+      "import": "./dist/vue.mjs"
     },
     "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils.js"
+      "types": "./dist/utils/index.d.mts",
+      "import": "./dist/utils.mjs"
     }
   },
-  "main": "./dist/core.js",
-  "types": "./dist/core/index.d.ts",
+  "main": "./dist/core.mjs",
+  "types": "./dist/core/index.d.mts",
   "files": [
     "dist"
   ],
@@ -56,9 +56,9 @@
   },
   "scripts": {
     "prepublishOnly": "run-s check-types test build scripts:copy-readme",
-    "build": "vite build && tsc",
+    "build": "tsdown",
     "test": "vitest run",
-    "check-types": "tsc --build",
+    "check-types": "tsc",
     "scripts:copy-readme": "node ./scripts/copy-readme.ts"
   },
   "peerDependencies": {
@@ -85,13 +85,12 @@
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/react": "catalog:",
-    "@vitejs/plugin-react": "catalog:",
     "happy-dom": "catalog:",
     "react-dom": "catalog:",
+    "tsdown": "catalog:",
     "type-fest": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plugin-dts": "catalog:",
     "vitest": "catalog:",
     "vue": "catalog:",
     "zod": "catalog:"

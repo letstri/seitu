@@ -19,7 +19,7 @@ value.get() // { a: 1, b: 'default' }
 
 describe('repairValueObjectWithDefault', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    Object.keys(window.localStorage).forEach(key => window.localStorage.removeItem(key))
   })
 
   it('returns defaultValue when key is not in localStorage', () => {
