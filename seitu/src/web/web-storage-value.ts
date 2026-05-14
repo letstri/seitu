@@ -4,6 +4,7 @@ import type { ValidationSchemaErrorProps, ValidationSchemaObjectErrorProps } fro
 import type { WebStorage } from './web-storage'
 import { createReadableSubscription, createSubscription } from '../core'
 import { tryParseJson } from '../utils'
+import { repairValueObjectWithDefault } from '../utils/validation'
 import { validateSchema } from '../validate'
 
 export interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Clearable {}
@@ -114,6 +115,7 @@ export function createWebStorageValue(
 ): WebStorageValue<unknown> {
   const type = 'storage' in options ? options.storage['~'].type : options.type
   const defaultValue = ('schema' in options ? options.defaultValue : options.storage['~'].getDefaultValue(options.key)) ?? null
+  const isDefaultValueObject = typeof defaultValue === 'object' && defaultValue !== null
 
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
@@ -165,8 +167,22 @@ export function createWebStorageValue(
           defaultValue,
           label: `createWebStorageValue:${options.key}`,
           onError: options.onValidationError
-            ? (issues, parsed) => options.onValidationError!({ defaultValue, issues: [...issues], value: parsed })
-            : undefined,
+            ? (issues, parsed) => {
+                const toReturn = options.onValidationError!({ defaultValue, issues: [...issues], value: parsed })
+
+                if (toReturn === undefined && isDefaultValueObject) {
+                  return repairValueObjectWithDefault({ defaultValue, issues: [...issues], value: parsed })
+                }
+
+                return toReturn
+              }
+            : (issues, parsed) => {
+                if (isDefaultValueObject) {
+                  return repairValueObjectWithDefault({ defaultValue, issues: [...issues], value: parsed })
+                }
+
+                return undefined
+              },
         })
         return cachedValue
       }

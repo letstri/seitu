@@ -123,6 +123,71 @@ describe('createWebStorageValue', () => {
 
       expect(value.get()).toBe(42)
     })
+
+    describe('object defaultValue (repair)', () => {
+      const schema = z.object({ theme: z.string(), count: z.number() })
+      const defaultValue = { theme: 'light', count: 0 }
+
+      it('merges partial stored object with default when validation fails', () => {
+        window.localStorage.setItem(TEST_KEY, JSON.stringify({ theme: 'dark' }))
+        const value = createWebStorageValue({
+          type: 'localStorage',
+          schema,
+          key: TEST_KEY,
+          defaultValue,
+        })
+
+        expect(value.get()).toEqual({ theme: 'dark', count: 0 })
+      })
+
+      it('returns full default when stored JSON is not an object', () => {
+        window.localStorage.setItem(TEST_KEY, JSON.stringify(null))
+        const value = createWebStorageValue({
+          type: 'localStorage',
+          schema,
+          key: TEST_KEY,
+          defaultValue,
+        })
+
+        expect(value.get()).toEqual(defaultValue)
+      })
+
+      it('drops extra keys not in default and keeps matching types only', () => {
+        window.localStorage.setItem(
+          TEST_KEY,
+          JSON.stringify({ theme: 'dark', count: 'bad', extra: 99 }),
+        )
+        const value = createWebStorageValue({
+          type: 'localStorage',
+          schema,
+          key: TEST_KEY,
+          defaultValue,
+        })
+
+        expect(value.get()).toEqual({ theme: 'dark', count: 0 })
+      })
+
+      it('repairs after onValidationError returns undefined', () => {
+        const onValidationError = vi.fn(() => undefined)
+        window.localStorage.setItem(TEST_KEY, JSON.stringify({ theme: 'sepia' }))
+        const value = createWebStorageValue({
+          type: 'localStorage',
+          schema,
+          key: TEST_KEY,
+          defaultValue,
+          onValidationError,
+        })
+
+        expect(value.get()).toEqual({ theme: 'sepia', count: 0 })
+        expect(onValidationError).toHaveBeenCalledTimes(1)
+        expect(onValidationError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            defaultValue,
+            value: { theme: 'sepia' },
+          }),
+        )
+      })
+    })
   })
 
   describe('set', () => {
