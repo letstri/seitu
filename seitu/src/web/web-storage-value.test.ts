@@ -372,8 +372,8 @@ describe('createWebStorageValue', () => {
       expect(value.get()).toBe('second')
     })
 
-    it('preserves snowflake ID string on set/get round-trip', () => {
-      const snowflakeId = '3748847730293342000'
+    it('preserves ID string on set/get round-trip', () => {
+      const snowflakeId = '3748847730293342'
       const value = createWebStorageValue({
         type: 'localStorage',
         schema: z.string(),
