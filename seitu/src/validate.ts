@@ -1,5 +1,4 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import { tryParseJson } from './utils'
 
 export type ValidationSchemaOutput<S extends StandardSchemaV1<unknown>> = StandardSchemaV1.InferOutput<S>
 
@@ -27,8 +26,7 @@ export function validateSchema(
   value: unknown,
   options: ValidateSchemaOptions,
 ): unknown {
-  const parsed = tryParseJson(value)
-  const result = schema['~standard'].validate(parsed)
+  const result = schema['~standard'].validate(value)
 
   if (result instanceof Promise) {
     throw new TypeError(`[${options.label}] Validation schema should not return a Promise.`)
@@ -39,7 +37,7 @@ export function validateSchema(
   }
 
   if (options.onError) {
-    const corrected = options.onError(result.issues, parsed)
+    const corrected = options.onError(result.issues, value)
 
     if (corrected !== undefined) {
       const validated = schema['~standard'].validate(corrected)

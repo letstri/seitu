@@ -3,6 +3,7 @@ import type { Clearable, Readable, Subscribable, Writable } from '../core/index'
 import type { Simplify } from '../utils'
 import type { ValidationSchemaObjectErrorProps } from '../validate'
 import { createReadableSubscription, createSubscription } from '../core/index'
+import { tryParseJson } from '../utils'
 import { validateSchema } from '../validate'
 
 export type WebStorageInput = Record<string, StandardSchemaV1<unknown, unknown>>
@@ -132,7 +133,7 @@ export function createWebStorage<S extends WebStorageInput>(
         output[key] = options.defaultValues[key]
       }
       else {
-        output[key] = validateSchema(options.schemas[key], raw, {
+        output[key] = validateSchema(options.schemas[key], tryParseJson(raw), {
           defaultValue: options.defaultValues[key],
           label: `createWebStorage:${String(key)}`,
           onError: options.onValidationError
@@ -162,7 +163,7 @@ export function createWebStorage<S extends WebStorageInput>(
       const storage = window[options.type]
 
       Object.entries(resolvedValue).forEach(([key, value]) => {
-        const storageValue = typeof value === 'string' ? value : JSON.stringify(value)
+        const storageValue = JSON.stringify(value)
 
         storage.setItem(
           options.keyTransform ? options.keyTransform(key) : key,

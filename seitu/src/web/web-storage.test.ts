@@ -89,7 +89,7 @@ describe('createWebStorage', () => {
 
       storage.set({ count: 5, name: 'bob' })
       expect(window.localStorage.getItem('count')).toBe('5')
-      expect(window.localStorage.getItem('name')).toBe('bob')
+      expect(window.localStorage.getItem('name')).toBe(JSON.stringify('bob'))
       expect(callback).toHaveBeenCalledTimes(2)
 
       window.localStorage.setItem('count', '99')
@@ -123,7 +123,7 @@ describe('createWebStorage', () => {
       })
       storage.set({ count: 5, name: 'bob' })
       expect(window.localStorage.getItem('count')).toBe('5')
-      expect(window.localStorage.getItem('name')).toBe('bob')
+      expect(window.localStorage.getItem('name')).toBe(JSON.stringify('bob'))
 
       storage.clear()
       expect(window.localStorage.getItem('count')).toBeNull()
@@ -197,7 +197,7 @@ describe('createWebStorage', () => {
       })
       storage.set({ count: 5, name: 'bob' })
       expect(window.localStorage.getItem('prefix-count')).toBe('5')
-      expect(window.localStorage.getItem('prefix-name')).toBe('bob')
+      expect(window.localStorage.getItem('prefix-name')).toBe(JSON.stringify('bob'))
 
       storage.clear()
       expect(window.localStorage.getItem('prefix-count')).toBeNull()
@@ -215,7 +215,7 @@ describe('createWebStorage', () => {
       })
       storage.set({ count: 5, name: 'bob' })
       expect(window.localStorage.getItem('prefix-count')).toBe('5')
-      expect(window.localStorage.getItem('prefix-name')).toBe('bob')
+      expect(window.localStorage.getItem('prefix-name')).toBe(JSON.stringify('bob'))
     })
   })
 })

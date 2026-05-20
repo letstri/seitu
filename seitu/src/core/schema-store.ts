@@ -2,6 +2,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { ValidationSchemaErrorProps, ValidationSchemaOutput } from '../validate'
 import type { Readable, Subscribable, Writable } from './index'
 import { createReadableSubscription, createStore } from '.'
+import { tryParseJson } from '../utils'
 import { validateSchema } from '../validate'
 
 export interface SchemaStore<O> extends Subscribable<O>, Readable<O>, Writable<O, O> {}
@@ -40,7 +41,7 @@ export function createSchemaStore<S extends StandardSchemaV1<unknown>>(options: 
   const store = createStore<ValidationSchemaOutput<S>>(options.defaultValue)
 
   const get = (): ValidationSchemaOutput<S> => {
-    const stored = store.get()
+    const stored = tryParseJson(store.get())
 
     return validateSchema(options.schema, stored, {
       defaultValue: options.defaultValue,

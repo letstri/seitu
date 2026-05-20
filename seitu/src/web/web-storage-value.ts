@@ -208,7 +208,7 @@ export function createWebStorageValue(
 
       const storage = window[type]
       const newValue = typeof value === 'function' ? value(get()) : value
-      const storageValue = typeof newValue === 'string' ? newValue : JSON.stringify(newValue)
+      const storageValue = JSON.stringify(newValue)
       storage.setItem(options.key, storageValue)
       window.dispatchEvent(new StorageEvent('storage', { key: options.key, newValue: storageValue }))
       cachedRaw = undefined

@@ -2,7 +2,7 @@
   "name": "seitu",
   "displayName": "Seitu",
   "type": "module",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "private": false,
   "packageManager": "pnpm@11.1.2",
   "author": "Valerii Strilets",
