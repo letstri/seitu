@@ -2,7 +2,7 @@
   "name": "seitu",
   "displayName": "Seitu",
   "type": "module",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "private": false,
   "packageManager": "pnpm@11.5.3",
   "author": "Valerii Strilets",
@@ -49,17 +49,19 @@
   "main": "./dist/core.mjs",
   "types": "./dist/core/index.d.mts",
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "prepublishOnly": "run-s check-types test build scripts:copy-readme",
+    "prepublishOnly": "run-s check-types test build scripts:copy-readme scripts:copy-skills",
     "build": "tsdown",
     "test": "vitest run",
     "check-types": "tsc",
-    "scripts:copy-readme": "node ./scripts/copy-readme.ts"
+    "scripts:copy-readme": "node ./scripts/copy-readme.ts",
+    "scripts:copy-skills": "node ./scripts/copy-skills.ts"
   },
   "peerDependencies": {
     "react": ">=19",
