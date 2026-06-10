@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.14.1",
   "private": false,
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.5.3",
   "author": "Valerii Strilets",
   "license": "MIT",
   "funding": "https://github.com/sponsors/letstri",
@@ -78,21 +78,22 @@
     }
   },
   "dependencies": {
-    "fast-equals": "catalog:"
+    "fast-equals": "^6.0.0"
   },
   "devDependencies": {
-    "@standard-schema/spec": "catalog:",
-    "@testing-library/jest-dom": "catalog:",
-    "@testing-library/react": "catalog:",
-    "@types/react": "catalog:",
-    "happy-dom": "catalog:",
-    "react-dom": "catalog:",
-    "tsdown": "catalog:",
-    "type-fest": "catalog:",
-    "typescript": "catalog:",
-    "vite": "catalog:",
-    "vitest": "catalog:",
-    "vue": "catalog:",
-    "zod": "catalog:"
+    "@standard-schema/spec": "^1.1.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.17",
+    "fake-indexeddb": "^6.2.5",
+    "happy-dom": "^20.10.2",
+    "react-dom": "^19.2.7",
+    "tsdown": "^0.22.2",
+    "type-fest": "^5.7.0",
+    "typescript": "^6.0.3",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.6",
+    "vue": "^3.5.35",
+    "zod": "^4.4.3"
   }
 }

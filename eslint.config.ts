@@ -6,9 +6,11 @@ export default antfu(
     rules: {
       'node/prefer-global/process': 'off',
       'react/no-use-context': 'off',
+      'react/only-export-components': 'off',
       'react-refresh/only-export-components': 'off',
+      'pnpm/yaml-enforce-settings': 'off',
     },
-    ignores: ['**/routeTree.gen.ts', '**/.source', '**/.next', '**/next-env.d.ts'],
+    ignores: ['**/routeTree.gen.ts', '**/.source', '**/.next', '**/next-env.d.ts', '**/*.md'],
   },
   {
     files: ['playground/**/*'],
@@ -19,7 +21,7 @@ export default antfu(
   {
     files: ['seitu/src/vue/**/*'],
     rules: {
-      'react-hooks/rules-of-hooks': 'off',
+      'react/rules-of-hooks': 'off',
       'react/no-unnecessary-use-prefix': 'off',
     },
   },

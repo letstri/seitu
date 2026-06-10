@@ -6,17 +6,6 @@ import { repairValueObjectWithDefault } from './validation'
 
 const TEST_KEY = 'seitu-session-storage-value-test-key'
 
-const value = createWebStorageValue({
-  type: 'localStorage',
-  schema: z.object({ a: z.number(), b: z.string() }),
-  key: 'storage-key',
-  defaultValue: { a: 0, b: 'default' },
-  onValidationError: repairValueObjectWithDefault,
-})
-value.get() // { a: 0, b: 'default' }
-window.localStorage.setItem('storage-key', JSON.stringify({ a: 1, b: 'test' }))
-value.get() // { a: 1, b: 'default' }
-
 describe('repairValueObjectWithDefault', () => {
   beforeEach(() => {
     Object.keys(window.localStorage).forEach(key => window.localStorage.removeItem(key))

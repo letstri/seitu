@@ -1,0 +1,66 @@
+---
+title: Indexed Db Storage
+---
+
+## createIndexedDbStorage()
+Creates a reactive handle for an IndexedDB object store.
+
+IndexedDB is asynchronous, so the handle keeps an in-memory cache that
+`get()` reads synchronously. The cache is hydrated from IndexedDB on
+creation (await `ready` to know when), and changes made via `set()` /
+`clear()` are persisted asynchronously. When `BroadcastChannel` is
+available, changes are synced across tabs while there is at least one
+subscriber.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="settings-storage.ts"
+import { createIndexedDbStorage } from 'seitu/web'
+import * as z from 'zod'
+
+const settingsStorage = createIndexedDbStorage({
+  databaseName: 'app',
+  schemas: {
+    token: z.string().nullable(),
+    preferences: z.object({ theme: z.enum(['light', 'dark']) }),
+  },
+  defaultValues: { token: null, preferences: { theme: 'light' } },
+})
+
+settingsStorage.get() // { token: null, preferences: { theme: 'light' } }
+await settingsStorage.ready // value hydrated from IndexedDB
+await settingsStorage.set({ token: 'abc' })
+settingsStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
+settingsStorage.subscribe(console.log)
+```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import { createIndexedDbStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const settingsStorage = createIndexedDbStorage({
+  databaseName: 'app',
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+export default function Page() {
+  const value = useSubscription(settingsStorage)
+  return (
+    <div>
+      <span>{value.count}</span>
+      <span>{value.name}</span>
+    </div>
+  )
+}
+```
+
+* * *
+

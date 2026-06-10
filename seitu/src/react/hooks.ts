@@ -111,7 +111,7 @@ export function useSubscription<
 
   const subscription = React.useMemo(
     () => factoryFn(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react/exhaustive-deps
     isFactory ? deps : [source, ...deps],
   )
 
