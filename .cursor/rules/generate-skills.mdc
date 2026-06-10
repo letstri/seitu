@@ -1,0 +1,56 @@
+---
+description: Generate or update per-function SKILL.md files when adding or modifying exported functions in the seitu package
+alwaysApply: true
+---
+
+# Skill Generation for Seitu Functions
+
+When you add a new exported function or modify an existing one in `seitu/src/`, you MUST create or update the corresponding skill file.
+
+## Location
+
+Each function gets its own skill at `skills/<functionName>/SKILL.md`.
+
+For framework-specific functions with name collisions, append the framework:
+- `skills/useSubscription-react/SKILL.md`
+- `skills/useSubscription-vue/SKILL.md`
+- `skills/Subscription-react/SKILL.md`
+
+## Skill File Format
+
+```markdown
+---
+name: <functionName>
+description: >-
+  One-line description of what the function does and when to use it.
+---
+
+# <functionName>
+
+Brief description of the function's purpose.
+
+\`\`\`ts
+// Minimal usage example showing import and basic API
+\`\`\`
+
+## Options / Signature
+
+Table or code block showing parameters and types.
+
+## Interface
+
+TypeScript interface the function returns.
+
+## Source
+
+`seitu/src/<module>/<file>.ts`
+```
+
+## Rules
+
+1. Keep each skill under 80 lines.
+2. Include at minimum: one usage example, options/signature, return interface, source path.
+3. Pull examples directly from the function's JSDoc `@example` blocks when available.
+4. When modifying a function's signature, options, or behavior — update its skill immediately.
+5. When adding a new exported function to any `index.ts` — create its skill before finishing the task.
+6. Do NOT group multiple functions into one skill file.

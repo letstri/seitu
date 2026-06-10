@@ -1,0 +1,47 @@
+---
+name: createSubscription
+description: >-
+  Low-level subscription primitive for building custom subscribables in Seitu.
+  Use when creating new reactive primitives that need subscribe/notify mechanics.
+---
+
+# createSubscription
+
+Low-level building block. Returns `subscribe` + `notify` pair. Used internally by all Seitu primitives.
+
+```ts
+import { createSubscription } from 'seitu'
+
+const { subscribe, notify } = createSubscription({
+  onFirstSubscribe() {
+    // setup (e.g. add event listener)
+    window.addEventListener('resize', notify)
+    return () => {
+      // cleanup when last subscriber leaves
+      window.removeEventListener('resize', notify)
+    }
+  },
+})
+```
+
+## Signature
+
+```ts
+function createSubscription(options?: {
+  onFirstSubscribe?: () => (void | (() => void))
+}): {
+  subscribe: (callback: () => any, options?: SubscribeOptions) => () => void
+  notify: () => void
+}
+```
+
+## Behavior
+
+- `onFirstSubscribe` is called when first subscriber is added.
+- Return value of `onFirstSubscribe` is called when last subscriber is removed (cleanup).
+- `subscribe` supports `{ immediate: true }` to fire callback immediately.
+- Lazy: no setup until first subscriber.
+
+## Source
+
+`seitu/src/core/subscription.ts`
