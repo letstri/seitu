@@ -42,7 +42,7 @@ function Counter() {
 }
 ```
 
-Seitu has other powerful features, so check out the [docs](https://seitu.letstri.dev/docs) or the [examples](https://github.com/letstri/seitu/tree/main/examples) directory.
+Seitu has other powerful features, so check out the [docs](https://seitu.letstri.dev/docs) or the [playground](https://github.com/letstri/seitu/tree/main/playground) directory.
 
 ## License
 
