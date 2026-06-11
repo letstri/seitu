@@ -1,4 +1,5 @@
 dist
 README.md
+!skills/README.md
 tsconfig.tsbuildinfo
 .DS_Store
