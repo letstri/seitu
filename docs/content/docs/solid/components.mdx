@@ -1,0 +1,58 @@
+---
+title: Components
+---
+
+## Subscription()
+Declarative component that subscribes to a reactive value and passes an accessor to a render function.
+Unlike React, the children function runs once and receives a Solid `Accessor<R>` — call it (`value()`)
+inside the returned JSX so updates stay fine-grained. Use when you prefer a component API over the
+useSubscription primitive.
+
+### Examples
+
+#### Basic usage
+
+```tsx
+import { createWebStorage } from 'seitu/web'
+import { Subscription } from 'seitu/solid'
+import * as z from 'zod'
+
+const sessionStorage = createWebStorage({
+  type: 'sessionStorage',
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+function Page() {
+  return (
+    <Subscription value={sessionStorage}>
+      {value => <div>{value().count}</div>}
+    </Subscription>
+  )
+}
+```
+
+#### With selector
+
+```tsx
+import { createWebStorage } from 'seitu/web'
+import { Subscription } from 'seitu/solid'
+import * as z from 'zod'
+
+const sessionStorage = createWebStorage({
+  type: 'sessionStorage',
+  schemas: { count: z.number(), name: z.string() },
+  defaultValues: { count: 0, name: '' },
+})
+
+function Page() {
+  return (
+    <Subscription value={sessionStorage} selector={v => v.count}>
+      {count => <div>{count()}</div>}
+    </Subscription>
+  )
+}
+```
+
+* * *
+

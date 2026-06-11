@@ -4,7 +4,7 @@ description: >-
   Module map, mental model, decision tree, SSR — read before other Seitu skills.
 type: lifecycle
 library: seitu
-library_version: "0.15.1"
+library_version: "0.16.0"
 sources:
   - letstri/seitu:docs/content/docs/index.mdx
   - letstri/seitu:seitu/src/core/index.ts
@@ -13,7 +13,7 @@ sources:
 # Seitu Overview
 
 Seitu is a type-safe reactive primitives library. Framework-agnostic core with
-React and Vue bindings. Every primitive shares the same `get()` / `subscribe()`
+React, Vue, Solid, and Svelte bindings. Every primitive shares the same `get()` / `subscribe()`
 API — no actions, no reducers, no context providers.
 
 ## Module map
@@ -24,9 +24,11 @@ API — no actions, no reducers, no context providers.
 | `seitu/web` | Browser persistence (localStorage, sessionStorage, IndexedDB) and DOM state |
 | `seitu/react` | `useSubscription` hook + `Subscription` component |
 | `seitu/vue` | `useSubscription` composable |
+| `seitu/solid` | `useSubscription` primitive (returns `Accessor`) + `Subscription` component |
+| `seitu/svelte` | `useSubscription` (returns a Svelte `Readable` store) |
 | `seitu/utils` | Helpers (`repairValueObjectWithDefault`) |
 
-ESM-only. Node >= 22. React >= 19 and Vue >= 3.5 are optional peer deps.
+ESM-only. Node >= 22. React >= 19, Vue >= 3.5, Solid >= 1.9, and Svelte >= 5 are optional peer deps.
 
 ## Mental model
 
@@ -101,7 +103,9 @@ What do you need?
 │
 └─ Framework integration
    ├─ React → useSubscription (hook) or Subscription (component)
-   └─ Vue → useSubscription (composable)
+   ├─ Vue → useSubscription (composable)
+   ├─ Solid → useSubscription (returns Accessor) or Subscription (component)
+   └─ Svelte → useSubscription (returns a Readable store, read with $value)
 ```
 
 ## Framework binding
@@ -120,6 +124,21 @@ const count = useSubscription(storage, { selector: v => v.count })
 // Vue — instance, ref, or getter
 const value = useSubscription(store)
 const data = useSubscription(computed(() => createWebStorageValue({ ... })))
+```
+
+```tsx
+// Solid — instance or reactive getter; returns an Accessor, read with value()
+const value = useSubscription(store)
+const data = useSubscription(() => createWebStorageValue({ ... }))
+```
+
+```svelte
+<!-- Svelte — instance or factory; returns a Readable store, read with $value -->
+<script lang="ts">
+  const value = useSubscription(store)
+  const data = useSubscription(() => createWebStorageValue({ ... }))
+</script>
+<div>{$value}</div>
 ```
 
 ## SSR

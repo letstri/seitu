@@ -78,6 +78,19 @@ Restart Cursor or start a new agent chat so skills are picked up.
 |-------|-----------|-------------|
 | [use-subscription-vue](./use-subscription-vue/SKILL.md) | `seitu#use-subscription-vue` | Composable for any Seitu primitive |
 
+### Solid (`seitu/solid`)
+
+| Skill | Intent id | When to use |
+|-------|-----------|-------------|
+| [use-subscription-solid](./use-subscription-solid/SKILL.md) | `seitu#use-subscription-solid` | Primitive returning an accessor for any Seitu primitive |
+| [subscription-solid](./subscription-solid/SKILL.md) | `seitu#subscription-solid` | Render-prop component |
+
+### Svelte (`seitu/svelte`)
+
+| Skill | Intent id | When to use |
+|-------|-----------|-------------|
+| [use-subscription-svelte](./use-subscription-svelte/SKILL.md) | `seitu#use-subscription-svelte` | Binding returning a Svelte `Readable` store for any Seitu primitive |
+
 ## Registry and version history
 
 The package includes the `tanstack-intent` npm keyword. Published versions are indexed on the [Agent Skills Registry](https://tanstack.com/intent/registry) with skill history per release.

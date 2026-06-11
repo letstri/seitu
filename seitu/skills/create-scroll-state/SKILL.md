@@ -4,7 +4,7 @@ description: >-
   Scroll position, edges, and remaining distance for an element.
 type: core
 library: seitu
-library_version: "0.15.1"
+library_version: "0.16.0"
 requires:
   - seitu-overview
 sources:

@@ -1,22 +1,21 @@
-import os from 'node:os'
-import path from 'node:path'
-import process from 'node:process'
+import react from '@vitejs/plugin-react'
+import solid from 'vite-plugin-solid'
 import { defineConfig } from 'vitest/config'
 
-const localStorageArgs = [
-  '--localstorage-file',
-  path.resolve(os.tmpdir(), `vitest-${process.pid}.localstorage`),
-]
-
 export default defineConfig({
+  plugins: [
+    react({
+      include: ['**/src/react/*.ts?(x)'],
+    }),
+    solid({
+      include: ['**/src/solid/*.ts?(x)'],
+    }),
+  ],
   test: {
     environment: 'happy-dom',
-    // https://github.com/capricorn86/happy-dom/issues/1950#issuecomment-3523878228
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        execArgv: localStorageArgs,
-      },
-    },
+    exclude: ['**/node_modules/**', '**/dist/**'],
+    // Node 25+ ships Web Storage on by default, which shadows happy-dom's
+    // localStorage polyfill; disable it so the in-memory polyfill is used.
+    execArgv: ['--no-experimental-webstorage'],
   },
 })

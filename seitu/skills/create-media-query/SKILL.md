@@ -4,7 +4,7 @@ description: >-
   Reactive CSS media query with SSR defaultMatches.
 type: core
 library: seitu
-library_version: "0.15.1"
+library_version: "0.16.0"
 requires:
   - seitu-overview
 sources:

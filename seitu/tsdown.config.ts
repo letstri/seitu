@@ -7,6 +7,8 @@ export default defineConfig(({ watch }) => ({
     web: './src/web/index.ts',
     react: './src/react/index.ts',
     vue: './src/vue/index.ts',
+    solid: './src/solid/index.ts',
+    svelte: './src/svelte/index.ts',
     utils: './src/utils/index.ts',
   },
   dts: true,

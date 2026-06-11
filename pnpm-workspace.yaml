@@ -25,6 +25,16 @@ minimumReleaseAgeExclude:
   - fumadocs-core@16.10.0
   - fumadocs-mdx@15.0.12
   - fumadocs-ui@16.10.0
+  - '@vue/compiler-core@3.5.38'
+  - '@vue/compiler-dom@3.5.38'
+  - '@vue/compiler-sfc@3.5.38'
+  - '@vue/compiler-ssr@3.5.38'
+  - '@vue/reactivity@3.5.38'
+  - '@vue/runtime-core@3.5.38'
+  - '@vue/runtime-dom@3.5.38'
+  - '@vue/server-renderer@3.5.38'
+  - '@vue/shared@3.5.38'
+  - vue@3.5.38
 shellEmulator: true
 packages:
   - seitu

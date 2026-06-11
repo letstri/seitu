@@ -2,7 +2,7 @@
   "name": "seitu",
   "displayName": "Seitu",
   "type": "module",
-  "version": "0.15.1",
+  "version": "0.16.0",
   "private": false,
   "packageManager": "pnpm@11.5.3",
   "author": "Valerii Strilets",
@@ -21,6 +21,9 @@
     "typescript",
     "react",
     "vue",
+    "solid",
+    "solid-js",
+    "svelte",
     "utils",
     "type-safe",
     "tanstack-intent"
@@ -45,6 +48,14 @@
     "./vue": {
       "types": "./dist/vue/index.d.mts",
       "import": "./dist/vue.mjs"
+    },
+    "./solid": {
+      "types": "./dist/solid/index.d.mts",
+      "import": "./dist/solid.mjs"
+    },
+    "./svelte": {
+      "types": "./dist/svelte/index.d.mts",
+      "import": "./dist/svelte.mjs"
     },
     "./utils": {
       "types": "./dist/utils/index.d.mts",
@@ -72,6 +83,8 @@
   "peerDependencies": {
     "react": ">=19",
     "react-dom": ">=19",
+    "solid-js": ">=1.9",
+    "svelte": ">=5",
     "vue": ">=3.5"
   },
   "peerDependenciesMeta": {
@@ -79,6 +92,12 @@
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    },
+    "svelte": {
       "optional": true
     },
     "vue": {
@@ -89,21 +108,26 @@
     "fast-equals": "^6.0.0"
   },
   "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
     "@standard-schema/spec": "^1.1.0",
     "@tanstack/intent": "^0.0.42",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
+    "@vitejs/plugin-react": "^6.0.2",
     "fake-indexeddb": "^6.2.5",
     "happy-dom": "^20.10.2",
     "react-dom": "^19.2.7",
+    "solid-js": "^1.9.13",
+    "svelte": "^5.56.3",
     "tsdown": "^0.22.2",
     "type-fest": "^5.7.0",
     "typescript": "^6.0.3",
-    "vite": "^6.4.3",
-    "vitest": "^3.2.6",
-    "vue": "^3.5.35",
-    "yaml": "^2.8.3",
+    "vite": "^8.0.16",
+    "vite-plugin-solid": "^2.11.12",
+    "vitest": "^4.1.8",
+    "vue": "^3.5.38",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   }
 }

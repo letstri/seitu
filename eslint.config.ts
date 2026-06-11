@@ -3,6 +3,7 @@ import antfu from '@antfu/eslint-config'
 export default antfu(
   {
     react: true,
+    vue: true,
     rules: {
       'node/prefer-global/process': 'off',
       'react/no-use-context': 'off',
@@ -19,10 +20,19 @@ export default antfu(
     },
   },
   {
-    files: ['seitu/src/vue/**/*'],
+    files: ['seitu/src/vue/**/*', 'seitu/src/svelte/**/*'],
     rules: {
       'react/rules-of-hooks': 'off',
       'react/no-unnecessary-use-prefix': 'off',
+    },
+  },
+  {
+    files: ['seitu/src/solid/**/*'],
+    rules: {
+      'react/rules-of-hooks': 'off',
+      'react/no-unnecessary-use-prefix': 'off',
+      'react/no-context-provider': 'off',
+      'react/no-missing-key': 'off',
     },
   },
 )
