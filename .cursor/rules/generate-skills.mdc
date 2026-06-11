@@ -9,23 +9,35 @@ When you add a new exported function or modify an existing one in `seitu/src/`, 
 
 ## Location
 
-Each function gets its own skill at `skills/<functionName>/SKILL.md`.
+Each function gets its own skill at `seitu/skills/<slug>/SKILL.md`.
 
-For framework-specific functions with name collisions, append the framework:
-- `skills/useSubscription-react/SKILL.md`
-- `skills/useSubscription-vue/SKILL.md`
-- `skills/Subscription-react/SKILL.md`
+Skill slugs use lowercase-hyphen style (Agent Skills spec). Derive from the export name:
+
+- `createStore` → `create-store`
+- `useSubscription` (React) → `use-subscription-react`
+- `useSubscription` (Vue) → `use-subscription-vue`
+- `Subscription` (React) → `subscription-react`
 
 ## Skill File Format
 
+Follow TanStack Intent frontmatter from `_artifacts/skill_tree.yaml`:
+
 ```markdown
 ---
-name: <functionName>
+name: <slug>
 description: >-
   One-line description of what the function does and when to use it.
+type: core | framework | lifecycle
+library: seitu
+library_version: "<package version>"
+requires:
+  - seitu-overview
+sources:
+  - letstri/seitu:docs/content/docs/...
+  - letstri/seitu:seitu/src/...
 ---
 
-# <functionName>
+# <exportName>
 
 Brief description of the function's purpose.
 
@@ -41,6 +53,10 @@ Table or code block showing parameters and types.
 
 TypeScript interface the function returns.
 
+## Common Mistakes
+
+Failure modes from `_artifacts/domain_map.yaml` when applicable.
+
 ## Source
 
 `seitu/src/<module>/<file>.ts`
@@ -48,9 +64,9 @@ TypeScript interface the function returns.
 
 ## Rules
 
-1. Keep each skill under 80 lines.
+1. Keep each skill under 500 lines (Intent limit); aim for concise coverage.
 2. Include at minimum: one usage example, options/signature, return interface, source path.
 3. Pull examples directly from the function's JSDoc `@example` blocks when available.
-4. When modifying a function's signature, options, or behavior — update its skill immediately.
-5. When adding a new exported function to any `index.ts` — create its skill before finishing the task.
+4. When modifying a function's signature, options, or behavior — update its skill and run `pnpm skills:sync-state` in `seitu/`.
+5. When adding a new exported function to any `index.ts` — add an entry to `_artifacts/domain_map.yaml` and `skill_tree.yaml`, then run `pnpm skills:upgrade`.
 6. Do NOT group multiple functions into one skill file.

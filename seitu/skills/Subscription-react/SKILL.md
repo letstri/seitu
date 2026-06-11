@@ -1,8 +1,16 @@
 ---
-name: Subscription-react
+name: subscription-react
 description: >-
-  Declarative React component for subscribing to Seitu reactive values via
-  render props. Use when you prefer a component API over the useSubscription hook.
+  Render-prop Subscription component for React.
+type: framework
+library: seitu
+library_version: "0.15.1"
+requires:
+  - seitu-overview
+  - use-subscription-react
+sources:
+  - letstri/seitu:docs/content/docs/react/components.mdx
+  - letstri/seitu:seitu/src/react/components.tsx
 ---
 
 # Subscription (React component)
@@ -28,7 +36,61 @@ import { Subscription } from 'seitu/react'
 | `value` | `Subscribable & Readable` | The reactive source |
 | `selector?` | `(value) => R` | Optional selector for granular updates |
 | `children` | `(value) => ReactNode` | Render function |
+## Common Mistakes
+
+### [CRITICAL] Using without use client
+
+Wrong:
+
+```ts
+export function Page() {
+  return <Subscription source={store}>{v => v}</Subscription>
+}
+```
+
+Correct:
+
+```ts
+'use client'
+export function Page() {
+  return <Subscription source={store}>{v => v}</Subscription>
+}
+```
+
+Component uses hooks internally.
+
+### [HIGH] Inline source factory without key/deps
+
+Wrong:
+
+```ts
+<Subscription source={() => createStore(prop)}>{...}</Subscription>
+```
+
+Correct:
+
+```ts
+<Subscription key={prop} source={() => createStore(prop)}>{...}</Subscription>
+```
+
+Same as hook — factory recreates only when React remounts.
+
+### [LOW] Preferring component over hook without reason
+
+Wrong:
+
+```ts
+<Subscription source={s}>{v => <Child value={v} />}</Subscription>
+```
+
+Correct:
+
+```ts
+const v = useSubscription(s); return <Child value={v} />
+```
+
+useSubscription is simpler for most cases; Subscription for render-prop composition.
 
 ## Source
 
-`seitu/src/react/components.tsx`
+`src/react/components.tsx`

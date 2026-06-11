@@ -1,9 +1,13 @@
 ---
 name: seitu-overview
 description: >-
-  Overview of the Seitu reactive primitives library: module map, mental model,
-  composition patterns, and decision tree for picking the right primitive.
-  Read this first before using any Seitu function.
+  Module map, mental model, decision tree, SSR — read before other Seitu skills.
+type: lifecycle
+library: seitu
+library_version: "0.15.1"
+sources:
+  - letstri/seitu:docs/content/docs/index.mdx
+  - letstri/seitu:seitu/src/core/index.ts
 ---
 
 # Seitu Overview
@@ -144,5 +148,70 @@ const settings = createWebStorageValue({
 
 ## Per-function skills
 
-Each exported function has a dedicated skill in `skills/<functionName>/SKILL.md`.
+Each exported function has a dedicated skill in `skills/<slug>/SKILL.md` (lowercase-hyphen slug, e.g. `create-store`).
 Read the overview first, then the specific skill for the function you need.
+## Common Mistakes
+
+### [HIGH] Using useState for shared module-level state
+
+Wrong:
+
+```ts
+function Counter() {
+  const [count, setCount] = useState(0)
+}
+```
+
+Correct:
+
+```ts
+const count = createStore(0)
+function Counter() {
+  const value = useSubscription(count)
+}
+```
+
+Seitu primitives are singletons at module scope; useState resets per component instance.
+
+### [MEDIUM] Importing seitu/react in non-React code
+
+Wrong:
+
+```ts
+import { useSubscription } from 'seitu/react'
+count.subscribe(console.log)
+```
+
+Correct:
+
+```ts
+import { createStore } from 'seitu'
+const count = createStore(0)
+count.subscribe(console.log)
+```
+
+React bindings are optional peer deps; core and web work without React.
+
+### [HIGH] Expecting actions or reducers
+
+Wrong:
+
+```ts
+store.dispatch({ type: 'increment' })
+```
+
+Correct:
+
+```ts
+store.set(v => v + 1)
+```
+
+Seitu has no dispatch layer — mutate with .set() directly.
+
+## See also
+
+- [`create-web-storage-value`](../create-web-storage-value/SKILL.md) — Decision tree routes persistence tasks to web storage skills.
+
+## Source
+
+`src/core/index.ts`

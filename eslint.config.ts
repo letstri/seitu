@@ -10,7 +10,7 @@ export default antfu(
       'react-refresh/only-export-components': 'off',
       'pnpm/yaml-enforce-settings': 'off',
     },
-    ignores: ['**/routeTree.gen.ts', '**/.source', '**/.next', '**/next-env.d.ts', '**/*.md'],
+    ignores: ['**/routeTree.gen.ts', '**/.source', '**/.next', '**/next-env.d.ts', '**/*.md', '**/_artifacts/**'],
   },
   {
     files: ['playground/**/*'],

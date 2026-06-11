@@ -44,6 +44,19 @@ function Counter() {
 
 Seitu has other powerful features, so check out the [docs](https://seitu.letstri.dev/docs) or the [playground](https://github.com/letstri/seitu/tree/main/playground) directory.
 
+## Agent skills (TanStack Intent)
+
+Seitu ships [versioned agent skills](seitu/skills/README.md) inside the npm package. Install `seitu`, then run:
+
+```bash
+pnpm add seitu
+pnpm dlx @tanstack/intent@latest install
+pnpm dlx @tanstack/intent@latest list
+pnpm dlx @tanstack/intent@latest load seitu#create-store
+```
+
+Skills are indexed on the [Agent Skills Registry](https://tanstack.com/intent/registry) and update when you update the package.
+
 ## License
 
 MIT License - see the [LICENSE](https://github.com/letstri/seitu/blob/main/LICENSE) file for details

@@ -1,0 +1,243 @@
+# skill_tree.yaml
+library:
+  name: seitu
+  version: 0.15.1
+  repository: https://github.com/letstri/seitu
+  description: Type-safe reactive primitives with shared get/subscribe API
+generated_from:
+  domain_map: _artifacts/domain_map.yaml
+  skill_spec: _artifacts/skill_spec.md
+generated_at: 2026-06-11
+skills:
+  - name: seitu-overview
+    slug: seitu-overview
+    type: lifecycle
+    domain: orientation
+    path: seitu/skills/seitu-overview/SKILL.md
+    package: seitu
+    description: Module map, mental model, decision tree, SSR — read before other Seitu skills.
+    sources:
+      - letstri/seitu:docs/content/docs/index.mdx
+      - letstri/seitu:seitu/src/core/index.ts
+  - name: create-store
+    slug: create-store
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-store/SKILL.md
+    package: seitu
+    description: Minimal in-memory reactive store with get, set, and subscribe.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/store.mdx
+      - letstri/seitu:seitu/src/core/store.ts
+  - name: create-schema-store
+    slug: create-schema-store
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-schema-store/SKILL.md
+    package: seitu
+    description: Standard Schema validated store with default fallback on invalid data.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/schema-store.mdx
+      - letstri/seitu:seitu/src/core/schema-store.ts
+  - name: create-computed
+    slug: create-computed
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-computed/SKILL.md
+    package: seitu
+    description: Derived read-only subscription from one or many sources.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/computed.mdx
+      - letstri/seitu:seitu/src/core/computed.ts
+  - name: create-debounced
+    slug: create-debounced
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-debounced/SKILL.md
+    package: seitu
+    description: Debounce updates from a source subscribable.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/debounced.mdx
+      - letstri/seitu:seitu/src/core/debounced.ts
+  - name: create-throttled
+    slug: create-throttled
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-throttled/SKILL.md
+    package: seitu
+    description: Throttle updates from a source subscribable.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/throttled.mdx
+      - letstri/seitu:seitu/src/core/throttled.ts
+  - name: create-debounced-fn
+    slug: create-debounced-fn
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-debounced-fn/SKILL.md
+    package: seitu
+    description: Debounced callable with reactive return value.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/debounced-fn.mdx
+      - letstri/seitu:seitu/src/core/debounced-fn.ts
+  - name: create-throttled-fn
+    slug: create-throttled-fn
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-throttled-fn/SKILL.md
+    package: seitu
+    description: Throttled callable with reactive return value.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/core/throttled-fn.mdx
+      - letstri/seitu:seitu/src/core/throttled-fn.ts
+  - name: create-subscription
+    slug: create-subscription
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-subscription/SKILL.md
+    package: seitu
+    description: Low-level subscribe/notify for custom primitives.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:seitu/src/core/subscription.ts
+  - name: create-readable-subscription
+    slug: create-readable-subscription
+    type: core
+    domain: reactive-state
+    path: seitu/skills/create-readable-subscription/SKILL.md
+    package: seitu
+    description: Compose get + subscribe + notify into standard Readable & Subscribable.
+    requires:
+      - seitu-overview
+      - create-subscription
+    sources:
+      - letstri/seitu:seitu/src/core/subscription.ts
+  - name: create-web-storage-value
+    slug: create-web-storage-value
+    type: core
+    domain: browser-integration
+    path: seitu/skills/create-web-storage-value/SKILL.md
+    package: seitu
+    description: Single-key localStorage/sessionStorage with schema validation.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
+      - letstri/seitu:seitu/src/web/web-storage-value.ts
+  - name: create-web-storage
+    slug: create-web-storage
+    type: core
+    domain: browser-integration
+    path: seitu/skills/create-web-storage/SKILL.md
+    package: seitu
+    description: Multi-key localStorage/sessionStorage with per-key schemas.
+    requires:
+      - seitu-overview
+      - create-web-storage-value
+    sources:
+      - letstri/seitu:docs/content/docs/web/web-storage.mdx
+      - letstri/seitu:seitu/src/web/web-storage.ts
+  - name: create-indexed-db-storage
+    slug: create-indexed-db-storage
+    type: core
+    domain: browser-integration
+    path: seitu/skills/create-indexed-db-storage/SKILL.md
+    package: seitu
+    description: Async IndexedDB persistence with cached sync reads.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/web/indexed-db-storage.mdx
+      - letstri/seitu:seitu/src/web/indexed-db-storage.ts
+  - name: create-media-query
+    slug: create-media-query
+    type: core
+    domain: browser-integration
+    path: seitu/skills/create-media-query/SKILL.md
+    package: seitu
+    description: Reactive CSS media query with SSR defaultMatches.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/web/media-query.mdx
+      - letstri/seitu:seitu/src/web/media-query.ts
+  - name: create-is-online
+    slug: create-is-online
+    type: core
+    domain: browser-integration
+    path: seitu/skills/create-is-online/SKILL.md
+    package: seitu
+    description: Reactive navigator.onLine status.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/web/is-online.mdx
+      - letstri/seitu:seitu/src/web/is-online.ts
+  - name: create-scroll-state
+    slug: create-scroll-state
+    type: core
+    domain: browser-integration
+    path: seitu/skills/create-scroll-state/SKILL.md
+    package: seitu
+    description: Scroll position, edges, and remaining distance for an element.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/web/scroll-state.mdx
+      - letstri/seitu:seitu/src/web/scroll-state.ts
+  - name: use-subscription-react
+    slug: use-subscription-react
+    type: framework
+    domain: framework-bindings
+    path: seitu/skills/use-subscription-react/SKILL.md
+    package: seitu
+    description: React hook for any Seitu primitive via useSyncExternalStore.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/react/hooks.mdx
+      - letstri/seitu:seitu/src/react/hooks.ts
+  - name: subscription-react
+    slug: subscription-react
+    type: framework
+    domain: framework-bindings
+    path: seitu/skills/subscription-react/SKILL.md
+    package: seitu
+    description: Render-prop Subscription component for React.
+    requires:
+      - seitu-overview
+      - use-subscription-react
+    sources:
+      - letstri/seitu:docs/content/docs/react/components.mdx
+      - letstri/seitu:seitu/src/react/components.tsx
+  - name: use-subscription-vue
+    slug: use-subscription-vue
+    type: framework
+    domain: framework-bindings
+    path: seitu/skills/use-subscription-vue/SKILL.md
+    package: seitu
+    description: Vue composable returning readonly ShallowRef.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/vue/composables.mdx
+      - letstri/seitu:seitu/src/vue/composables.ts
+
+coverage:
+  ignored_packages:
+    - docs
+    - playground
