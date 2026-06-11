@@ -1,0 +1,77 @@
+---
+title: Hooks
+---
+
+## useSubscription()
+Use this function to subscribe to a reactive value. Accepts a subscription object
+directly, or a factory function that is called once to create one.
+
+It returns a Svelte [`Readable`](https://svelte.dev/docs/svelte-store#readable) store —
+read it with the `$` auto-subscription (`$value`) in markup. The underlying subscription
+is created lazily on the first subscriber and torn down when the last one leaves, so it is
+SSR-safe and cleans up automatically.
+
+### Examples
+
+#### Inline subscription
+
+```svelte
+<script lang="ts">
+  import { createWebStorageValue } from 'seitu/web'
+  import { useSubscription } from 'seitu/svelte'
+  import * as z from 'zod'
+
+  const value = useSubscription(() => createWebStorageValue({
+    type: 'sessionStorage',
+    key: 'test',
+    defaultValue: 0,
+    schema: z.number(),
+  }))
+</script>
+
+<div>{$value}</div>
+```
+
+#### Instance outside of component
+
+```svelte
+<script lang="ts">
+  import { createWebStorage } from 'seitu/web'
+  import { useSubscription } from 'seitu/svelte'
+  import * as z from 'zod'
+
+  const sessionStorage = createWebStorage({
+    type: 'sessionStorage',
+    schemas: { count: z.number(), name: z.string() },
+    defaultValues: { count: 0, name: '' },
+  })
+
+  const value = useSubscription(sessionStorage)
+</script>
+
+<div>{$value.count}</div>
+```
+
+#### With selector
+
+```svelte
+<script lang="ts">
+  import { createWebStorage } from 'seitu/web'
+  import { useSubscription } from 'seitu/svelte'
+  import * as z from 'zod'
+
+  const sessionStorage = createWebStorage({
+    type: 'sessionStorage',
+    schemas: { count: z.number(), name: z.string() },
+    defaultValues: { count: 0, name: '' },
+  })
+
+  // Updates only when count changes
+  const count = useSubscription(sessionStorage, { selector: v => v.count })
+</script>
+
+<div>{$count}</div>
+```
+
+* * *
+

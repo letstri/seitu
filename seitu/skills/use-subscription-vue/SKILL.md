@@ -4,7 +4,7 @@ description: >-
   Vue composable returning readonly ShallowRef.
 type: framework
 library: seitu
-library_version: "0.15.1"
+library_version: "0.16.0"
 requires:
   - seitu-overview
 sources:

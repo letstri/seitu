@@ -4,7 +4,7 @@ description: >-
   Compose get + subscribe + notify into standard Readable & Subscribable.
 type: core
 library: seitu
-library_version: "0.15.1"
+library_version: "0.16.0"
 requires:
   - seitu-overview
   - create-subscription

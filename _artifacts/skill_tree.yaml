@@ -1,7 +1,7 @@
 # skill_tree.yaml
 library:
   name: seitu
-  version: 0.15.1
+  version: 0.16.0
   repository: https://github.com/letstri/seitu
   description: Type-safe reactive primitives with shared get/subscribe API
 generated_from:
@@ -236,6 +236,43 @@ skills:
     sources:
       - letstri/seitu:docs/content/docs/vue/composables.mdx
       - letstri/seitu:seitu/src/vue/composables.ts
+  - name: use-subscription-solid
+    slug: use-subscription-solid
+    type: framework
+    domain: framework-bindings
+    path: seitu/skills/use-subscription-solid/SKILL.md
+    package: seitu
+    description: Solid primitive returning an Accessor for any Seitu primitive.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/solid/hooks.mdx
+      - letstri/seitu:seitu/src/solid/hooks.ts
+  - name: subscription-solid
+    slug: subscription-solid
+    type: framework
+    domain: framework-bindings
+    path: seitu/skills/subscription-solid/SKILL.md
+    package: seitu
+    description: Render-prop Subscription component for Solid.
+    requires:
+      - seitu-overview
+      - use-subscription-solid
+    sources:
+      - letstri/seitu:docs/content/docs/solid/components.mdx
+      - letstri/seitu:seitu/src/solid/components.ts
+  - name: use-subscription-svelte
+    slug: use-subscription-svelte
+    type: framework
+    domain: framework-bindings
+    path: seitu/skills/use-subscription-svelte/SKILL.md
+    package: seitu
+    description: Svelte binding returning a Readable store for any Seitu primitive.
+    requires:
+      - seitu-overview
+    sources:
+      - letstri/seitu:docs/content/docs/svelte/hooks.mdx
+      - letstri/seitu:seitu/src/svelte/hooks.ts
 
 coverage:
   ignored_packages:
