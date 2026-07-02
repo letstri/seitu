@@ -1,17 +1,3 @@
----
-name: create-indexed-db-storage
-description: >-
-  Async IndexedDB persistence with cached sync reads.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/web/indexed-db-storage.mdx
-  - letstri/seitu:seitu/src/web/indexed-db-storage.ts
----
-
 # createIndexedDbStorage
 
 Multi-key reactive handle for IndexedDB. Async under the hood, sync `get()` via in-memory cache.
@@ -64,6 +50,7 @@ interface IndexedDbStorage<O> extends Subscribable<O>, Readable<O>, Writable<Par
   clear: () => Promise<void>
 }
 ```
+
 ## Common Mistakes
 
 ### [HIGH] Treating set as synchronous

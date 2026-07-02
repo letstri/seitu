@@ -4,7 +4,7 @@ description: >-
   Module map, mental model, decision tree, SSR — read before other Seitu skills.
 type: lifecycle
 library: seitu
-library_version: "0.16.0"
+library_version: "0.16.1"
 sources:
   - letstri/seitu:docs/content/docs/index.mdx
   - letstri/seitu:seitu/src/core/index.ts
@@ -165,10 +165,11 @@ const settings = createWebStorageValue({
 })
 ```
 
-## Per-function skills
+## Per-function reference
 
-Each exported function has a dedicated skill in `skills/<slug>/SKILL.md` (lowercase-hyphen slug, e.g. `create-store`).
-Read the overview first, then the specific skill for the function you need.
+The **seitu** skill has a reference file per primitive and framework binding
+in `skills/seitu/references/<slug>.md` (e.g. `create-store.md`). Read this
+overview first, then the specific reference for the function you need.
 ## Common Mistakes
 
 ### [HIGH] Using useState for shared module-level state
@@ -229,7 +230,7 @@ Seitu has no dispatch layer — mutate with .set() directly.
 
 ## See also
 
-- [`create-web-storage-value`](../create-web-storage-value/SKILL.md) — Decision tree routes persistence tasks to web storage skills.
+- [`create-web-storage-value`](../seitu/references/create-web-storage-value.md) — Decision tree routes persistence tasks to web storage skills.
 
 ## Source
 

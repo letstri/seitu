@@ -1,25 +1,13 @@
----
-name: use-subscription-svelte
-description: >-
-  Svelte binding returning a Readable store for any Seitu primitive.
-type: framework
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/svelte/hooks.mdx
-  - letstri/seitu:seitu/src/svelte/hooks.ts
----
+# Svelte (seitu/svelte)
 
-# useSubscription (Svelte)
+## useSubscription
 
 Binding from `seitu/svelte`. Returns a Svelte [`Readable`](https://svelte.dev/docs/svelte-store#readable)
 store that stays in sync with any `Subscribable<T> & Readable<T>`. Read it with the `$`
 auto-subscription (`$value`) in markup. The source subscription is created lazily on the
 first subscriber and torn down when the last one leaves (SSR-safe, auto-cleanup).
 
-## Basic usage (module-level instance)
+### Basic usage (module-level instance)
 
 ```svelte
 <script lang="ts">
@@ -33,7 +21,7 @@ first subscriber and torn down when the last one leaves (SSR-safe, auto-cleanup)
 <button onclick={() => count.set(v => v + 1)}>{$value}</button>
 ```
 
-## Inline subscription (factory form)
+### Inline subscription (factory form)
 
 ```svelte
 <script lang="ts">
@@ -52,7 +40,7 @@ first subscriber and torn down when the last one leaves (SSR-safe, auto-cleanup)
 <div>{$value}</div>
 ```
 
-## With selector (granular updates)
+### With selector (granular updates)
 
 ```svelte
 <script lang="ts">
@@ -62,14 +50,14 @@ first subscriber and torn down when the last one leaves (SSR-safe, auto-cleanup)
 <div>{$count}</div>
 ```
 
-## Options
+### Options
 
 | Option | Type | Description |
 |--------|------|-------------|
 | `selector?` | `(value) => R` | Derive a subset; the store updates only when it changes |
 | `isEqual?` | `(prev, next) => boolean` | Custom equality (default: `deepEqual`) |
 
-## Returns
+### Returns
 
 `Readable<R>` (from `svelte/store`) — read it as `$value` in markup, or with `get(value)` in scripts.
 

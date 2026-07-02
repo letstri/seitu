@@ -1,16 +1,3 @@
----
-name: create-subscription
-description: >-
-  Low-level subscribe/notify for custom primitives.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:seitu/src/core/subscription.ts
----
-
 # createSubscription
 
 Low-level building block. Returns `subscribe` + `notify` pair. Used internally by all Seitu primitives.
@@ -47,6 +34,7 @@ function createSubscription(options?: {
 - Return value of `onFirstSubscribe` is called when last subscriber is removed (cleanup).
 - `subscribe` supports `{ immediate: true }` to fire callback immediately.
 - Lazy: no setup until first subscriber.
+
 ## Common Mistakes
 
 ### [HIGH] Not returning unsubscribe from subscribe

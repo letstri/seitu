@@ -1,17 +1,3 @@
----
-name: create-throttled
-description: >-
-  Throttle updates from a source subscribable.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/throttled.mdx
-  - letstri/seitu:seitu/src/core/throttled.ts
----
-
 # createThrottled
 
 Wraps a source subscribable with throttle. Emits at most once every `wait` ms. First update fires immediately, trailing update fires after interval.
@@ -38,6 +24,7 @@ interface Throttled<T> extends Readable<T>, Subscribable<T> {}
 ```
 
 Read-only. Lazy subscription.
+
 ## Common Mistakes
 
 ### [MEDIUM] Using debounce for scroll-like high-frequency events

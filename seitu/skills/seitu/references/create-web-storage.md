@@ -1,18 +1,3 @@
----
-name: create-web-storage
-description: >-
-  Multi-key localStorage/sessionStorage with per-key schemas.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-  - create-web-storage-value
-sources:
-  - letstri/seitu:docs/content/docs/web/web-storage.mdx
-  - letstri/seitu:seitu/src/web/web-storage.ts
----
-
 # createWebStorage
 
 Multi-key reactive handle for `localStorage` or `sessionStorage`. Each key is validated by a Standard Schema.
@@ -66,6 +51,7 @@ const storage = createWebStorage({
   keyTransform: key => `myapp:${String(key)}`,
 })
 ```
+
 ## Common Mistakes
 
 ### [MEDIUM] Mixing storage types on one instance
@@ -118,7 +104,7 @@ storage event handling depends on implementation; verify subscribe fires on exte
 
 ## See also
 
-- [`create-web-storage-value`](../create-web-storage-value/SKILL.md) — Multi-key storage exposes single-key handles via createWebStorageValue.
+- [`create-web-storage-value`](create-web-storage-value.md) — Multi-key storage exposes single-key handles via createWebStorageValue.
 
 ## Source
 

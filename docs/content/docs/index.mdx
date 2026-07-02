@@ -17,6 +17,44 @@ So I created a library based on shadcn/cli and called it Hookas. But it was Reac
 
 That's why I built **Seitu** _(word "utils" reversed, with the letter L replaced by E)_. It's a type-safe, framework-agnostic library for working with familiar hooks. I brought together my experience with TypeScript and different frameworks, so you can use Seitu with React, Vue, Solid, Svelte, or without any framework at all.
 
+## Installation via Agents
+
+Using Claude Code, Cursor, or another agent that supports skills? Add Seitu skills, then hand it this prompt to set up primitives for you:
+
+```bash
+npx skills add letstri/seitu
+```
+
+```
+Install and wire up Seitu in this project.
+
+1. Detect my stack (framework(s), server/client split, e.g. React, Vue, Solid,
+   Svelte, or no framework) and install `seitu` plus the matching framework
+   binding from https://seitu.letstri.dev/docs.
+2. Scan the codebase for state that's currently local/component-only (useState,
+   ref, signal) but is actually shared, persisted, or derived from browser
+   APIs, and replace it with the matching Seitu primitive: createStore,
+   createSchemaStore, createComputed, createWebStorage(Value),
+   createIndexedDbStorage, createMediaQuery, createIsOnline, or
+   createScrollState.
+3. Create primitives at module scope (never inside a component/render), and
+   wire framework components to them with the `useSubscription` hook /
+   composable / primitive, or the `Subscription` component where render-prop
+   composition is clearer.
+4. Follow the seitu-overview and per-primitive skill references for the
+   shared get/subscribe/set API, SSR defaults, and common mistakes.
+```
+
+Or continue with the manual installation below.
+
+## Installation
+
+```package-install
+seitu
+```
+
+Import from `seitu` for framework-agnostic core primitives, `seitu/web` for browser persistence and DOM state, and `seitu/react`, `seitu/vue`, `seitu/solid`, or `seitu/svelte` for framework bindings.
+
 ## Examples
 
 ### Local Storage / Session Storage

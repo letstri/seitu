@@ -1,17 +1,3 @@
----
-name: create-debounced
-description: >-
-  Debounce updates from a source subscribable.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/debounced.mdx
-  - letstri/seitu:seitu/src/core/debounced.ts
----
-
 # createDebounced
 
 Wraps a source subscribable with debounce. Emits the latest value after `wait` ms of inactivity.
@@ -38,6 +24,7 @@ interface Debounced<T> extends Readable<T>, Subscribable<T> {}
 ```
 
 Read-only. Lazy subscription — only subscribes to source when it has its own subscribers.
+
 ## Common Mistakes
 
 ### [HIGH] Debouncing the source instead of wrapping it

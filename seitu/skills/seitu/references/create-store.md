@@ -1,17 +1,3 @@
----
-name: create-store
-description: >-
-  Minimal in-memory reactive store with get, set, and subscribe.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/store.mdx
-  - letstri/seitu:seitu/src/core/store.ts
----
-
 # createStore
 
 Minimal reactive store from `seitu` (core). Accepts any value type.
@@ -49,6 +35,7 @@ interface Store<T> extends Readable<T>, Writable<T, T>, Subscribable<T> {}
 | `subscribe(cb, opts?)` | Subscribes to changes; returns unsubscribe fn |
 
 `subscribe` accepts `{ immediate?: boolean }` to fire callback immediately with current value.
+
 ## Common Mistakes
 
 ### [CRITICAL] Mutating object state in place

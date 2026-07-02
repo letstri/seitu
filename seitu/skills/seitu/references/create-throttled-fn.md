@@ -1,17 +1,3 @@
----
-name: create-throttled-fn
-description: >-
-  Throttled callable with reactive return value.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/throttled-fn.mdx
-  - letstri/seitu:seitu/src/core/throttled-fn.ts
----
-
 # createThrottledFn
 
 Wraps a plain function. First call fires immediately, subsequent calls within `wait` are batched — only the last fires when interval elapses.
@@ -41,6 +27,7 @@ interface ThrottledFn<F> extends Readable<ReturnType<F> | undefined>, Subscribab
 ```
 
 Callable + readable + subscribable. `get()` returns `undefined` until first execution.
+
 ## Common Mistakes
 
 ### [HIGH] Using createThrottled on a function

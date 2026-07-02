@@ -1,17 +1,3 @@
----
-name: create-computed
-description: >-
-  Derived read-only subscription from one or many sources.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/computed.mdx
-  - letstri/seitu:seitu/src/core/computed.ts
----
-
 # createComputed
 
 Derived read-only subscription from one or many sources. Lazy — only subscribes to sources when it has its own subscribers.
@@ -51,6 +37,7 @@ interface Computed<T> extends Readable<T>, Subscribable<T> {}
 ```
 
 Read-only. No `set()`.
+
 ## Common Mistakes
 
 ### [HIGH] Recomputing manually in components

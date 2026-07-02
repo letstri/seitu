@@ -1,22 +1,10 @@
----
-name: use-subscription-solid
-description: >-
-  Solid primitive returning an Accessor for any Seitu primitive.
-type: framework
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/solid/hooks.mdx
-  - letstri/seitu:seitu/src/solid/hooks.ts
----
+# Solid (seitu/solid)
 
-# useSubscription (Solid)
+## useSubscription
 
 Core Solid primitive from `seitu/solid`. Returns a Solid `Accessor<T>` (`() => T`) that stays in sync with the source. Works with any `Subscribable<T> & Readable<T>`. Accepts a raw instance or a reactive getter.
 
-## Basic usage (module-level instance)
+### Basic usage (module-level instance)
 
 ```tsx
 import { useSubscription } from 'seitu/solid'
@@ -30,7 +18,7 @@ function Counter() {
 }
 ```
 
-## Inline subscription (getter form)
+### Inline subscription (getter form)
 
 ```tsx
 import { useSubscription } from 'seitu/solid'
@@ -45,7 +33,7 @@ function ScrollTracker() {
 }
 ```
 
-## Reactive source (re-subscribes when a signal changes)
+### Reactive source (re-subscribes when a signal changes)
 
 ```tsx
 import { createSignal } from 'solid-js'
@@ -60,23 +48,48 @@ function UserStorage(props: { userId: string }) {
 }
 ```
 
-## With selector (granular updates)
+### With selector (granular updates)
 
 ```tsx
 const count = useSubscription(storage, { selector: v => v.count })
 // count() only changes when the selected value changes
 ```
 
-## Options
+### Options
 
 | Option | Type | Description |
 |--------|------|-------------|
 | `selector?` | `(value) => R` | Derive subset; the accessor updates only when it changes |
 | `isEqual?` | `(prev, next) => boolean` | Custom equality (default: `deepEqual`) |
 
-## Returns
+### Returns
 
 `Accessor<R>` — a getter function. Read it with `value()` inside JSX or any tracked scope.
+
+## Subscription (render-prop component)
+
+Declarative render-prop component from `seitu/solid`. The children function runs once and
+receives a Solid `Accessor<R>` — read it with `value()` so updates stay fine-grained.
+
+```tsx
+import { Subscription } from 'seitu/solid'
+
+<Subscription value={storage}>
+  {value => <div>{value().count}</div>}
+</Subscription>
+
+<Subscription value={storage} selector={v => v.count}>
+  {count => <div>{count()}</div>}
+</Subscription>
+```
+
+### Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `Subscribable & Readable` | The reactive source |
+| `selector?` | `(value) => R` | Optional selector for granular updates |
+| `children` | `(value: Accessor<R>) => JSX.Element` | Render function receiving an accessor |
 
 ## Common Mistakes
 
@@ -96,7 +109,7 @@ const value = useSubscription(store)
 return <div>{value()}</div>
 ```
 
-`useSubscription` returns a Solid `Accessor`; you must call it (`value()`) to read and track the value.
+`useSubscription` returns a Solid `Accessor`; you must call it (`value()`) to read and track the value. The same applies to the `Subscription` component's children argument — call it (`value()`) inside JSX, don't treat it as a plain value.
 
 ### [HIGH] Passing reactive props directly instead of a getter
 
@@ -132,13 +145,28 @@ Correct:
 import { useSubscription } from 'seitu/solid'
 ```
 
-Solid apps must use the `seitu/solid` primitive — the React hook relies on `useSyncExternalStore`.
+Solid apps must use the `seitu/solid` primitive/component — the React versions rely on `useSyncExternalStore` and React internals.
+
+### [LOW] Preferring the component over the primitive without reason
+
+Wrong:
+
+```tsx
+<Subscription value={s}>{v => <Child value={v()} />}</Subscription>
+```
+
+Correct:
+
+```tsx
+const v = useSubscription(s); return <Child value={v()} />
+```
+
+`useSubscription` is simpler for most cases; `Subscription` is for render-prop composition.
 
 ## See also
 
-- [`subscription-solid`](../subscription-solid/SKILL.md) — Render-prop component alternative.
-- [`create-scroll-state`](../create-scroll-state/SKILL.md) — Scroll tracking uses the getter + ref pattern in Solid.
+- [`create-scroll-state`](create-scroll-state.md) — Scroll tracking uses the getter + ref pattern in Solid.
 
 ## Source
 
-`src/solid/hooks.ts`
+`src/solid/hooks.ts`, `src/solid/components.ts`

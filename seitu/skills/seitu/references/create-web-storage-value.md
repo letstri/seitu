@@ -1,17 +1,3 @@
----
-name: create-web-storage-value
-description: >-
-  Single-key localStorage/sessionStorage with schema validation.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
-  - letstri/seitu:seitu/src/web/web-storage-value.ts
----
-
 # createWebStorageValue
 
 Single-key reactive handle for web storage. Two overloads: standalone (with schema) or derived from a WebStorage instance.
@@ -61,6 +47,7 @@ Inherits schema, default, and storage type from the parent.
 ```ts
 interface WebStorageValue<V> extends Subscribable<V>, Readable<V>, Writable<V>, Clearable {}
 ```
+
 ## Common Mistakes
 
 ### [HIGH] Accessing storage during SSR without defaults

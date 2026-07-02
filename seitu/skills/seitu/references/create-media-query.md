@@ -1,17 +1,3 @@
----
-name: create-media-query
-description: >-
-  Reactive CSS media query with SSR defaultMatches.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/web/media-query.mdx
-  - letstri/seitu:seitu/src/web/media-query.ts
----
-
 # createMediaQuery
 
 Reactive boolean for CSS media queries. Provides type-safe query string with autocomplete for known media features.
@@ -44,6 +30,7 @@ Read-only. Lazy — listens to `change` events only while subscribed.
 ## Type-safe queries
 
 The `query` option provides autocomplete for standard media features: `min-width`, `max-width`, `prefers-color-scheme`, `orientation`, `hover`, `pointer`, etc. Supports `and`/`,` combinators.
+
 ## Common Mistakes
 
 ### [CRITICAL] Missing defaultMatches for SSR

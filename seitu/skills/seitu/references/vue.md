@@ -1,22 +1,10 @@
----
-name: use-subscription-vue
-description: >-
-  Vue composable returning readonly ShallowRef.
-type: framework
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/vue/composables.mdx
-  - letstri/seitu:seitu/src/vue/composables.ts
----
+# Vue (seitu/vue)
 
-# useSubscription (Vue)
+## useSubscription
 
 Vue 3 composable from `seitu/vue`. Returns a readonly `ShallowRef<T>` that stays in sync with the source. Accepts a raw instance, a `ref`, or a getter.
 
-## Basic usage
+### Basic usage
 
 ```vue
 <script setup lang="ts">
@@ -39,7 +27,7 @@ const value = useSubscription(count)
 </template>
 ```
 
-## With reactive source (auto re-subscribes)
+### With reactive source (auto re-subscribes)
 
 ```vue
 <script setup lang="ts">
@@ -62,7 +50,7 @@ const data = useSubscription(storage)
 </script>
 ```
 
-## With selector
+### With selector
 
 ```vue
 <script setup lang="ts">
@@ -70,12 +58,13 @@ const count = useSubscription(storage, { selector: v => v.count })
 </script>
 ```
 
-## Options
+### Options
 
 | Option | Type | Description |
 |--------|------|-------------|
 | `selector?` | `(value) => R` | Derive subset; update ref only when it changes |
 | `isEqual?` | `(prev, next) => boolean` | Custom equality (default: `deepEqual`) |
+
 ## Common Mistakes
 
 ### [HIGH] Destructuring the returned ref

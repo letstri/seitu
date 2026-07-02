@@ -19,7 +19,7 @@ List or load a specific skill:
 
 ```bash
 pnpm dlx @tanstack/intent@latest list
-pnpm dlx @tanstack/intent@latest load seitu#create-store
+pnpm dlx @tanstack/intent@latest load seitu#seitu
 ```
 
 When you `pnpm update seitu`, skills update with the package — knowledge travels through npm, not model training cutoffs.
@@ -28,68 +28,45 @@ Start with **`seitu-overview`** — module map, mental model, and decision tree.
 
 ## Manual install (Cursor)
 
-Copy skill folders into `.cursor/skills/`:
+Copy skill folders into `.agents/skills/`:
 
 ```bash
-cp -r node_modules/seitu/skills/seitu-overview .cursor/skills/
-cp -r node_modules/seitu/skills/create-store .cursor/skills/
+cp -r node_modules/seitu/skills/seitu-overview .agents/skills/
+cp -r node_modules/seitu/skills/seitu .agents/skills/
 ```
 
 Restart Cursor or start a new agent chat so skills are picked up.
 
 ## Skills
 
-### Core (`seitu`)
-
 | Skill | Intent id | When to use |
 |-------|-----------|-------------|
-| [seitu-overview](./seitu-overview/SKILL.md) | `seitu#seitu-overview` | Read first — module map and primitive selection |
-| [create-store](./create-store/SKILL.md) | `seitu#create-store` | Simple in-memory reactive state |
-| [create-schema-store](./create-schema-store/SKILL.md) | `seitu#create-schema-store` | Schema-validated state (Zod, Valibot, ArkType) |
-| [create-computed](./create-computed/SKILL.md) | `seitu#create-computed` | Derived read-only values |
-| [create-debounced](./create-debounced/SKILL.md) | `seitu#create-debounced` | Debounce subscribable updates |
-| [create-throttled](./create-throttled/SKILL.md) | `seitu#create-throttled` | Throttle subscribable updates |
-| [create-debounced-fn](./create-debounced-fn/SKILL.md) | `seitu#create-debounced-fn` | Debounced function with reactive result |
-| [create-throttled-fn](./create-throttled-fn/SKILL.md) | `seitu#create-throttled-fn` | Throttled function with reactive result |
-| [create-subscription](./create-subscription/SKILL.md) | `seitu#create-subscription` | Low-level subscribe/notify |
-| [create-readable-subscription](./create-readable-subscription/SKILL.md) | `seitu#create-readable-subscription` | Compose standard Readable & Subscribable |
+| [seitu-overview](./seitu-overview/SKILL.md) | `seitu#seitu-overview` | Read first — module map, mental model, decision tree |
+| [seitu](./seitu/SKILL.md) | `seitu#seitu` | Everything past the overview: per-primitive API and framework bindings, routed through reference files |
 
-### Web (`seitu/web`)
+### `seitu` reference files
 
-| Skill | Intent id | When to use |
-|-------|-----------|-------------|
-| [create-web-storage-value](./create-web-storage-value/SKILL.md) | `seitu#create-web-storage-value` | Single-key localStorage / sessionStorage |
-| [create-web-storage](./create-web-storage/SKILL.md) | `seitu#create-web-storage` | Multi-key web storage |
-| [create-indexed-db-storage](./create-indexed-db-storage/SKILL.md) | `seitu#create-indexed-db-storage` | Large or async IndexedDB state |
-| [create-media-query](./create-media-query/SKILL.md) | `seitu#create-media-query` | Reactive CSS media queries |
-| [create-is-online](./create-is-online/SKILL.md) | `seitu#create-is-online` | Online / offline status |
-| [create-scroll-state](./create-scroll-state/SKILL.md) | `seitu#create-scroll-state` | Scroll position and edges |
-
-### React (`seitu/react`)
-
-| Skill | Intent id | When to use |
-|-------|-----------|-------------|
-| [use-subscription-react](./use-subscription-react/SKILL.md) | `seitu#use-subscription-react` | Hook for any Seitu primitive |
-| [subscription-react](./subscription-react/SKILL.md) | `seitu#subscription-react` | Render-prop component |
-
-### Vue (`seitu/vue`)
-
-| Skill | Intent id | When to use |
-|-------|-----------|-------------|
-| [use-subscription-vue](./use-subscription-vue/SKILL.md) | `seitu#use-subscription-vue` | Composable for any Seitu primitive |
-
-### Solid (`seitu/solid`)
-
-| Skill | Intent id | When to use |
-|-------|-----------|-------------|
-| [use-subscription-solid](./use-subscription-solid/SKILL.md) | `seitu#use-subscription-solid` | Primitive returning an accessor for any Seitu primitive |
-| [subscription-solid](./subscription-solid/SKILL.md) | `seitu#subscription-solid` | Render-prop component |
-
-### Svelte (`seitu/svelte`)
-
-| Skill | Intent id | When to use |
-|-------|-----------|-------------|
-| [use-subscription-svelte](./use-subscription-svelte/SKILL.md) | `seitu#use-subscription-svelte` | Binding returning a Svelte `Readable` store for any Seitu primitive |
+| Reference | Covers |
+|-----------|--------|
+| [create-store.md](./seitu/references/create-store.md) | Simple in-memory reactive state |
+| [create-schema-store.md](./seitu/references/create-schema-store.md) | Schema-validated state (Zod, Valibot, ArkType) |
+| [create-computed.md](./seitu/references/create-computed.md) | Derived read-only values |
+| [create-debounced.md](./seitu/references/create-debounced.md) | Debounce subscribable updates |
+| [create-throttled.md](./seitu/references/create-throttled.md) | Throttle subscribable updates |
+| [create-debounced-fn.md](./seitu/references/create-debounced-fn.md) | Debounced function with reactive result |
+| [create-throttled-fn.md](./seitu/references/create-throttled-fn.md) | Throttled function with reactive result |
+| [create-subscription.md](./seitu/references/create-subscription.md) | Low-level subscribe/notify |
+| [create-readable-subscription.md](./seitu/references/create-readable-subscription.md) | Compose standard Readable & Subscribable |
+| [create-web-storage-value.md](./seitu/references/create-web-storage-value.md) | Single-key localStorage / sessionStorage |
+| [create-web-storage.md](./seitu/references/create-web-storage.md) | Multi-key web storage |
+| [create-indexed-db-storage.md](./seitu/references/create-indexed-db-storage.md) | Large or async IndexedDB state |
+| [create-media-query.md](./seitu/references/create-media-query.md) | Reactive CSS media queries |
+| [create-is-online.md](./seitu/references/create-is-online.md) | Online / offline status |
+| [create-scroll-state.md](./seitu/references/create-scroll-state.md) | Scroll position and edges |
+| [react.md](./seitu/references/react.md) | `useSubscription` hook + `Subscription` component |
+| [vue.md](./seitu/references/vue.md) | `useSubscription` composable |
+| [solid.md](./seitu/references/solid.md) | `useSubscription` primitive + `Subscription` component |
+| [svelte.md](./seitu/references/svelte.md) | `useSubscription` binding |
 
 ## Registry and version history
 

@@ -1,17 +1,3 @@
----
-name: create-is-online
-description: >-
-  Reactive navigator.onLine status.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/web/is-online.mdx
-  - letstri/seitu:seitu/src/web/is-online.ts
----
-
 # createIsOnline
 
 Reactive boolean for `navigator.onLine`. Listens to `online`/`offline` window events.
@@ -31,6 +17,7 @@ interface IsOnline extends Subscribable<boolean>, Readable<boolean> {}
 ```
 
 No options. Returns `true` during SSR (when `navigator` is undefined). Lazy — only listens to events while subscribed.
+
 ## Common Mistakes
 
 ### [MEDIUM] Polling navigator.onLine manually

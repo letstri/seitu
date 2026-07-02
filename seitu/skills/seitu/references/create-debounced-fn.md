@@ -1,17 +1,3 @@
----
-name: create-debounced-fn
-description: >-
-  Debounced callable with reactive return value.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/debounced-fn.mdx
-  - letstri/seitu:seitu/src/core/debounced-fn.ts
----
-
 # createDebouncedFn
 
 Wraps a plain function. The return value becomes subscribable state. Each call resets the debounce timer.
@@ -40,6 +26,7 @@ interface DebouncedFn<F> extends Readable<ReturnType<F> | undefined>, Subscribab
 ```
 
 Callable + readable + subscribable. `get()` returns `undefined` until first execution.
+
 ## Common Mistakes
 
 ### [HIGH] Using createDebounced on a function

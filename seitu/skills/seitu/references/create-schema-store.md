@@ -1,17 +1,3 @@
----
-name: create-schema-store
-description: >-
-  Standard Schema validated store with default fallback on invalid data.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/schema-store.mdx
-  - letstri/seitu:seitu/src/core/schema-store.ts
----
-
 # createSchemaStore
 
 Store validated by a Standard Schema. Falls back to `defaultValue` when validation fails.
@@ -43,6 +29,7 @@ store.subscribe(console.log)
 ```ts
 interface SchemaStore<O> extends Subscribable<O>, Readable<O>, Writable<O, O> {}
 ```
+
 ## Common Mistakes
 
 ### [HIGH] Partial set without merge

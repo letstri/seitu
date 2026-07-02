@@ -1,17 +1,3 @@
----
-name: create-scroll-state
-description: >-
-  Scroll position, edges, and remaining distance for an element.
-type: core
-library: seitu
-library_version: "0.16.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/web/scroll-state.mdx
-  - letstri/seitu:seitu/src/web/scroll-state.ts
----
-
 # createScrollState
 
 Reactive scroll position tracking for an element. Reports per-edge `reached` and `remaining` values.
@@ -64,6 +50,7 @@ const state = useSubscription(() =>
   createScrollState({ element: () => ref.current, direction: 'vertical' })
 )
 ```
+
 ## Common Mistakes
 
 ### [CRITICAL] Passing static element ref
