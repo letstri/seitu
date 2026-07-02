@@ -99,9 +99,22 @@ jobs:
           if [ -n "$PR_URL" ]; then
             gh pr edit "$PR_URL" --body-file pr-body.md
           else
-            gh pr create \
+            set +e
+            CREATE_OUTPUT="$(gh pr create \
               --title "Review intent skills (${VERSION})" \
               --body-file pr-body.md \
               --head "$BRANCH" \
-              --base "$BASE_BRANCH"
+              --base "$BASE_BRANCH" 2>&1)"
+            CREATE_EXIT_CODE=$?
+            set -e
+
+            if [ "$CREATE_EXIT_CODE" -ne 0 ]; then
+              if echo "$CREATE_OUTPUT" | grep -q "GitHub Actions is not permitted to create or approve pull requests"; then
+                echo "::warning::Skipping review PR creation because repository settings disallow GitHub Actions from creating pull requests."
+                echo "$CREATE_OUTPUT"
+              else
+                echo "$CREATE_OUTPUT"
+                exit "$CREATE_EXIT_CODE"
+              fi
+            fi
           fi
