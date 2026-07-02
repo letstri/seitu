@@ -8,9 +8,10 @@ description: >-
   Solid, and Svelte useSubscription/Subscription bindings. Use once you know
   which primitive or framework binding you need; read seitu-overview first
   for the mental model and decision tree.
-type: core
-library: seitu
-library_version: "0.16.1"
+metadata:
+  type: core
+  library: seitu
+  library_version: "0.16.1"
 requires:
   - seitu-overview
 sources:
