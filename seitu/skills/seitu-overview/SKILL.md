@@ -2,9 +2,10 @@
 name: seitu-overview
 description: >-
   Module map, mental model, decision tree, SSR — read before other Seitu skills.
-type: lifecycle
-library: seitu
-library_version: "0.16.1"
+metadata:
+  type: lifecycle
+  library: seitu
+  library_version: "0.16.1"
 sources:
   - letstri/seitu:docs/content/docs/index.mdx
   - letstri/seitu:seitu/src/core/index.ts
