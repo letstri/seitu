@@ -1,4 +1,6 @@
+export * from './indexed-db'
 export * from './indexed-db-storage'
+export * from './indexed-db-table'
 export * from './is-online'
 export * from './media-query'
 export * from './scroll-state'

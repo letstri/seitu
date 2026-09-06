@@ -27,7 +27,7 @@ export default defineConfig({
     // Vite 8 / Rolldown cannot bundle raw `.wasm` via shiki's `unwasm` export condition.
     conditions: ['import', 'module', 'browser', 'default'],
     alias: {
-      'tslib': 'tslib/tslib.es6.js',
+      tslib: 'tslib/tslib.es6.js',
       'shiki/wasm': 'shiki/dist/wasm.mjs',
     },
   },

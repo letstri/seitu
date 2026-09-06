@@ -1,49 +1,40 @@
 {
+  "formatter": "language_server",
   "code_actions_on_format": {
-    "source.fixAll.eslint": true
+    "source.fixAll.oxc": true
   },
-  "formatter": [],
   "languages": {
-    "HTML": {
-      "language_servers": ["...", "eslint"]
+    "JavaScript": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
     },
-    "Markdown": {
-      "language_servers": ["...", "eslint"]
+    "JSX": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
     },
-    "Markdown-Inline": {
-      "language_servers": ["...", "eslint"]
+    "TypeScript": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    },
+    "TSX": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
     },
     "JSON": {
-      "language_servers": ["...", "eslint"]
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
     },
     "JSONC": {
-      "language_servers": ["...", "eslint"]
-    },
-    "YAML": {
-      "language_servers": ["...", "eslint"]
-    },
-    "CSS": {
-      "language_servers": ["...", "eslint"]
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
     }
   },
   "lsp": {
-    "eslint": {
+    "oxc": {
       "settings": {
-        "workingDirectories": ["./"],
-
-        // Silent the stylistic rules in your IDE, but still auto fix them
-        "rulesCustomizations": [
-          { "rule": "style/*", "severity": "off", "fixable": true },
-          { "rule": "format/*", "severity": "off", "fixable": true },
-          { "rule": "*-indent", "severity": "off", "fixable": true },
-          { "rule": "*-spacing", "severity": "off", "fixable": true },
-          { "rule": "*-spaces", "severity": "off", "fixable": true },
-          { "rule": "*-order", "severity": "off", "fixable": true },
-          { "rule": "*-dangle", "severity": "off", "fixable": true },
-          { "rule": "*-newline", "severity": "off", "fixable": true },
-          { "rule": "*quotes", "severity": "off", "fixable": true },
-          { "rule": "*semi", "severity": "off", "fixable": true }
-        ]
+        "config_path": "./oxlint.config.ts",
+        "fmt.config_path": "./oxfmt.config.ts",
+        "type_aware": true
       }
     }
   }

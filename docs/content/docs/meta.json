@@ -1,0 +1,15 @@
+{
+  "title": "Seitu",
+  "pages": [
+    "index",
+    "---Primitives---",
+    "core",
+    "web",
+    "utils",
+    "---Frameworks---",
+    "react",
+    "vue",
+    "solid",
+    "svelte"
+  ]
+}

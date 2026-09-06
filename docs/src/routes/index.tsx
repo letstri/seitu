@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs'
 import { HomeLayout } from 'fumadocs-ui/layouts/home'
+
 import { baseOptions } from '~/lib/layout.shared'
 
 export const Route = createFileRoute('/')({
@@ -50,27 +51,39 @@ function Home() {
   return (
     <HomeLayout {...baseOptions()}>
       <div className="min-h-screen">
-        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 mx-auto px-4 sm:px-6 lg:px-8 py-16 items-center">
-          <div className="pt-6 sm:pt-8 lg:pt-12 lg:order-1 text-center lg:text-left">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-fd-foreground">
+        <div className="container mx-auto grid grid-cols-1 items-center gap-8 px-4 py-16 sm:gap-12 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
+          <div className="pt-6 text-center sm:pt-8 lg:order-1 lg:pt-12 lg:text-left">
+            <h1 className="text-fd-foreground text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
               <span className="block">Seitu</span>
             </h1>
-            <p className="mt-4 sm:mt-5 lg:mt-6 max-w-md sm:max-w-lg lg:max-w-xl mx-auto lg:mx-0 text-base sm:text-lg lg:text-xl text-fd-muted-foreground leading-relaxed">
-              A type-safe, framework-agnostic library for working with familiar hooks. Use it with
-              React or without any framework—typed, testable, and usable outside components.
+            <p className="text-fd-muted-foreground mx-auto mt-4 max-w-md text-base leading-relaxed sm:mt-5 sm:max-w-lg sm:text-lg lg:mx-0 lg:mt-6 lg:max-w-xl lg:text-xl">
+              A type-safe, framework-agnostic library for working with familiar
+              hooks. Use it with React or without any framework—typed, testable,
+              and usable outside components.
             </p>
             <Link
               to="/docs/$"
               params={{ _splat: '' }}
-              className="mt-8 inline-flex items-center gap-2 justify-center px-5 py-3 rounded-lg bg-fd-primary text-fd-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-fd-primary focus:ring-offset-2 focus:ring-offset-fd-background"
+              className="bg-fd-primary text-fd-primary-foreground focus:ring-fd-primary focus:ring-offset-fd-background mt-8 inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-opacity hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:outline-none"
             >
               Documentation
-              <svg className="size-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="size-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </Link>
           </div>
-          <div className="lg:order-2 w-full min-w-0">
+          <div className="w-full min-w-0 lg:order-2">
             <Tabs items={['Init', 'Usage', 'Framework']}>
               <Tab value="Init">
                 <DynamicCodeBlock lang="ts" code={initCode} />

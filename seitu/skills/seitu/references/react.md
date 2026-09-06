@@ -162,4 +162,4 @@ useSubscription is simpler for most cases; Subscription is for render-prop compo
 
 ## Source
 
-`src/react/hooks.ts`, `src/react/components.tsx`
+`src/react/hooks/index.ts`, `src/react/components/index.tsx`

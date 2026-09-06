@@ -1,8 +1,10 @@
 shellEmulator: true
+
 packages:
   - seitu
   - docs
   - playground
+
 allowBuilds:
   esbuild: false
   sharp: false

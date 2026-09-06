@@ -79,4 +79,4 @@ DebouncedFn is Subscribable; subscribe or useSubscription to read latest result.
 
 ## Source
 
-`src/core/debounced-fn.ts`
+`src/core/debounced-fn/index.ts`

@@ -82,4 +82,4 @@ Without a handler, invalid data silently falls back to defaultValue.
 
 ## Source
 
-`src/core/schema-store.ts`
+`src/core/schema-store/index.ts`

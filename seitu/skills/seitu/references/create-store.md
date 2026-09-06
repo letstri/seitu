@@ -93,4 +93,4 @@ Reference equality is the notification gate; stringify adds cost without fixing 
 
 ## Source
 
-`src/core/store.ts`
+`src/core/store/index.ts`

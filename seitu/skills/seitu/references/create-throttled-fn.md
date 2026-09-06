@@ -80,4 +80,4 @@ Throttled fn closure captures variables; update via args not closure mutation.
 
 ## Source
 
-`src/core/throttled-fn.ts`
+`src/core/throttled-fn/index.ts`

@@ -78,4 +78,4 @@ Invalid wait breaks timing expectations.
 
 ## Source
 
-`src/core/debounced.ts`
+`src/core/debounced/index.ts`

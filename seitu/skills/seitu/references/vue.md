@@ -118,4 +118,4 @@ Vue apps must use seitu/vue composable.
 
 ## Source
 
-`src/vue/composables.ts`
+`src/vue/composables/index.ts`

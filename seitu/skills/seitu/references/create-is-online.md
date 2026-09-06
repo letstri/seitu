@@ -71,4 +71,4 @@ Returns false when offline API unavailable; safe at module scope.
 
 ## Source
 
-`src/web/is-online.ts`
+`src/web/is-online/index.ts`

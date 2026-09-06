@@ -85,4 +85,4 @@ New matchMedia listener per render; use module-level singleton.
 
 ## Source
 
-`src/web/media-query.ts`
+`src/web/media-query/index.ts`

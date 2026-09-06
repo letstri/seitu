@@ -169,4 +169,4 @@ const v = useSubscription(s); return <Child value={v()} />
 
 ## Source
 
-`src/solid/hooks.ts`, `src/solid/components.ts`
+`src/solid/hooks/index.ts`, `src/solid/components/index.ts`

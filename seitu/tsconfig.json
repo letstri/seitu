@@ -11,6 +11,5 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
-  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

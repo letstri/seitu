@@ -119,4 +119,4 @@ The React hook relies on `useSyncExternalStore`; Svelte apps must use the `seitu
 
 ## Source
 
-`src/svelte/hooks.ts`
+`src/svelte/hooks/index.ts`

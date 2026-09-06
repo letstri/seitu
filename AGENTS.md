@@ -13,7 +13,7 @@ When you change public API behavior, docs examples, or integration patterns, kee
 ## Repository layout
 
 | Path | Purpose |
-|------|---------|
+| --- | --- |
 | `seitu/` | Published npm package (`seitu`); build inside this folder |
 | `seitu/src/core/` | Core stores, computed, debounce/throttle, subscriptions |
 | `seitu/src/web/` | Browser adapters (storage, media query, scroll, online) |
@@ -35,6 +35,8 @@ From repo root:
 pnpm install
 pnpm test && pnpm run check-types
 pnpm run lint
+pnpm run format
+pnpm run format:check
 cd seitu && pnpm run build
 cd docs && pnpm dev
 ```

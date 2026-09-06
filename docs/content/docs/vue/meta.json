@@ -1,5 +1,6 @@
 {
   "title": "Vue",
+  "icon": "Triangle",
   "collapsible": false,
   "defaultOpen": true
 }

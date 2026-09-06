@@ -77,4 +77,4 @@ Resets internal timer state.
 
 ## Source
 
-`src/core/throttled.ts`
+`src/core/throttled/index.ts`

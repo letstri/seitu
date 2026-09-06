@@ -5,9 +5,14 @@ import { useSubscription } from 'seitu/react'
 import { createScrollState } from 'seitu/web'
 
 export default function Page() {
-  const renderCount = React.useRef(0).current++
+  const renderCountRef = React.useRef(0)
+  React.useEffect(() => {
+    renderCountRef.current++
+  })
   const ref = React.useRef<HTMLDivElement>(null)
-  const scrollState = useSubscription(() => createScrollState({ element: () => ref.current, direction: 'vertical' }))
+  const scrollState = useSubscription(() =>
+    createScrollState({ element: () => ref.current, direction: 'vertical' })
+  )
 
   return (
     <div
@@ -27,7 +32,7 @@ export default function Page() {
           <strong>Scroll to see state updates</strong>
           <span>
             Render count:
-            {renderCount}
+            {renderCountRef.current}
           </span>
         </div>
         <div style={{ margin: '24px 0' }}>
@@ -36,25 +41,24 @@ export default function Page() {
               {
                 top: scrollState.top,
                 bottom: scrollState.bottom,
-                scrollTop: scrollState.top.remaining,
-                scrollHeight: scrollState.bottom.remaining,
-                clientHeight: scrollState.bottom.remaining,
               },
               null,
-              2,
+              2
             )}
           </pre>
         </div>
         <div>
           <div style={{ height: 600 }}>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum.
-              Cras venenatis euismod malesuada. Curabitur eleifend, libero nec ullamcorper sagittis, urna augue blandit enim,
-              eu tempor magna dolor non urna.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+              lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod
+              malesuada. Curabitur eleifend, libero nec ullamcorper sagittis,
+              urna augue blandit enim, eu tempor magna dolor non urna.
             </p>
             <p>
-              Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-              Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante.
+              Pellentesque habitant morbi tristique senectus et netus et
+              malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat
+              vitae, ultricies eget, tempor sit amet, ante.
             </p>
           </div>
           <div>

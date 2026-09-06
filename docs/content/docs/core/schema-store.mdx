@@ -1,10 +1,14 @@
 ---
 title: Schema Store
+description: "Creates a reactive schema store: state is validated on read, supports partial set, and falls back to default values when validation fails."
 ---
 
 ## createSchemaStore()
 Creates a reactive schema store: state is validated on read, supports partial `set`, and
 falls back to default values when validation fails.
+
+Validation is memoized on the raw state reference: repeated `get()` calls without an
+intervening `set()` return the same validated object without re-running the schema.
 
 ### Examples
 

@@ -1,41 +1,42 @@
 # createIndexedDbStorage
 
-Multi-key reactive handle for IndexedDB. Async under the hood, sync `get()` via in-memory cache.
+Defines a multi-key reactive key/value store for `createIndexedDb({ stores })`. Returns a definition only; the handle (async under the hood, sync `get()` via in-memory cache) lives under `db.stores.<name>`.
 
 ```ts
-import { createIndexedDbStorage } from 'seitu/web'
+import { createIndexedDb, createIndexedDbStorage } from 'seitu/web'
 import * as z from 'zod'
 
-const db = createIndexedDbStorage({
-  databaseName: 'app',
-  schemas: {
-    token: z.string().nullable(),
-    settings: z.object({ theme: z.enum(['light', 'dark']) }),
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    session: createIndexedDbStorage({
+      schemas: {
+        token: z.string().nullable(),
+        settings: z.object({ theme: z.enum(['light', 'dark']) }),
+      },
+      defaultValues: { token: null, settings: { theme: 'light' } },
+    }),
   },
-  defaultValues: { token: null, settings: { theme: 'light' } },
 })
+const { session } = db.stores
 
-db.get() // returns cached (defaults until hydrated)
+session.get() // returns cached (defaults until hydrated)
 await db.ready // wait for IndexedDB hydration
-await db.set({ token: 'abc' }) // persists async
-await db.clear() // resets to defaults + removes from IDB
+await session.set({ token: 'abc' }) // persists async
+await session.clear() // resets to defaults + removes from IDB
 ```
 
 ## Key differences from WebStorage
 
 - `set()` and `clear()` return `Promise<void>` (never rejects).
-- `ready` promise resolves after initial hydration.
+- No `ready` on the handle: `db.ready` resolves after initial hydration.
 - Cross-tab sync via `BroadcastChannel` (while subscribed).
-- `storeName` defaults to `'seitu'`, configurable.
-- Handles `onversionchange` / version bumps automatically.
+- Factory returns a definition, not a handle. `createIndexedDb` owns the connection, creates the store, builds the handle.
 
 ## Options
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `databaseName` | `string` | IndexedDB database name |
-| `storeName?` | `string` | Object store name (default `'seitu'`) |
-| `version?` | `number` | Pin DB version; omit for auto-managed |
 | `schemas` | `Record<string, StandardSchema>` | Validators per key |
 | `defaultValues` | matching record | Default values per key |
 | `keyTransform?` | `(key) => string` | Remap logical key to IDB key |
@@ -45,13 +46,40 @@ await db.clear() // resets to defaults + removes from IDB
 
 ```ts
 interface IndexedDbStorage<O> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O>, Clearable {
-  ready: Promise<O>
   set: (value: Partial<O> | ((prev: O) => Partial<O>)) => Promise<void>
   clear: () => Promise<void>
+  hydrate: () => Promise<O> // re-read from IndexedDB now; db.ready calls it once
+  db: IndexedDb
+  storeName: string
+  '~': { getDefaultValue; getSchema; transformKey }
 }
 ```
 
+Each key is one record in the store (out-of-line key = transformed key name).
+
 ## Common Mistakes
+
+### [HIGH] Using the definition as the handle
+
+Wrong:
+
+```ts
+const s = createIndexedDbStorage({ schemas, defaultValues })
+createIndexedDb({ name: 'app', stores: { settings: s } })
+s.get() // definition has no get
+```
+
+Correct:
+
+```ts
+const db = createIndexedDb({
+  name: 'app',
+  stores: { settings: createIndexedDbStorage({ schemas, defaultValues }) },
+})
+db.stores.settings.get()
+```
+
+The factory only describes the store. Nothing persists, reads, or subscribes without `createIndexedDb`.
 
 ### [HIGH] Treating set as synchronous
 
@@ -87,22 +115,15 @@ import 'fake-indexeddb/auto'
 
 IndexedDB is browser-only; tests need fake-indexeddb polyfill.
 
-### [HIGH] Missing schemas for keys
+### [MEDIUM] Using storage for lists
 
-Wrong:
+Storage is for a handful of settings-like values. Rows go in [`create-indexed-db-table`](create-indexed-db-table.md).
 
-```ts
-createIndexedDbStorage({ dbName: 'app' })
-```
+## See also
 
-Correct:
-
-```ts
-createIndexedDbStorage({ dbName: 'app', schemas: { items: z.array(z.string()) }, defaultValues: { items: [] } })
-```
-
-Same as WebStorage — keys must be declared in schemas/defaultValues.
+- [`create-indexed-db`](create-indexed-db.md) — the database that owns the connection.
+- [`create-web-storage`](create-web-storage.md) — same shape for localStorage/sessionStorage.
 
 ## Source
 
-`src/web/indexed-db-storage.ts`
+`src/web/indexed-db-storage/index.ts`

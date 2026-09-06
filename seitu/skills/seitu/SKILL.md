@@ -3,7 +3,7 @@ name: seitu
 description: >-
   Per-primitive API for Seitu: createStore, createComputed, createSchemaStore,
   createSubscription/createReadableSubscription, createDebounced(Fn),
-  createThrottled(Fn), createWebStorage(Value), createIndexedDbStorage,
+  createThrottled(Fn), createWebStorage(Value), createIndexedDb(Storage/Table),
   createMediaQuery, createIsOnline, createScrollState, and the React, Vue,
   Solid, and Svelte useSubscription/Subscription bindings. Use once you know
   which primitive or framework binding you need; read seitu-overview first
@@ -24,7 +24,9 @@ sources:
   - letstri/seitu:docs/content/docs/core/throttled-fn.mdx
   - letstri/seitu:docs/content/docs/web/web-storage.mdx
   - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
+  - letstri/seitu:docs/content/docs/web/indexed-db.mdx
   - letstri/seitu:docs/content/docs/web/indexed-db-storage.mdx
+  - letstri/seitu:docs/content/docs/web/indexed-db-table.mdx
   - letstri/seitu:docs/content/docs/web/media-query.mdx
   - letstri/seitu:docs/content/docs/web/is-online.mdx
   - letstri/seitu:docs/content/docs/web/scroll-state.mdx
@@ -34,7 +36,7 @@ sources:
   - letstri/seitu:docs/content/docs/solid/hooks.mdx
   - letstri/seitu:docs/content/docs/solid/components.mdx
   - letstri/seitu:docs/content/docs/svelte/hooks.mdx
-  - letstri/seitu:seitu/src/core/subscription.ts
+  - letstri/seitu:seitu/src/core/subscription/index.ts
 ---
 
 # Seitu — primitives and framework bindings
@@ -68,7 +70,9 @@ primitive or framework you need instead of reading everything.
 |------|-----------|
 | Multi-key localStorage/sessionStorage | [references/create-web-storage.md](references/create-web-storage.md) |
 | Single-key localStorage/sessionStorage | [references/create-web-storage-value.md](references/create-web-storage-value.md) |
-| Async IndexedDB persistence | [references/create-indexed-db-storage.md](references/create-indexed-db-storage.md) |
+| IndexedDB connection, owns the stores | [references/create-indexed-db.md](references/create-indexed-db.md) |
+| IndexedDB key/value store, sync `get()` | [references/create-indexed-db-storage.md](references/create-indexed-db-storage.md) |
+| IndexedDB rows, indexes, reactive queries | [references/create-indexed-db-table.md](references/create-indexed-db-table.md) |
 | CSS media query | [references/create-media-query.md](references/create-media-query.md) |
 | `navigator.onLine` status | [references/create-is-online.md](references/create-is-online.md) |
 | Scroll position / edges of an element | [references/create-scroll-state.md](references/create-scroll-state.md) |

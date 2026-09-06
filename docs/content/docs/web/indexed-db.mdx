@@ -1,0 +1,48 @@
+---
+title: Indexed Db
+description: "Creates an IndexedDB database that owns one connection and builds a handle for every store definition."
+---
+
+## createIndexedDb()
+Creates an IndexedDB database that owns one connection and builds a handle
+for every store definition. Each definition comes from
+`createIndexedDbStorage` (key/value, sync `get()`) or `createIndexedDbTable`
+(rows, indexes, queries); the key under `stores` becomes the object store
+name and the handle lives under `db.stores`.
+
+Stores and indexes that are missing get created automatically, the version
+is bumped as needed, and concurrent databases with the same name are
+serialized so they never race each other during an upgrade.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="db.ts"
+import { createIndexedDb, createIndexedDbStorage, createIndexedDbTable } from 'seitu/web'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    settings: createIndexedDbStorage({
+      schemas: { theme: z.enum(['light', 'dark']) },
+      defaultValues: { theme: 'light' },
+    }),
+    todos: createIndexedDbTable({
+      keyPath: 'id',
+      indexes: { status: 'status' },
+      schema: z.object({ id: z.string(), title: z.string(), status: z.enum(['open', 'done']) }),
+    }),
+  },
+})
+
+const { settings, todos } = db.stores
+
+settings.get() // { theme: 'light' } until hydrated
+await db.ready // connection open, settings hydrated
+await todos.put({ id: '1', title: 'Write docs', status: 'open' })
+```
+
+* * *
+

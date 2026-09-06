@@ -1,5 +1,6 @@
 ---
 title: Throttled
+description: "Creates a throttled readable that rate-limits updates from a source subscribable."
 ---
 
 ## createThrottled()
@@ -7,6 +8,10 @@ Creates a throttled readable that rate-limits updates from a source subscribable
 
 Emits the latest value at most once every `wait` milliseconds. The first update
 fires immediately, then subsequent updates are batched until the interval elapses.
+
+While nobody is subscribed, `get()` reads straight through to the source.
+Once subscribed, `get()` returns the last emitted value. Use `flush()` /
+`cancel()` to control a pending trailing update.
 
 ### Examples
 

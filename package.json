@@ -1,32 +1,29 @@
 {
-  "type": "module",
   "private": true,
-  "packageManager": "pnpm@11.9.0",
+  "type": "module",
   "scripts": {
+    "build": "cd seitu && pnpm run build",
+    "check-types": "pnpm -r run check-types",
+    "format": "oxfmt --config ./oxfmt.config.ts --ignore-path .gitignore .",
+    "format:check": "oxfmt --config ./oxfmt.config.ts --ignore-path .gitignore --check .",
+    "lint": "oxlint --config ./oxlint.config.ts --ignore-path .gitignore --deny-warnings .",
+    "lint:fix": "oxlint --config ./oxlint.config.ts --ignore-path .gitignore --fix --deny-warnings .",
     "prepare": "husky",
     "publish": "cd seitu && pnpm publish",
-    "build": "cd seitu && pnpm run build",
     "test": "cd seitu && pnpm run test",
-    "check-types": "turbo check-types",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
     "update": "taze -r -I major"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^9.1.0",
-    "@eslint-react/eslint-plugin": "^5.10.0",
     "@types/jsdoc-to-markdown": "^7.0.6",
-    "@types/node": "^26.0.1",
-    "eslint": "^10.6.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
-    "eslint-plugin-solid": "^0.14.5",
-    "eslint-plugin-svelte": "^3.20.0",
+    "@types/node": "^26.4.1",
     "husky": "^9.1.7",
     "jsdoc-to-markdown": "^9.1.3",
-    "npm-run-all2": "^9.0.2",
-    "taze": "^19.14.1",
-    "turbo": "^2.10.2",
-    "typescript": "^6.0.3"
-  }
+    "npm-run-all2": "^9.0.3",
+    "oxfmt": "^0.66.0",
+    "oxlint": "^1.79.0",
+    "taze": "^21.1.0",
+    "typescript": "^6.0.3",
+    "ultracite": "^7.10.8"
+  },
+  "packageManager": "pnpm@11.25.0"
 }

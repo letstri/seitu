@@ -1,3 +1,8 @@
+export type {
+  ValidationSchemaErrorProps,
+  ValidationSchemaObjectErrorProps,
+  ValidationSchemaOutput,
+} from '../internal/validate'
 export * from './computed'
 export * from './debounced'
 export * from './debounced-fn'

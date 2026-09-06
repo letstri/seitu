@@ -1,5 +1,6 @@
 ---
 title: Throttled Fn
+description: "Wraps a plain function in a throttled callable that also acts as a subscribable."
 ---
 
 ## createThrottledFn()
@@ -19,6 +20,7 @@ log.subscribe(result => console.log('result:', result))
 log('hello') // fires immediately
 log('world') // throttled — fires after 300ms
 log.get() // latest return value (undefined until first call)
+log.flush() // run the trailing call now
 ```
 
 * * *

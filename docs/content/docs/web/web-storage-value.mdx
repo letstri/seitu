@@ -1,9 +1,14 @@
 ---
 title: Web Storage Value
+description: "Creates a reactive handle for a single localStorage or sessionStorage key."
 ---
 
 ## createWebStorageValue()
-Creates a reactive handle for a localStorage or sessionStorage instance.
+Creates a reactive handle for a single localStorage or sessionStorage key.
+
+On the server (no `window`) `get()` returns `defaultValue`. The same value is
+exposed as the server snapshot so framework bindings can hydrate without a
+mismatch and then switch to the persisted value.
 
 ### Examples
 
@@ -24,28 +29,6 @@ tokenStorage.get() // null
 tokenStorage.set('abc')
 tokenStorage.get() // 'abc'
 tokenStorage.subscribe(console.log)
-```
-
-#### With storage
-
-```ts twoslash title="session-storage.ts"
-import { createWebStorage, createWebStorageValue } from 'seitu/web'
-import * as z from 'zod'
-
-const sessionStorage = createWebStorage({
-  type: 'sessionStorage',
-  schemas: { count: z.number(), name: z.string() },
-  defaultValues: { count: 0, name: '' },
-})
-
-const countStorage = createWebStorageValue({
-  storage: sessionStorage,
-  key: 'count',
-})
-
-countStorage.get() // 0
-countStorage.set(1)
-countStorage.get() // 1
 ```
 
 #### React

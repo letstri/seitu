@@ -103,4 +103,4 @@ Factory pattern in useSubscription recreates when element changes.
 
 ## Source
 
-`src/web/scroll-state.ts`
+`src/web/scroll-state/index.ts`

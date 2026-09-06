@@ -1,9 +1,14 @@
 ---
 title: Web Storage
+description: "Creates a reactive handle for a localStorage or sessionStorage instance."
 ---
 
 ## createWebStorage()
 Creates a reactive handle for a localStorage or sessionStorage instance.
+
+On the server (no `window`) `get()` returns `defaultValues`. The same value is
+exposed as the server snapshot so framework bindings can hydrate without a
+mismatch and then switch to the persisted value.
 
 ### Examples
 

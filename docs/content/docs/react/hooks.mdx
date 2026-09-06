@@ -1,11 +1,29 @@
 ---
 title: Hooks
+description: "Use this hook to subscribe to a reactive value."
 ---
 
 ## useSubscription()
 Use this hook to subscribe to a reactive value. Accepts a subscription object
 directly, or a factory function that is called only once on first render —
 subsequent renders reuse the cached subscription unless dependency array changes.
+
+**Server rendering.** When the source exposes `getServer`
+(every `seitu/web` handle does), it is used for the server render and the
+hydration render so the markup matches; the persisted value is picked up
+right after hydration. Handles without it (e.g. `createStore`) use `get()`
+on both sides.
+
+**Performance.** `getSnapshot` runs on every render (twice in development).
+The hook skips the selector and the equality check when the source returned
+the same reference, the selector is the same function and no notification
+arrived since the last snapshot. Pass a stable `selector` (module-level or
+`useCallback`) to benefit from this on re-renders caused by parent updates.
+
+**Factories run during render.** React StrictMode invokes them twice in
+development and discards one result, so keep factories cheap and free of
+side effects that need cleanup. Create long-lived resources such as
+`createIndexedDbStorage` at module scope instead.
 
 ### Examples
 

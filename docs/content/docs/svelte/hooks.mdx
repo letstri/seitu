@@ -1,15 +1,17 @@
 ---
 title: Hooks
+description: "Use this function to subscribe to a reactive value from a Svelte component."
 ---
 
 ## useSubscription()
-Use this function to subscribe to a reactive value. Accepts a subscription object
-directly, or a factory function that is called once to create one.
+Use this function to subscribe to a reactive value from a Svelte component.
+Accepts a subscription object directly, or a factory function that is called
+once, immediately, to create one.
 
-It returns a Svelte [`Readable`](https://svelte.dev/docs/svelte-store#readable) store —
-read it with the `$` auto-subscription (`$value`) in markup. The underlying subscription
-is created lazily on the first subscriber and torn down when the last one leaves, so it is
-SSR-safe and cleans up automatically.
+Returns a Svelte `Readable` store — read it with the `$` auto-subscription
+(`$value`) in markup. The store attaches to the underlying subscription when
+its first subscriber arrives and detaches when the last one leaves, so an
+unused store costs nothing.
 
 ### Examples
 

@@ -1,8 +1,8 @@
 # createWebStorageValue
 
-Single-key reactive handle for web storage. Two overloads: standalone (with schema) or derived from a WebStorage instance.
+Single-key reactive handle for web storage.
 
-## Standalone (with schema)
+## Usage
 
 ```ts
 import { createWebStorageValue } from 'seitu/web'
@@ -21,18 +21,7 @@ count.set(v => v + 1)
 count.clear()
 ```
 
-## Derived from WebStorage
-
-```ts
-import { createWebStorage, createWebStorageValue } from 'seitu/web'
-
-const storage = createWebStorage({ /* ... */ })
-const token = createWebStorageValue({ storage, key: 'token' })
-```
-
-Inherits schema, default, and storage type from the parent.
-
-## Options (standalone)
+## Options
 
 | Option | Type | Description |
 |--------|------|-------------|
@@ -102,4 +91,4 @@ Each instance uses a different storage subscription; use module singleton or use
 
 ## Source
 
-`src/web/web-storage-value.ts`
+`src/web/web-storage-value/index.ts`

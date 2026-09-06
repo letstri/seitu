@@ -1,62 +1,214 @@
 # Seitu
 
-[![npm version](https://badge.fury.io/js/seitu.svg)](https://npmjs.com/package/seitu)
-![You need Seitu](https://img.shields.io/badge/You_need-Seitu-purple)
+[![npm version](https://badge.fury.io/js/seitu.svg)](https://npmjs.com/package/seitu) ![You need Seitu](https://img.shields.io/badge/You_need-Seitu-purple)
 
-Seitu is a lightweight, framework-agnostic, type-safe utilities library for JavaScript applications on the client and server sides.
+Type-safe reactive primitives with one contract: `get()`, `subscribe()`, `set()`. Works with in-memory state, validated `localStorage` / IndexedDB, media queries, scroll position. Bindings for React, Vue, Solid, Svelte. SSR-safe.
 
-## Documentation
+[Documentation](https://seitu.letstri.dev) · [Playground](https://github.com/letstri/seitu/tree/main/playground)
 
-You can find the documentation [here](https://seitu.letstri.dev).
+```bash
+pnpm add seitu
+```
 
-## Example
+Import from an entry point (`seitu`, `seitu/web`, `seitu/react`, `seitu/vue`, `seitu/solid`, `seitu/svelte`, `seitu/utils`) or from a single feature to pull in nothing else:
 
-To quick start you only need to write the following code:
+```ts
+import { createStore } from 'seitu/core/store'
+import { createWebStorage } from 'seitu/web/web-storage'
+```
 
-```tsx
-import { useSubscription } from 'seitu/react'
-import { createWebStorageValue } from 'seitu/web'
+## Examples
+
+### State and derived values
+
+```ts
+import { createComputed, createStore } from 'seitu'
+
+const cart = createStore({ items: [{ price: 10, qty: 2 }], coupon: 0.1 })
+const total = createComputed(
+  cart,
+  (c) => c.items.reduce((s, i) => s + i.price * i.qty, 0) * (1 - c.coupon)
+)
+
+total.get() // 18
+cart.set((c) => ({ ...c, coupon: 0 }))
+total.subscribe((t) => console.log(t)) // 20
+```
+
+### Debounce and throttle
+
+```ts
+import { createDebounced, createDebouncedFn, createStore } from 'seitu'
+
+const query = createStore('')
+createDebounced(query, 300).subscribe((q) => fetch(`/search?q=${q}`))
+
+const save = createDebouncedFn((draft: string) => api.save(draft), 500)
+save('hello') // runs after 500 ms of silence
+save.flush() // or now
+```
+
+### Validated `localStorage`
+
+```ts
+import { createWebStorage, createWebStorageValue } from 'seitu/web'
 import * as z from 'zod'
 
-const value = createWebStorageValue({
-  type: 'sessionStorage',
-  key: 'test',
-  defaultValue: 0,
-  schema: z.number(),
+const settings = createWebStorage({
+  type: 'localStorage',
+  schemas: {
+    theme: z.enum(['light', 'dark']),
+    sidebar: z.object({ open: z.boolean() }),
+  },
+  defaultValues: { theme: 'light', sidebar: { open: true } },
 })
 
-value.get() // 0
-value.set(1)
-value.remove()
-value.subscribe(v => console.log(v))
+settings.set({ theme: 'dark' }) // partial update
+settings.get() // { theme: 'dark', sidebar: { open: true } }, invalid data falls back to defaults
 
-function Counter() {
-  const count = useSubscription(value)
+const theme = createWebStorageValue({
+  type: 'localStorage',
+  key: 'theme',
+  schema: z.enum(['light', 'dark']),
+  defaultValue: 'light',
+}) // single key
+theme.set('light')
+```
 
+### IndexedDB
+
+```ts
+import {
+  createIndexedDb,
+  createIndexedDbStorage,
+  createIndexedDbTable,
+} from 'seitu/web'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    session: createIndexedDbStorage({
+      schemas: { token: z.string().nullable() },
+      defaultValues: { token: null },
+    }), // key/value, sync get() via cache
+    todos: createIndexedDbTable({
+      keyPath: 'id',
+      indexes: { status: 'status' },
+      schema: z.object({ id: z.string(), status: z.enum(['open', 'done']) }),
+    }), // rows, validated on write and read
+  },
+}) // one connection, stores created on demand
+
+const { session, todos } = db.stores
+
+await db.ready // open + session hydrated
+await session.set({ token: 'abc' })
+await todos.put({ id: '1', status: 'open' })
+const open = todos.query((t) => t.index('status').getAll('open'), {
+  initial: [],
+}) // reactive
+```
+
+### Browser state
+
+```ts
+import { createIsOnline, createMediaQuery, createScrollState } from 'seitu/web'
+
+const isDark = createMediaQuery({ query: '(prefers-color-scheme: dark)' }) // type-checked query
+const online = createIsOnline()
+const feed = createScrollState({
+  element: () => document.querySelector('#feed'),
+  threshold: 200,
+})
+
+feed.subscribe(({ bottom }) => bottom.reached && loadMore())
+```
+
+## Frameworks
+
+```tsx
+// React
+import { useSubscription } from 'seitu/react'
+
+function Theme() {
+  const theme = useSubscription(settings, { selector: (s) => s.theme })
   return (
-    <div>
-      <span>{count}</span>
-      <button onClick={() => value.set(c => c + 1)}>Increment</button>
-    </div>
+    <button
+      onClick={() =>
+        settings.set({ theme: theme === 'light' ? 'dark' : 'light' })
+      }
+    >
+      {theme}
+    </button>
   )
 }
 ```
 
-Seitu has other powerful features, so check out the [docs](https://seitu.letstri.dev/docs) or the [playground](https://github.com/letstri/seitu/tree/main/playground) directory.
+```vue
+<!-- Vue -->
+<script setup lang="ts">
+import { useSubscription } from 'seitu/vue'
+
+const theme = useSubscription(settings, { selector: (s) => s.theme })
+</script>
+
+<template>
+  <button
+    @click="settings.set({ theme: theme === 'light' ? 'dark' : 'light' })"
+  >
+    {{ theme }}
+  </button>
+</template>
+```
+
+```tsx
+// Solid
+import { useSubscription } from 'seitu/solid'
+
+function Theme() {
+  const theme = useSubscription(settings, { selector: (s) => s.theme })
+  return (
+    <button
+      onClick={() =>
+        settings.set({ theme: theme() === 'light' ? 'dark' : 'light' })
+      }
+    >
+      {theme()}
+    </button>
+  )
+}
+```
+
+```svelte
+<!-- Svelte -->
+<script lang="ts">
+  import { useSubscription } from 'seitu/svelte'
+
+  const theme = useSubscription(settings, { selector: (s) => s.theme })
+</script>
+
+<button onclick={() => settings.set({ theme: $theme === 'light' ? 'dark' : 'light' })}>{$theme}</button>
+```
+
+Inline creation (refs, props):
+
+```tsx
+const scroll = useSubscription(
+  () => createScrollState({ element: () => ref.current }),
+  { deps: [] }
+)
+```
 
 ## Agent skills (TanStack Intent)
 
-Seitu ships [versioned agent skills](seitu/skills/README.md) inside the npm package. Install `seitu`, then run:
+Skills ship inside the npm package and describe the installed version's API.
 
 ```bash
-pnpm add seitu
 pnpm dlx @tanstack/intent@latest install
-pnpm dlx @tanstack/intent@latest list
-pnpm dlx @tanstack/intent@latest load seitu#create-store
+pnpm dlx @tanstack/intent@latest load seitu#seitu-overview
 ```
-
-Skills are indexed on the [Agent Skills Registry](https://tanstack.com/intent/registry) and update when you update the package.
 
 ## License
 
-MIT License - see the [LICENSE](https://github.com/letstri/seitu/blob/main/LICENSE) file for details
+MIT

@@ -1,6 +1,7 @@
 ---
 title: Introduction
 description: Type-safe, framework-agnostic library for working with familiar hooks and reactive values
+icon: Rocket
 ---
 
 ## Why?
@@ -35,7 +36,7 @@ Install and wire up Seitu in this project.
    ref, signal) but is actually shared, persisted, or derived from browser
    APIs, and replace it with the matching Seitu primitive: createStore,
    createSchemaStore, createComputed, createWebStorage(Value),
-   createIndexedDbStorage, createMediaQuery, createIsOnline, or
+   createIndexedDbStorage, createIndexedDbTable, createMediaQuery, createIsOnline, or
    createScrollState.
 3. Create primitives at module scope (never inside a component/render), and
    wire framework components to them with the `useSubscription` hook /
@@ -54,6 +55,10 @@ seitu
 ```
 
 Import from `seitu` for framework-agnostic core primitives, `seitu/web` for browser persistence and DOM state, and `seitu/react`, `seitu/vue`, `seitu/solid`, or `seitu/svelte` for framework bindings.
+
+<Callout title="Create primitives at module scope" type="info">
+  Every `create*` function returns a handle with the same `get()`, `set()`, and `subscribe()` API. Create it once at module scope (or with a factory passed to `useSubscription`), then share it between components, utilities, and tests.
+</Callout>
 
 ## Examples
 
@@ -103,4 +108,23 @@ export default function Page() {
 
 ## Ready?
 
-Head to [Web Storage](/docs/web/web-storage) or [React hooks](/docs/react/hooks) to get started.
+<Cards>
+  <Card href="/docs/core/store" title="Core primitives">
+    Stores, schema stores, computed values, debounce and throttle. Work everywhere JavaScript runs.
+  </Card>
+  <Card href="/docs/web/web-storage" title="Web primitives">
+    Typed `localStorage`, `sessionStorage`, IndexedDB, media queries, scroll state and online status.
+  </Card>
+  <Card href="/docs/react/hooks" title="React">
+    `useSubscription` hook and `Subscription` component for any Seitu handle.
+  </Card>
+  <Card href="/docs/vue/composables" title="Vue">
+    `useSubscription` composable that returns a reactive ref.
+  </Card>
+  <Card href="/docs/solid/hooks" title="Solid">
+    Signal-based `useSubscription` primitive and `Subscription` component.
+  </Card>
+  <Card href="/docs/svelte/hooks" title="Svelte">
+    Rune-friendly `useSubscription` for Svelte 5.
+  </Card>
+</Cards>

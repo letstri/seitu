@@ -1,5 +1,6 @@
 {
   "title": "Web",
+  "icon": "Globe",
   "collapsible": false,
   "defaultOpen": true
 }

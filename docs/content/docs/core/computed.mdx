@@ -1,10 +1,15 @@
 ---
 title: Computed
+description: "Creates a computed (derived) subscription from a subscription or an array of subscriptions."
 ---
 
 ## createComputed()
 Creates a computed (derived) subscription from a subscription or an array of subscriptions.
 The computed value is updated whenever any subscription updates.
+
+`transform` is memoized on the source values: reading `get()` twice without any
+source changing (by reference) returns the same cached result, so it is safe to
+derive objects or arrays and hand them to a framework binding.
 
 ### Examples
 

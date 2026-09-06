@@ -1,0 +1,29 @@
+---
+title: Subscription
+description: "Low-level subscribe/notify primitive used by every reactive handle."
+---
+
+## createSubscription()
+Low-level subscribe/notify primitive used by every reactive handle.
+
+- `onFirstSubscribe` runs when the first subscriber arrives; its return value runs
+  after the last subscriber leaves (attach/detach listeners lazily).
+- `notify` calls every subscriber. A throwing subscriber does not prevent the
+  others from being notified; the error is rethrown after the loop.
+- `size` reports the current subscriber count.
+
+### Examples
+
+```ts twoslash
+import { createSubscription } from 'seitu'
+
+const { subscribe, notify, size } = createSubscription({
+  onFirstSubscribe: () => {
+    const id = setInterval(notify, 1000)
+    return () => clearInterval(id)
+  },
+})
+```
+
+* * *
+

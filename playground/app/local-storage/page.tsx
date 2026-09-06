@@ -17,10 +17,15 @@ const localStorage = createWebStorage({
   },
 })
 
-const fullName = createComputed(localStorage, s => `${s.firstName} ${s.lastName}`)
+const fullName = createComputed(
+  localStorage,
+  (s) => `${s.firstName} ${s.lastName}`
+)
 
 export default function Page() {
-  const firstName = useSubscription(localStorage, { selector: s => s.firstName })
+  const firstName = useSubscription(localStorage, {
+    selector: (s) => s.firstName,
+  })
   const name = useSubscription(fullName)
 
   return (
@@ -28,14 +33,14 @@ export default function Page() {
       <input
         type="text"
         value={firstName}
-        onChange={e => localStorage.set({ firstName: e.target.value })}
+        onChange={(e) => localStorage.set({ firstName: e.target.value })}
       />
-      <Subscription value={localStorage} selector={s => s.lastName}>
-        {lastName => (
+      <Subscription value={localStorage} selector={(s) => s.lastName}>
+        {(lastName) => (
           <input
             type="text"
             value={lastName}
-            onChange={e => localStorage.set({ lastName: e.target.value })}
+            onChange={(e) => localStorage.set({ lastName: e.target.value })}
           />
         )}
       </Subscription>

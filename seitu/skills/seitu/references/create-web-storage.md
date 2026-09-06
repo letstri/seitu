@@ -104,8 +104,8 @@ storage event handling depends on implementation; verify subscribe fires on exte
 
 ## See also
 
-- [`create-web-storage-value`](create-web-storage-value.md) — Multi-key storage exposes single-key handles via createWebStorageValue.
+- [`create-web-storage-value`](create-web-storage-value.md) — Single-key handle for one storage key.
 
 ## Source
 
-`src/web/web-storage.ts`
+`src/web/web-storage/index.ts`

@@ -5,10 +5,10 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   plugins: [
     react({
-      include: ['**/src/react/*.ts?(x)'],
+      include: ['**/src/react/**/*.ts?(x)'],
     }),
     solid({
-      include: ['**/src/solid/*.ts?(x)'],
+      include: ['**/src/solid/**/*.ts?(x)'],
     }),
   ],
   test: {

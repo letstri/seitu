@@ -87,4 +87,4 @@ createReadableSubscription composes get + subscribe + notify correctly.
 
 ## Source
 
-`src/core/subscription.ts`
+`src/core/subscription/index.ts`

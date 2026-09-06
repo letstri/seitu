@@ -84,4 +84,4 @@ Readable subscription has no set — use createStore or compose Writable separat
 
 ## Source
 
-`src/core/subscription.ts`
+`src/core/subscription/index.ts`

@@ -92,4 +92,4 @@ Computed is read-only; use the source store's set().
 
 ## Source
 
-`src/core/computed.ts`
+`src/core/computed/index.ts`
