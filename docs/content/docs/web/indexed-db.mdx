@@ -1,18 +1,12 @@
 ---
 title: Indexed Db
-description: "Creates an IndexedDB database that owns one connection and builds a handle for every store definition."
+description: "Opens one IndexedDB connection and builds a handle for each store definition (createIndexedDbStorage or createIndexedDbTable)."
 ---
 
 ## createIndexedDb()
-Creates an IndexedDB database that owns one connection and builds a handle
-for every store definition. Each definition comes from
-`createIndexedDbStorage` (key/value, sync `get()`) or `createIndexedDbTable`
-(rows, indexes, queries); the key under `stores` becomes the object store
-name and the handle lives under `db.stores`.
-
-Stores and indexes that are missing get created automatically, the version
-is bumped as needed, and concurrent databases with the same name are
-serialized so they never race each other during an upgrade.
+Opens one IndexedDB connection and builds a handle for each store definition
+(`createIndexedDbStorage` or `createIndexedDbTable`). Missing stores/indexes
+are created automatically; concurrent opens of the same name are serialized.
 
 ### Examples
 
@@ -46,3 +40,137 @@ await todos.put({ id: '1', title: 'Write docs', status: 'open' })
 
 * * *
 
+## createIndexedDbStorage()
+Key/value store for `createIndexedDb({ stores })`. `get()` reads an
+in-memory cache hydrated from IndexedDB (`await db.ready`). `set`/`clear`
+update the cache now and persist later. SSR snapshot is `defaultValues`.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="settings-storage.ts"
+import { createIndexedDb, createIndexedDbStorage } from 'seitu/web'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    settings: createIndexedDbStorage({
+      schemas: {
+        token: z.string().nullable(),
+        preferences: z.object({ theme: z.enum(['light', 'dark']) }),
+      },
+      defaultValues: { token: null, preferences: { theme: 'light' } },
+    }),
+  },
+})
+const { settings } = db.stores
+
+settings.get() // { token: null, preferences: { theme: 'light' } }
+await db.ready // value hydrated from IndexedDB
+await settings.set({ token: 'abc' })
+settings.get() // { token: 'abc', preferences: { theme: 'light' } }
+settings.subscribe(console.log)
+```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import { createIndexedDb, createIndexedDbStorage } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    settings: createIndexedDbStorage({
+      schemas: { count: z.number(), name: z.string() },
+      defaultValues: { count: 0, name: '' },
+    }),
+  },
+})
+
+export default function Page() {
+  const value = useSubscription(db.stores.settings)
+  return (
+    <div>
+      <span>{value.count}</span>
+      <span>{value.name}</span>
+    </div>
+  )
+}
+```
+
+* * *
+
+## createIndexedDbTable()
+Row store for `createIndexedDb({ stores })`: keyed rows, indexes, range
+reads, validation. Use `query()` for a `Readable`/`Subscribable` that
+re-runs on table changes. On the server, queries stay on `initial`.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="todos.ts"
+import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    todos: createIndexedDbTable({
+      keyPath: 'id',
+      indexes: { status: 'status' },
+      schema: z.object({ id: z.string(), title: z.string(), status: z.enum(['open', 'done']) }),
+    }),
+  },
+})
+const { todos } = db.stores
+
+await todos.put({ id: '1', title: 'Write docs', status: 'open' })
+await todos.get('1') // { id: '1', title: 'Write docs', status: 'open' }
+await todos.getAll()
+await todos.index('status').getAll('open') // index names are typed
+await todos.delete('1')
+
+const open = todos.query(t => t.index('status').getAll('open'), { initial: [] })
+open.get() // [] until the first run settles
+open.subscribe(rows => console.log(rows)) // re-runs after every write
+```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    todos: createIndexedDbTable({
+      keyPath: 'id',
+      schema: z.object({ id: z.string(), title: z.string(), status: z.enum(['open', 'done']) }),
+    }),
+  },
+})
+
+const allTodos = db.stores.todos.query(t => t.getAll(), { initial: [] })
+
+export default function Page() {
+  const rows = useSubscription(allTodos)
+  return (
+    <ul>
+      {rows.map(todo => <li key={todo.id}>{todo.title}</li>)}
+    </ul>
+  )
+}
+```
+
+* * *

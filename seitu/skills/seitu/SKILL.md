@@ -25,8 +25,6 @@ sources:
   - letstri/seitu:docs/content/docs/web/web-storage.mdx
   - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
   - letstri/seitu:docs/content/docs/web/indexed-db.mdx
-  - letstri/seitu:docs/content/docs/web/indexed-db-storage.mdx
-  - letstri/seitu:docs/content/docs/web/indexed-db-table.mdx
   - letstri/seitu:docs/content/docs/web/media-query.mdx
   - letstri/seitu:docs/content/docs/web/is-online.mdx
   - letstri/seitu:docs/content/docs/web/scroll-state.mdx

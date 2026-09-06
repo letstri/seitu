@@ -8,6 +8,11 @@ const OUTPUT_PATH_REGEXP = /(?:[/\\]index)?\.(?<ext>ts|tsx)$/u
 
 const UNDOCUMENTED_GROUPS = new Set(['internal', 'utils'])
 
+// Features documented together on the page of the first one, in this order.
+const MERGED_PAGES = [
+  ['web/indexed-db', 'web/indexed-db-storage', 'web/indexed-db-table'],
+]
+
 const rootDir = path.resolve(import.meta.dirname, '..')
 const srcDir = path.join(rootDir, '../', 'seitu', 'src')
 const outDir = path.join(rootDir, 'content', 'docs')
@@ -180,7 +185,32 @@ function getPageTitle(sourcePath: string): string {
     .join(' ')
 }
 
-async function generateDocForFile(sourcePath: string): Promise<void> {
+function getFeatureKey(sourcePath: string): string {
+  return path
+    .relative(srcDir, sourcePath)
+    .replace(OUTPUT_PATH_REGEXP, '')
+    .split(path.sep)
+    .join('/')
+}
+
+function groupIntoPages(files: string[]): string[][] {
+  const byFeature = new Map(files.map((file) => [getFeatureKey(file), file]))
+  const mergedKeys = new Set(MERGED_PAGES.flat())
+  const pages = MERGED_PAGES.map((keys) =>
+    keys.map((key) => byFeature.get(key)).filter((file) => file !== undefined)
+  ).filter((sources) => sources.length > 0)
+
+  for (const [key, file] of byFeature) {
+    if (!mergedKeys.has(key)) {
+      pages.push([file])
+    }
+  }
+  return pages
+}
+
+async function renderSection(
+  sourcePath: string
+): Promise<{ markdown: string; jsdocMap: Map<string, string> } | undefined> {
   const raw = await fs.readFile(sourcePath, 'utf-8')
   const code = normalizeExampleCaptions(raw)
   const jsdocMap = extractJSDocForExportedFunctions(code, sourcePath)
@@ -198,12 +228,28 @@ async function generateDocForFile(sourcePath: string): Promise<void> {
   })
   if (!markdown) {
     console.warn('No markdown for', sourcePath)
+    return undefined
+  }
+
+  return { markdown: stripHtml(markdown).trim(), jsdocMap }
+}
+
+/** The first source owns the page's path, title and description. */
+async function generateDocForPage(sourcePaths: string[]): Promise<void> {
+  const [primary] = sourcePaths
+  const sections = []
+  for (const sourcePath of sourcePaths) {
+    const section = await renderSection(sourcePath)
+    if (section) {
+      sections.push(section)
+    }
+  }
+  if (sections.length === 0) {
     return
   }
 
-  const cleaned = stripHtml(markdown)
-  const title = getPageTitle(sourcePath)
-  const description = getPageDescription(jsdocMap)
+  const title = getPageTitle(primary)
+  const description = getPageDescription(sections[0].jsdocMap)
   const frontmatter = [
     '---',
     `title: ${title}`,
@@ -212,9 +258,10 @@ async function generateDocForFile(sourcePath: string): Promise<void> {
   ]
     .filter(Boolean)
     .join('\n')
-  const outPath = getOutputPath(sourcePath)
+  const body = sections.map((section) => section.markdown).join('\n\n')
+  const outPath = getOutputPath(primary)
   await fs.mkdir(path.dirname(outPath), { recursive: true })
-  await fs.writeFile(outPath, `${frontmatter}\n\n${cleaned}`, 'utf-8')
+  await fs.writeFile(outPath, `${frontmatter}\n\n${body}\n`, 'utf-8')
   console.log('Generated', outPath)
 }
 
@@ -227,8 +274,8 @@ async function main(): Promise<void> {
 
   // Sequential: parallel `jsdoc2md.render` calls race on jsdoc's temp files and one of
   // them comes back empty ("Unexpected end of JSON input"), which fails the build.
-  for (const file of files) {
-    await generateDocForFile(file)
+  for (const sourcePaths of groupIntoPages(files)) {
+    await generateDocForPage(sourcePaths)
   }
 }
 
