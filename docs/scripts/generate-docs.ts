@@ -225,7 +225,11 @@ async function main(): Promise<void> {
     return
   }
 
-  await Promise.all(files.map((file) => generateDocForFile(file)))
+  // Sequential: parallel `jsdoc2md.render` calls race on jsdoc's temp files and one of
+  // them comes back empty ("Unexpected end of JSON input"), which fails the build.
+  for (const file of files) {
+    await generateDocForFile(file)
+  }
 }
 
 main().catch((error) => {
