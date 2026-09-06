@@ -6,6 +6,8 @@ import ts from 'typescript'
 
 const OUTPUT_PATH_REGEXP = /(?:[/\\]index)?\.(?<ext>ts|tsx)$/u
 
+const UNDOCUMENTED_GROUPS = new Set(['internal', 'utils'])
+
 const rootDir = path.resolve(import.meta.dirname, '..')
 const srcDir = path.join(rootDir, '../', 'seitu', 'src')
 const outDir = path.join(rootDir, 'content', 'docs')
@@ -29,8 +31,8 @@ async function findSourceFiles(dir: string): Promise<string[]> {
     entries.map(async (entry) => {
       const fullPath = path.join(dir, entry.name)
       if (entry.isDirectory()) {
-        // `internal/` is not part of the public API.
-        return entry.name === 'internal' && dir === srcDir
+        // `internal/` is private; `utils/` is only used through the web primitives.
+        return UNDOCUMENTED_GROUPS.has(entry.name) && dir === srcDir
           ? []
           : findSourceFiles(fullPath)
       }
