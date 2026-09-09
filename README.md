@@ -191,13 +191,16 @@ function Theme() {
 <button onclick={() => settings.set({ theme: $theme === 'light' ? 'dark' : 'light' })}>{$theme}</button>
 ```
 
-Inline creation (refs, props):
+Inline creation (elements, props). Use a callback ref so the subscription is
+rebuilt when the element mounts, unmounts, or remounts:
 
 ```tsx
-const scroll = useSubscription(
-  () => createScrollState({ element: () => ref.current }),
-  { deps: [] }
-)
+const [el, setEl] = useState<HTMLDivElement | null>(null)
+const scroll = useSubscription(() => createScrollState({ element: el }), {
+  deps: [el],
+})
+
+return <div ref={setEl} />
 ```
 
 ## Agent skills (TanStack Intent)

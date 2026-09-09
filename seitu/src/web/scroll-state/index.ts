@@ -26,7 +26,12 @@ export interface ScrollState
   extends Subscribable<ScrollStateValue>, ServerReadable<ScrollStateValue> {}
 
 export interface ScrollStateOptions {
-  /** Element to observe, or a getter (e.g. a React ref). */
+  /**
+   * Element to observe, or a getter. The getter is resolved once, when the
+   * first subscriber attaches; a later change to what it returns is not
+   * tracked. In React pass the element from a callback ref and list it in
+   * `deps` so the subscription is rebuilt on mount, unmount, and remount.
+   */
   element: Element | null | (() => Element | null)
   /**
    * @default 'both'
@@ -73,30 +78,7 @@ const inactiveState: ScrollStateValue = {
  * console.log(state)
  * ```
  *
- * @example React (with useRef)
- * ```tsx twoslash title="page.tsx"
- * 'use client'
- *
- * import * as React from 'react'
- * import { createScrollState } from 'seitu/web'
- * import { useSubscription } from 'seitu/react'
- *
- * function Layout() {
- *   const ref = React.useRef<HTMLDivElement>(null)
- *   const state = useSubscription(() => createScrollState({
- *     element: () => ref.current,
- *     threshold: 10,
- *   }))
- *
- *   return (
- *     <div ref={ref}>
- *       {state.top.reached ? 'at the top' : 'scrolled'}
- *     </div>
- *   )
- * }
- * ```
- *
- * @example React (with useState)
+ * @example React (callback ref)
  * ```tsx twoslash title="page.tsx"
  * 'use client'
  *

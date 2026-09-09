@@ -42,64 +42,62 @@ interface ScrollStateEdge {
 }
 ```
 
-## React usage (with ref)
+## React usage (callback ref)
 
 ```tsx
-const ref = useRef<HTMLDivElement>(null)
-const state = useSubscription(() =>
-  createScrollState({ element: () => ref.current, direction: 'vertical' })
+const [el, setEl] = useState<HTMLDivElement | null>(null)
+const state = useSubscription(
+  () => createScrollState({ element: el, direction: 'vertical' }),
+  { deps: [el] }
 )
+return <div ref={setEl} />
 ```
+
+`element` accepts a getter, but it is resolved once when the first subscriber
+attaches. A `useRef` getter binds to whatever exists at that moment and never
+rebinds, so it misses elements that mount later or remount.
 
 ## Common Mistakes
 
-### [CRITICAL] Passing static element ref
+### [CRITICAL] Reading a `useRef` through a getter
 
 Wrong:
 
-```ts
-createScrollState({ element: ref.current })
-```
-
-Correct:
-
-```ts
-createScrollState({ element: () => ref.current, direction: 'vertical' })
-```
-
-element option accepts a getter so ref.current updates are tracked.
-
-### [HIGH] Creating scroll state without ref attached
-
-Wrong:
-
-```ts
-createScrollState({ element: () => ref.current }) // ref never attached
-```
-
-Correct:
-
-```ts
-<div ref={ref}>...</div>
-```
-
-Null element returns default scroll metrics.
-
-### [HIGH] Module-level scroll state with dynamic element
-
-Wrong:
-
-```ts
-const scroll = createScrollState({ element: () => el })
-```
-
-Correct:
-
-```ts
+```tsx
+const ref = useRef<HTMLDivElement>(null)
 useSubscription(() => createScrollState({ element: () => ref.current }), { deps: [] })
 ```
 
-Factory pattern in useSubscription recreates when element changes.
+The getter runs once on first subscribe. If the element is not mounted yet, or
+unmounts and remounts, the listener is never attached to the live element.
+
+Correct:
+
+```tsx
+const [el, setEl] = useState<HTMLDivElement | null>(null)
+useSubscription(() => createScrollState({ element: el }), { deps: [el] })
+return <div ref={setEl} />
+```
+
+`deps: [el]` rebuilds the subscription for every new element.
+
+### [HIGH] Creating scroll state without the ref attached
+
+Wrong:
+
+```tsx
+const [el, setEl] = useState<HTMLDivElement | null>(null)
+useSubscription(() => createScrollState({ element: el }), { deps: [el] })
+return <div>...</div> // setEl never called
+```
+
+Correct:
+
+```tsx
+return <div ref={setEl}>...</div>
+```
+
+Null element returns default scroll metrics.
 
 ## Source
 

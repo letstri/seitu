@@ -737,4 +737,50 @@ describe('useSubscription snapshot fast path', () => {
     act(() => store.set((s) => ({ ...s, a: 9 })))
     expect(result.current).toEqual({ a: 9 })
   })
+  describe('useSubscription with element from callback ref', () => {
+    function scrollTo(el: HTMLElement, top: number) {
+      Object.defineProperty(el, 'scrollTop', { value: top, configurable: true })
+      Object.defineProperty(el, 'scrollHeight', {
+        value: 1000,
+        configurable: true,
+      })
+      Object.defineProperty(el, 'clientHeight', {
+        value: 100,
+        configurable: true,
+      })
+      el.dispatchEvent(new Event('scroll'))
+    }
+
+    function ScrollBox({ show }: { show: boolean }) {
+      const [el, setEl] = React.useState<HTMLDivElement | null>(null)
+      const state = useSubscription(
+        () => createScrollState({ element: el, direction: 'vertical' }),
+        { deps: [el] }
+      )
+      return (
+        <>
+          <span data-testid="top">{String(state.top.reached)}</span>
+          {show && <div ref={setEl} data-testid="box" />}
+        </>
+      )
+    }
+
+    it('tracks an element that mounts late and remounts', () => {
+      const { rerender } = render(<ScrollBox show={false} />)
+      expect(screen.getByTestId('top').textContent).toBe('false')
+
+      rerender(<ScrollBox show />)
+      expect(screen.getByTestId('top').textContent).toBe('true')
+      act(() => scrollTo(screen.getByTestId('box'), 50))
+      expect(screen.getByTestId('top').textContent).toBe('false')
+
+      rerender(<ScrollBox show={false} />)
+      rerender(<ScrollBox show />)
+      expect(screen.getByTestId('top').textContent).toBe('true')
+      act(() => scrollTo(screen.getByTestId('box'), 50))
+      expect(screen.getByTestId('top').textContent).toBe('false')
+      act(() => scrollTo(screen.getByTestId('box'), 0))
+      expect(screen.getByTestId('top').textContent).toBe('true')
+    })
+  })
 })

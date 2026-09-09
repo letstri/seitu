@@ -25,14 +25,16 @@ function Counter() {
 'use client'
 import { useSubscription } from 'seitu/react'
 import { createScrollState } from 'seitu/web'
-import { useRef } from 'react'
+import { useState } from 'react'
 
 function ScrollTracker() {
-  const ref = useRef<HTMLDivElement>(null)
-  const state = useSubscription(() =>
-    createScrollState({ element: () => ref.current, direction: 'vertical' })
+  // Callback ref + deps: subscription is rebuilt on mount/unmount/remount.
+  const [el, setEl] = useState<HTMLDivElement | null>(null)
+  const state = useSubscription(
+    () => createScrollState({ element: el, direction: 'vertical' }),
+    { deps: [el] }
   )
-  return <div ref={ref}>{state.top.reached ? 'at top' : 'scrolled'}</div>
+  return <div ref={setEl}>{state.top.reached ? 'at top' : 'scrolled'}</div>
 }
 ```
 

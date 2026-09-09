@@ -101,7 +101,7 @@ interface Cell<S extends Subscribable<any> & Readable<any>, R> {
  * }
  * ```
  *
- * @example Ref example
+ * @example Element from a callback ref
  * ```tsx twoslash title="/app/page.tsx"
  * 'use client'
  *
@@ -110,11 +110,17 @@ interface Cell<S extends Subscribable<any> & Readable<any>, R> {
  * import { useSubscription } from 'seitu/react'
  *
  * export default function Page() {
- *   const ref = React.useRef<HTMLDivElement>(null)
- *   const state = useSubscription(() => createScrollState({ element: () => ref.current, direction: 'vertical' }))
+ *   // A callback ref plus `deps` rebuilds the subscription when the element
+ *   // mounts, unmounts, or remounts. `() => ref.current` would bind once and
+ *   // miss later elements.
+ *   const [el, setEl] = React.useState<HTMLDivElement | null>(null)
+ *   const state = useSubscription(
+ *     () => createScrollState({ element: el, direction: 'vertical' }),
+ *     { deps: [el] }
+ *   )
  *
  *   return (
- *     <div ref={ref}>
+ *     <div ref={setEl}>
  *       {String(state.top.reached)}
  *     </div>
  *   )
