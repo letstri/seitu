@@ -6,9 +6,9 @@ Wraps a plain function. First call fires immediately, subsequent calls within `w
 import { createThrottledFn } from 'seitu'
 
 const log = createThrottledFn((msg: string) => console.log(msg), 300)
-log('hello') // fires immediately
-log('world') // throttled — fires after 300ms
-log.get() // latest return value (undefined until first call)
+log('hello')
+log('world')
+log.get()
 log.subscribe(result => console.log('result:', result))
 ```
 

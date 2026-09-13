@@ -27,7 +27,7 @@ const sessionStorage = createWebStorage({
   defaultValues: { token: null, preferences: { theme: 'light' } },
 })
 
-sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
+sessionStorage.get()
 sessionStorage.set({ token: 'abc' })
 sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
 sessionStorage.subscribe(console.log)

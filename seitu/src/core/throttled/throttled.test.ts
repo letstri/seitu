@@ -32,8 +32,8 @@ describe('createThrottled', () => {
     throttled.subscribe(callback)
 
     store.set(1) // fires immediately
-    store.set(2) // throttled
-    store.set(3) // throttled
+    store.set(2)
+    store.set(3)
     expect(callback).toHaveBeenCalledOnce()
     expect(callback).toHaveBeenCalledWith(1)
 
@@ -153,8 +153,8 @@ describe('createThrottled cancel/flush', () => {
     const callback = vi.fn()
     throttled.subscribe(callback)
 
-    store.set(1) // leading, fires immediately
-    store.set(2) // trailing, pending
+    store.set(1)
+    store.set(2)
     expect(callback).toHaveBeenCalledOnce()
 
     throttled.flush()
@@ -177,7 +177,7 @@ describe('createThrottled cancel/flush', () => {
     vi.advanceTimersByTime(100)
     expect(callback).toHaveBeenCalledOnce()
 
-    store.set(3) // window reopened: fires immediately
+    store.set(3)
     expect(callback).toHaveBeenLastCalledWith(3)
   })
 })

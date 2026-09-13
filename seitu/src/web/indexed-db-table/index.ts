@@ -359,14 +359,14 @@ function createTable<S extends StandardSchemaV1<unknown>>(
  * const { todos } = db.stores
  *
  * await todos.put({ id: '1', title: 'Write docs', status: 'open' })
- * await todos.get('1') // { id: '1', title: 'Write docs', status: 'open' }
+ * await todos.get('1')
  * await todos.getAll()
  * await todos.index('status').getAll('open') // index names and keys are typed
  * await todos.delete('1')
  *
  * const open = todos.query(t => t.index('status').getAll('open'), { initial: [] })
- * open.get() // [] until the first run settles
- * open.subscribe(rows => console.log(rows)) // re-runs after every write
+ * open.get()
+ * open.subscribe(rows => console.log(rows))
  * ```
  *
  * @example React

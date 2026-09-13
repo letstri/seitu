@@ -12,7 +12,6 @@ const scroll = createScrollState({
 })
 
 scroll.get()
-// { top: { reached, remaining }, bottom: { reached, remaining }, left: ..., right: ... }
 scroll.subscribe(state => console.log(state.bottom.reached))
 ```
 

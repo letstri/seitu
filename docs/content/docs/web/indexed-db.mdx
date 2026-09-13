@@ -34,7 +34,7 @@ const db = createIndexedDb({
 const { settings, todos } = db.stores
 
 settings.get() // { theme: 'light' } until hydrated
-await db.ready // connection open, settings hydrated
+await db.ready
 await todos.put({ id: '1', title: 'Write docs', status: 'open' })
 ```
 
@@ -63,14 +63,13 @@ const db = createIndexedDb({
   },
   onUpgrade: ({ oldVersion, migrate }) => {
     if (oldVersion < 2) {
-      // Store names and rows are typed from `stores`.
       migrate('todos', row => ({ ...row, priority: row.priority ?? 0 }))
       // Return `null` to drop a row, nothing to keep it as is.
     }
   },
 })
 
-await db.ready // upgrade finished, rows migrated
+await db.ready
 ```
 
 Three things the cursor walk cannot do:
@@ -87,6 +86,64 @@ Three things the cursor walk cannot do:
   `console.warn`. The database stays on its old version, and because every
   access retries the same failing upgrade, `ready` still resolves but reads and
   writes reject until the migration is fixed.
+
+#### Transactions
+
+Every write is one transaction, and only one. A single `put`, `delete`, `set`
+or `clear` call opens a `readwrite` transaction and queues all of its rows or
+keys on it, so a batch lands whole or not at all. Two calls are two
+transactions, and neither spans stores — there is no transaction handle to
+open yourself.
+
+```ts twoslash title="checkout.ts"
+import { createIndexedDb, createIndexedDbStorage, createIndexedDbTable } from 'seitu/web'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  stores: {
+    sync: createIndexedDbStorage({
+      schemas: { lastSyncedAt: z.number(), pending: z.number() },
+      defaultValues: { lastSyncedAt: 0, pending: 0 },
+    }),
+    todos: createIndexedDbTable({
+      keyPath: 'id',
+      schema: z.object({ id: z.string(), title: z.string(), status: z.enum(['open', 'done']) }),
+    }),
+  },
+})
+const { sync, todos } = db.stores
+
+// One `readwrite` transaction: both rows land, or neither does.
+await todos.put([
+  { id: '1', title: 'Write docs', status: 'done' },
+  { id: '2', title: 'Ship docs', status: 'open' },
+])
+
+await todos.delete(['1', '2'])
+await sync.set({ lastSyncedAt: Date.now(), pending: 0 })
+
+await todos.put({ id: '3', title: 'Reconcile', status: 'open' })
+await sync.set({ pending: 1 })
+```
+
+What that buys, and what it does not:
+
+- **A batch is all-or-nothing.** Pass the whole array to one call instead of
+  awaiting one call per row. Rows are validated before the transaction opens,
+  so a single bad row rejects with nothing written.
+- **A batch notifies once.** `query()` re-runs, and other tabs are told, after
+  the transaction completes — once per call, not once per row.
+- **Nothing spans stores.** A table write and a storage write are separate
+  transactions, so order them to fail safe: write the rows first, then the
+  pointer that makes them visible.
+- **Failures differ per store.** A table write rejects when its transaction
+  aborts. A storage write never rejects: the cache already holds the new value
+  and a failed persist is only a `console.warn`, so re-read after `hydrate()`
+  if the write has to be confirmed.
+
+The one transaction you do get to widen is the `versionchange` one — everything
+`onUpgrade` queues shares it, which is why a failed migration rolls back whole.
 
 * * *
 
@@ -117,8 +174,8 @@ const db = createIndexedDb({
 })
 const { settings } = db.stores
 
-settings.get() // { token: null, preferences: { theme: 'light' } }
-await db.ready // value hydrated from IndexedDB
+settings.get()
+await db.ready
 await settings.set({ token: 'abc' })
 settings.get() // { token: 'abc', preferences: { theme: 'light' } }
 settings.subscribe(console.log)
@@ -182,14 +239,14 @@ const db = createIndexedDb({
 const { todos } = db.stores
 
 await todos.put({ id: '1', title: 'Write docs', status: 'open' })
-await todos.get('1') // { id: '1', title: 'Write docs', status: 'open' }
+await todos.get('1')
 await todos.getAll()
 await todos.index('status').getAll('open') // index names and keys are typed
 await todos.delete('1')
 
 const open = todos.query(t => t.index('status').getAll('open'), { initial: [] })
-open.get() // [] until the first run settles
-open.subscribe(rows => console.log(rows)) // re-runs after every write
+open.get()
+open.subscribe(rows => console.log(rows))
 ```
 
 `keyPath` and every index key path must name a schema field that can hold a

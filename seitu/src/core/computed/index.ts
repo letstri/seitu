@@ -28,7 +28,7 @@ type SourceValues<S extends readonly Source[]> = {
  * const a = createStore(1)
  * const b = createStore(2)
  * const sum = createComputed([a, b], ([a, b]) => a + b)
- * sum.get() // 3
+ * sum.get()
  * ```
  */
 export function createComputed<S extends readonly Source[], R>(

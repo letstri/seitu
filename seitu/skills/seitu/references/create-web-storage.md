@@ -15,9 +15,9 @@ const storage = createWebStorage({
   defaultValues: { token: null, preferences: { theme: 'light' } },
 })
 
-storage.get() // { token: null, preferences: { theme: 'light' } }
-storage.set({ token: 'abc' }) // partial update
-storage.clear() // remove all managed keys
+storage.get()
+storage.set({ token: 'abc' })
+storage.clear()
 storage.subscribe(console.log)
 ```
 

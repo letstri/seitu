@@ -19,7 +19,7 @@ export interface Debounced<T> extends Readable<T>, Subscribable<T> {
  * const store = createStore('')
  * const debounced = createDebounced(store, 300)
  * debounced.subscribe(value => console.log('debounced:', value))
- * debounced.flush() // emit a pending value right away
+ * debounced.flush()
  * ```
  */
 export function createDebounced<T>(

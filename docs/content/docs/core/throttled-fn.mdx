@@ -19,8 +19,8 @@ const log = createThrottledFn((msg: string) => console.log(msg), 300)
 log.subscribe(result => console.log('result:', result))
 log('hello') // fires immediately
 log('world') // throttled — fires after 300ms
-log.get() // latest return value (undefined until first call)
-log.flush() // run the trailing call now
+log.get()
+log.flush()
 ```
 
 * * *

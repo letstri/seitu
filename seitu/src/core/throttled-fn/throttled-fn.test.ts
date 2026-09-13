@@ -26,8 +26,8 @@ describe('createThrottledFn', () => {
     const throttled = createThrottledFn(fn, 100)
 
     throttled(1) // fires immediately
-    throttled(2) // throttled
-    throttled(3) // throttled (replaces 2)
+    throttled(2)
+    throttled(3)
     expect(fn).toHaveBeenCalledOnce()
     expect(throttled.get()).toBe(1)
 

@@ -11,7 +11,7 @@ const store = createSchemaStore({
   defaultValue: { count: 0, name: '' },
 })
 
-store.get() // { count: 0, name: '' }
+store.get()
 store.set({ count: 1, name: 'alice' })
 store.subscribe(console.log)
 ```

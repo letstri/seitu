@@ -115,14 +115,12 @@ One hook/composable works with **any** Seitu primitive — stores, web storage,
 computed, media queries, scroll state, etc.
 
 ```tsx
-// React — instance or factory
 const value = useSubscription(store)
-const scroll = useSubscription(() => createScrollState({ element: el }), { deps: [el] }) // el from a callback ref
+const scroll = useSubscription(() => createScrollState({ element: el }), { deps: [el] })
 const count = useSubscription(storage, { selector: v => v.count })
 ```
 
 ```vue
-// Vue — instance, ref, or getter
 const value = useSubscription(store)
 const data = useSubscription(computed(() => createWebStorageValue({ ... })))
 ```

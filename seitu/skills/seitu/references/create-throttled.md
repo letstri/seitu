@@ -8,7 +8,7 @@ import { createStore, createThrottled } from 'seitu'
 const input = createStore('')
 const throttled = createThrottled(input, 300)
 throttled.subscribe(value => console.log('throttled:', value))
-throttled.get() // current throttled value
+throttled.get()
 ```
 
 ## Signature

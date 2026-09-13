@@ -15,7 +15,7 @@ const count = createWebStorageValue({
   defaultValue: 0,
 })
 
-count.get() // 0
+count.get()
 count.set(1)
 count.set(v => v + 1)
 count.clear()

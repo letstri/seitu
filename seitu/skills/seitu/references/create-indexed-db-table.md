@@ -26,9 +26,9 @@ const { todos } = db.stores
 await todos.put({ id: '1', title: 'a', status: 'open', order: 1 })
 await todos.put([/* many rows */]) // one transaction
 await todos.get('1')
-await todos.getAll() // every row
-await todos.getAll(IDBKeyRange.bound('1', '5'), 10) // range + limit
-await todos.index('status').getAll('open') // index names and keys are typed
+await todos.getAll()
+await todos.getAll(IDBKeyRange.bound('1', '5'), 10)
+await todos.index('status').getAll('open')
 await todos.index('order').getAllKeys(IDBKeyRange.upperBound(3))
 await todos.count()
 await todos.delete('1')
@@ -36,13 +36,12 @@ await todos.delete(['1', '2'])
 await todos.delete(IDBKeyRange.bound('1', '5'))
 await todos.clear()
 
-// Reactive query: Readable + Subscribable, same contract as createComputed.
 const open = todos.query((t) => t.index('status').getAll('open'), {
   initial: [],
 })
-open.get() // [] until the first run settles
-await open.ready // first result
-open.subscribe((rows) => {}) // re-runs after every write, local or from another tab
+open.get()
+await open.ready
+open.subscribe((rows) => {})
 ```
 
 ## Options
@@ -67,16 +66,14 @@ it is skipped by an index, and rejected by a `keyPath` store. A nullable one
 ## Interface
 
 ```ts
-// `Definition` is the store options minus `schema`/`onValidationError`; it is
-// what types index names, key ranges, and `delete`. `Key` below is the key
-// type read off the matching key path, or `IDBValidKey` when it cannot be
-// narrowed (compound and nested key paths).
+// `Definition` is the store options minus `schema`/`onValidationError`; it types
+// index names, key ranges and `delete`. `Key` falls back to `IDBValidKey`.
 interface IndexedDbTable<Row, Definition> {
   get: (key: Key | IDBKeyRange) => Promise<Row | undefined>
   getAll: (query?: Key | IDBKeyRange | null, count?) => Promise<Row[]>
-  getAllKeys: (query?, count?) => Promise<IDBValidKey[]> // primary keys, even on an index
+  getAllKeys: (query?, count?) => Promise<IDBValidKey[]>
   count: (query?) => Promise<number>
-  index: (name: IndexName) => { get; getAll; getAllKeys; count } // keyed by that index
+  index: (name: IndexName) => { get; getAll; getAllKeys; count }
   put: (rows: Row | Row[], key?: IDBValidKey) => Promise<void> // rejects with IndexedDbTableValidationError; `key` is `never` when `keyPath` is set
   delete: (keys: Key | IDBKeyRange | Key[]) => Promise<void>
   clear: () => Promise<void>
@@ -168,7 +165,7 @@ function List() {
 Correct:
 
 ```ts
-const all = todos.query((t) => t.getAll(), { initial: [] }) // module scope
+const all = todos.query((t) => t.getAll(), { initial: [] })
 ```
 
 ### [MEDIUM] Using storage for lists

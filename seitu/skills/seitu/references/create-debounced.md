@@ -8,7 +8,7 @@ import { createStore, createDebounced } from 'seitu'
 const input = createStore('')
 const debounced = createDebounced(input, 300)
 debounced.subscribe(value => console.log('debounced:', value))
-debounced.get() // current debounced value
+debounced.get()
 ```
 
 ## Signature

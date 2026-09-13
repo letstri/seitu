@@ -20,10 +20,10 @@ const db = createIndexedDb({
 })
 const { session } = db.stores
 
-session.get() // returns cached (defaults until hydrated)
-await db.ready // wait for IndexedDB hydration
-await session.set({ token: 'abc' }) // persists async
-await session.clear() // resets to defaults + removes from IDB
+session.get()
+await db.ready
+await session.set({ token: 'abc' })
+await session.clear()
 ```
 
 ## Key differences from WebStorage
@@ -48,7 +48,7 @@ await session.clear() // resets to defaults + removes from IDB
 interface IndexedDbStorage<O> extends Subscribable<O>, Readable<O>, Writable<Partial<O>, O>, Clearable {
   set: (value: Partial<O> | ((prev: O) => Partial<O>)) => Promise<void>
   clear: () => Promise<void>
-  hydrate: () => Promise<O> // re-read from IndexedDB now; db.ready calls it once
+  hydrate: () => Promise<O>
   db: IndexedDb
   storeName: string
   '~': { getDefaultValue; getSchema; transformKey }

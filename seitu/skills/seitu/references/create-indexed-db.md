@@ -29,9 +29,9 @@ const db = createIndexedDb({
   },
 })
 
-const { settings, todos } = db.stores // IndexedDbStorage, IndexedDbTable
+const { settings, todos } = db.stores
 
-await db.ready // connection open, every store exists, every storage hydrated
+await db.ready
 ```
 
 ## Options
@@ -72,24 +72,46 @@ Limits of the cursor walk:
 
 Object store shape (`keyPath`, `autoIncrement`, `indexes`) lives on the table definition, not here. A storage is always an out-of-line key/value store.
 
+## Transactions
+
+There is no transaction handle to open. Every write call is exactly one `readwrite` transaction over exactly one store, and every read is one `readonly` snapshot.
+
+```ts
+// One transaction: both rows land, or neither does.
+await todos.put([
+  { id: '1', title: 'Write docs', status: 'done' },
+  { id: '2', title: 'Ship docs', status: 'open' },
+])
+
+await todos.delete(['1', '2'])
+await sync.set({ lastSyncedAt: Date.now(), pending: 0 })
+
+// Two calls are two transactions: the second can fail with the first applied.
+await todos.put({ id: '3', title: 'Reconcile', status: 'open' })
+await sync.set({ pending: 1 })
+```
+
+- Batch a write by passing the array to one call, never by awaiting one call per row: rows are validated before the transaction opens (a bad row rejects with nothing written), and subscribers plus other tabs are notified once per call.
+- Nothing spans stores. Order cross-store writes to fail safe — write the rows first, then the pointer that makes them visible.
+- A table write rejects when its transaction aborts. A storage write never rejects: the cache already holds the new value and a failed persist is `console.warn` only, so confirm through `hydrate()` when it matters.
+- The one wide transaction is `versionchange`: everything `onUpgrade` queues shares it, which is why a failed migration rolls back whole.
+
 ## Interface
 
 ```ts
 interface IndexedDb<Stores> {
-  ready: Promise<void> // open + stores created + storages hydrated; never rejects
-  close: () => void // reopened lazily on next access
-  stores: { [K in keyof Stores]: IndexedDbStorage<...> | IndexedDbTable<...> } // one handle per definition
+  ready: Promise<void>
+  close: () => void
+  stores: { [K in keyof Stores]: IndexedDbStorage<...> | IndexedDbTable<...> }
   '~': { name: string; getDatabase: () => Promise<IDBDatabase> }
 }
 
-// every handle under db.stores
 interface IndexedDbStoreHandle {
   db: IndexedDb
   storeName: string
-  hydrate?: () => Promise<unknown> // storages only; awaited by db.ready
+  hydrate?: () => Promise<unknown>
 }
 
-// what a definition exposes to the database
 interface IndexedDbStore<Handle> {
   '~': {
     definition: { keyPath?; autoIncrement?; indexes? }

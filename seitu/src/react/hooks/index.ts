@@ -110,9 +110,7 @@ interface Cell<S extends Subscribable<any> & Readable<any>, R> {
  * import { useSubscription } from 'seitu/react'
  *
  * export default function Page() {
- *   // A callback ref plus `deps` rebuilds the subscription when the element
- *   // mounts, unmounts, or remounts. `() => ref.current` would bind once and
- *   // miss later elements.
+ *   // A callback ref plus `deps` rebuilds on remount; `() => ref.current` binds once.
  *   const [el, setEl] = React.useState<HTMLDivElement | null>(null)
  *   const state = useSubscription(
  *     () => createScrollState({ element: el, direction: 'vertical' }),
@@ -139,7 +137,6 @@ export function useSubscription<
     [isFactory ? undefined : source, ...deps]
   )
 
-  // One ref for values that must survive renders.
   const cell = React.useRef<Cell<S, R> | null>(null)
   const c = (cell.current ??= {
     subscription,

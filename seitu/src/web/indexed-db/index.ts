@@ -294,6 +294,12 @@ async function openDatabase(
  * resolves, but reads and writes then reject, because every access retries the
  * same failing upgrade.
  *
+ * Every write is one transaction, and only one. A single `put`, `delete`, `set`
+ * or `clear` call opens a `readwrite` transaction and queues all of its rows or
+ * keys on it, so a batch lands whole or not at all; two calls are two
+ * transactions, and none of them spans stores. Reads work the same way: each
+ * one is its own `readonly` snapshot.
+ *
  * @example Vanilla
  * ```ts twoslash title="db.ts"
  * import { createIndexedDb, createIndexedDbStorage, createIndexedDbTable } from 'seitu/web'
@@ -317,7 +323,7 @@ async function openDatabase(
  * const { settings, todos } = db.stores
  *
  * settings.get() // { theme: 'light' } until hydrated
- * await db.ready // connection open, settings hydrated
+ * await db.ready
  * await todos.put({ id: '1', title: 'Write docs', status: 'open' })
  * ```
  *
@@ -338,14 +344,46 @@ async function openDatabase(
  *   },
  *   onUpgrade: ({ oldVersion, migrate }) => {
  *     if (oldVersion < 2) {
- *       // Store names and rows are typed from `stores`.
  *       migrate('todos', row => ({ ...row, priority: row.priority ?? 0 }))
  *       // Return `null` to drop a row, nothing to keep it as is.
  *     }
  *   },
  * })
  *
- * await db.ready // upgrade finished, rows migrated
+ * await db.ready
+ * ```
+ *
+ * @example Transactions
+ * ```ts twoslash title="checkout.ts"
+ * import { createIndexedDb, createIndexedDbStorage, createIndexedDbTable } from 'seitu/web'
+ * import * as z from 'zod'
+ *
+ * const db = createIndexedDb({
+ *   name: 'app',
+ *   stores: {
+ *     sync: createIndexedDbStorage({
+ *       schemas: { lastSyncedAt: z.number(), pending: z.number() },
+ *       defaultValues: { lastSyncedAt: 0, pending: 0 },
+ *     }),
+ *     todos: createIndexedDbTable({
+ *       keyPath: 'id',
+ *       schema: z.object({ id: z.string(), title: z.string(), status: z.enum(['open', 'done']) }),
+ *     }),
+ *   },
+ * })
+ * const { sync, todos } = db.stores
+ *
+ * // One `readwrite` transaction: both rows land, or neither does.
+ * await todos.put([
+ *   { id: '1', title: 'Write docs', status: 'done' },
+ *   { id: '2', title: 'Ship docs', status: 'open' },
+ * ])
+ *
+ * await todos.delete(['1', '2'])
+ * await sync.set({ lastSyncedAt: Date.now(), pending: 0 })
+ *
+ * await todos.put({ id: '3', title: 'Reconcile', status: 'open' })
+ * await sync.set({ pending: 1 })
  * ```
  */
 export function createIndexedDb<const Stores extends IndexedDbStores>(

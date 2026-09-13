@@ -25,8 +25,8 @@ export interface ThrottledFn<F extends (...args: any[]) => any>
  * log.subscribe(result => console.log('result:', result))
  * log('hello') // fires immediately
  * log('world') // throttled — fires after 300ms
- * log.get() // latest return value (undefined until first call)
- * log.flush() // run the trailing call now
+ * log.get()
+ * log.flush()
  * ```
  */
 export function createThrottledFn<F extends (...args: any[]) => any>(

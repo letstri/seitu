@@ -79,7 +79,7 @@ const count = createWebStorageValue({
   schema: z.number(),
 })
 
-count.get() // 0
+count.get()
 count.set(1)
 count.set(v => v + 1)
 count.subscribe(v => console.log(v))

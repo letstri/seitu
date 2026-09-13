@@ -23,9 +23,9 @@ export interface DebouncedFn<F extends (...args: any[]) => any>
  * const search = createDebouncedFn((query: string) => fetch(`/api?q=${query}`), 300)
  * search.subscribe(result => console.log('result:', result))
  * search('hello') // debounced — fires after 300ms of inactivity
- * search.get() // latest return value (undefined until first call)
- * search.flush() // run the pending call now
- * search.cancel() // or drop it
+ * search.get()
+ * search.flush()
+ * search.cancel()
  * ```
  */
 export function createDebouncedFn<F extends (...args: any[]) => any>(

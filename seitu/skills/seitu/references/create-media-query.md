@@ -8,7 +8,7 @@ import { createMediaQuery } from 'seitu/web'
 const isDark = createMediaQuery({ query: '(prefers-color-scheme: dark)' })
 const isDesktop = createMediaQuery({ query: '(min-width: 768px)' })
 
-isDark.get() // boolean
+isDark.get()
 isDark.subscribe(matches => console.log(matches))
 ```
 

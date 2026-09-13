@@ -9,7 +9,7 @@ import { createComputed, createStore } from 'seitu'
 
 const store = createStore({ a: 1, b: 2 })
 const sum = createComputed(store, s => s.a + s.b)
-sum.get() // 3
+sum.get()
 ```
 
 ## Multiple sources
@@ -20,7 +20,7 @@ import { createComputed, createStore } from 'seitu'
 const a = createStore(1)
 const b = createStore(2)
 const total = createComputed([a, b], ([a, b]) => a + b)
-total.get() // 3
+total.get()
 ```
 
 ## Overloads

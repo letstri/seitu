@@ -221,7 +221,6 @@ describe('createIndexedDbStorage', () => {
         schemas: { count: z.number(), name: z.string() },
         defaultValues: { count: 0, name: '' },
       })
-      // Write before the initial hydrate settles.
       const setPromise = storage.set({ count: 10 })
 
       await Promise.all([hydrated(storage), setPromise])

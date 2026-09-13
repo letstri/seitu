@@ -78,7 +78,6 @@ function createStorage<S extends WebStorageInput>(
   // Per-key write seq so hydrate cannot overwrite a newer local write.
   let writeVersion = 0
   const keyWriteVersion = new Map<keyof O, number>()
-  // Hydrate seq so slower out-of-order reads can bail out.
   let hydrateSeq = 0
 
   const markWritten = (written: Iterable<keyof O>) => {
@@ -93,7 +92,6 @@ function createStorage<S extends WebStorageInput>(
 
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () => {
-      // Catch writes that landed before this subscriber (e.g. another tab).
       triggerHydrate()
 
       return listen(() => triggerHydrate())
@@ -275,8 +273,8 @@ function createStorage<S extends WebStorageInput>(
  * })
  * const { settings } = db.stores
  *
- * settings.get() // { token: null, preferences: { theme: 'light' } }
- * await db.ready // value hydrated from IndexedDB
+ * settings.get()
+ * await db.ready
  * await settings.set({ token: 'abc' })
  * settings.get() // { token: 'abc', preferences: { theme: 'light' } }
  * settings.subscribe(console.log)

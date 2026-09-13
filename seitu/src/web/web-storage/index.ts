@@ -63,7 +63,7 @@ export interface WebStorage<O extends Record<string, unknown>>
  *   defaultValues: { token: null, preferences: { theme: 'light' } },
  * })
  *
- * sessionStorage.get() // { token: null, preferences: { theme: 'light' } }
+ * sessionStorage.get()
  * sessionStorage.set({ token: 'abc' })
  * sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
  * sessionStorage.subscribe(console.log)
@@ -109,7 +109,6 @@ export function createWebStorage<S extends WebStorageInput>(
   const { subscribe, notify } = createSubscription({
     onFirstSubscribe: () =>
       listenStorage(
-        // `null` key means `storage.clear()`.
         (event) =>
           !isWriting && (event.key === null || storageKeys.has(event.key)),
         notify

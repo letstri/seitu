@@ -10,7 +10,7 @@ let value = 0
 const get = () => value
 
 const readable = createReadableSubscription(get, subscribe, notify)
-readable.get() // 0
+readable.get()
 readable.subscribe(v => console.log(v))
 ```
 

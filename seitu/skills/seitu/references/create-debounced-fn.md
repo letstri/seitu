@@ -6,8 +6,8 @@ Wraps a plain function. The return value becomes subscribable state. Each call r
 import { createDebouncedFn } from 'seitu'
 
 const search = createDebouncedFn((q: string) => fetch(`/api?q=${q}`), 300)
-search('hello') // debounced — fires after 300ms of inactivity
-search.get() // latest return value (undefined until first call)
+search('hello')
+search.get()
 search.subscribe(result => console.log('result:', result))
 ```
 

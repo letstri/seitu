@@ -6,7 +6,7 @@ Minimal reactive store from `seitu` (core). Accepts any value type.
 import { createStore } from 'seitu'
 
 const count = createStore(0)
-count.get() // 0
+count.get()
 count.set(1)
 count.set(prev => prev + 1)
 count.subscribe(v => console.log(v))

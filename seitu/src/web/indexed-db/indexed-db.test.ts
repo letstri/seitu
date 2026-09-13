@@ -228,7 +228,6 @@ describe('createIndexedDb', () => {
 
     await db.ready
     expect(warn).toHaveBeenCalled()
-    // Every access retries the upgrade, which aborts again.
     await expect(db.stores.todos.getAll()).rejects.toThrow('aborted')
     db.close()
 

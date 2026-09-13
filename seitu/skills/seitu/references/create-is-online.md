@@ -6,7 +6,7 @@ Reactive boolean for `navigator.onLine`. Listens to `online`/`offline` window ev
 import { createIsOnline } from 'seitu/web'
 
 const online = createIsOnline()
-online.get() // true or false
+online.get()
 online.subscribe(v => console.log(v ? 'online' : 'offline'))
 ```
 

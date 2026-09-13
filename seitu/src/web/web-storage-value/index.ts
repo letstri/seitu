@@ -46,9 +46,9 @@ export interface WebStorageValueOptions<S extends StandardSchemaV1<unknown>> {
  *   defaultValue: null,
  * })
  *
- * tokenStorage.get() // null
+ * tokenStorage.get()
  * tokenStorage.set('abc')
- * tokenStorage.get() // 'abc'
+ * tokenStorage.get()
  * tokenStorage.subscribe(console.log)
  * ```
  *
@@ -153,7 +153,6 @@ export function createWebStorageValue(
     () => defaultValue
   )
 
-  // Returns the raw value written, or `null` when the key was removed.
   const write = (mutate: (storage: Storage) => string | null) => {
     if (typeof window === 'undefined') {
       return

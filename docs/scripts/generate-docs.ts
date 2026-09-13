@@ -8,7 +8,6 @@ const OUTPUT_PATH_REGEXP = /(?:[/\\]index)?\.(?<ext>ts|tsx)$/u
 
 const UNDOCUMENTED_GROUPS = new Set(['internal', 'utils'])
 
-// Features documented together on the page of the first one, in this order.
 const MERGED_PAGES = [
   ['web/indexed-db', 'web/indexed-db-storage', 'web/indexed-db-table'],
 ]
@@ -41,7 +40,6 @@ async function findSourceFiles(dir: string): Promise<string[]> {
           ? []
           : findSourceFiles(fullPath)
       }
-      // Public pages are `<group>/<feature>/index.ts`; group barrels are skipped.
       if (
         entry.isFile() &&
         (entry.name === 'index.ts' || entry.name === 'index.tsx') &&

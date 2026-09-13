@@ -7,7 +7,6 @@
  *
  * tryParseJson('{"a":1}') // { a: 1 }
  * tryParseJson('oops') // 'oops'
- * tryParseJson(42) // 42
  * ```
  */
 export function tryParseJson(value: unknown): unknown {

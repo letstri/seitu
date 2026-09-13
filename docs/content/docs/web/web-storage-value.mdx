@@ -25,9 +25,9 @@ const tokenStorage = createWebStorageValue({
   defaultValue: null,
 })
 
-tokenStorage.get() // null
+tokenStorage.get()
 tokenStorage.set('abc')
-tokenStorage.get() // 'abc'
+tokenStorage.get()
 tokenStorage.subscribe(console.log)
 ```
 

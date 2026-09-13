@@ -7,10 +7,8 @@ import { createSubscription } from 'seitu'
 
 const { subscribe, notify } = createSubscription({
   onFirstSubscribe() {
-    // setup (e.g. add event listener)
     window.addEventListener('resize', notify)
     return () => {
-      // cleanup when last subscriber leaves
       window.removeEventListener('resize', notify)
     }
   },
