@@ -1,32 +1,42 @@
-export interface IndexedDbIndexDefinition {
-  keyPath: string | string[]
+import type { IndexedDbTable } from '../indexed-db-table'
+
+type IndexedDbKeyField<Row> = {
+  [K in keyof Row & string]: Exclude<Row[K], undefined> extends IDBValidKey
+    ? K
+    : never
+}[keyof Row & string]
+
+export type IndexedDbKeyPath<Row> = Row extends object
+  ?
+      | ([IndexedDbKeyField<Row>] extends [never]
+          ? keyof Row & string
+          : IndexedDbKeyField<Row>)
+      | `${keyof Row & string}.${string}`
+  : string
+
+export interface IndexedDbIndexDefinition<Row = unknown> {
+  keyPath: IndexedDbKeyPath<Row> | IndexedDbKeyPath<Row>[]
   unique?: boolean
   multiEntry?: boolean
 }
 
-export interface IndexedDbStoreDefinition {
-  /** Primary key path. Omit for out-of-line keys (pass key to `put`). */
-  keyPath?: string | string[]
+export interface IndexedDbStoreDefinition<Row = unknown> {
+  keyPath?: IndexedDbKeyPath<Row> | IndexedDbKeyPath<Row>[]
   autoIncrement?: boolean
-  /** A string is `{ keyPath: value }`. */
-  indexes?: Record<string, string | string[] | IndexedDbIndexDefinition>
+  indexes?: Record<
+    string,
+    | IndexedDbKeyPath<Row>
+    | IndexedDbKeyPath<Row>[]
+    | IndexedDbIndexDefinition<Row>
+  >
 }
 
-/**
- * Handle bound to one database and object store. Storages expose `hydrate`
- * for `IndexedDb.ready`; tables do not.
- */
 export interface IndexedDbStoreHandle {
   db: IndexedDb
   storeName: string
-  /** Awaited by `IndexedDb.ready`. Must not reject. */
   hydrate?: () => Promise<unknown>
 }
 
-/**
- * Store definition plus handle factory. Returned by `createIndexedDbStorage`
- * / `createIndexedDbTable`.
- */
 export interface IndexedDbStore<
   Handle extends IndexedDbStoreHandle = IndexedDbStoreHandle,
 > {
@@ -44,32 +54,36 @@ export type IndexedDbStoreHandles<Stores extends IndexedDbStores> = {
     : never
 }
 
-export interface IndexedDbUpgradeContext {
+type RowOf<Store> =
+  Store extends IndexedDbStore<IndexedDbTable<infer Row, any>> ? Row : unknown
+
+export type IndexedDbMigrateRow<Row> = (
+  row: Row & Record<string, unknown>,
+  key: IDBValidKey
+) => Row | null | void
+
+export interface IndexedDbUpgradeContext<
+  Stores extends IndexedDbStores = IndexedDbStores,
+> {
   database: IDBDatabase
   transaction: IDBTransaction
   oldVersion: number
   newVersion: number | null
+  migrate: <Name extends keyof Stores & string>(
+    name: Name,
+    rewrite: IndexedDbMigrateRow<RowOf<Stores[Name]>>
+  ) => void
 }
 
 export interface IndexedDbOptions<Stores extends IndexedDbStores> {
   name: string
-  /**
-   * Minimum version. Auto-bumped when a declared store/index is missing; set
-   * this for `onUpgrade` migrations.
-   */
   version?: number
   stores: Stores
-  /** Runs in the `versionchange` transaction after declared stores/indexes are created. */
-  onUpgrade?: (context: IndexedDbUpgradeContext) => void
+  onUpgrade?: (context: IndexedDbUpgradeContext<Stores>) => void
 }
 
 export interface IndexedDb<Stores extends IndexedDbStores = IndexedDbStores> {
-  /**
-   * Resolves when the connection is open, stores exist, and storages have
-   * hydrated. Never rejects.
-   */
   ready: Promise<void>
-  /** Close the connection; it reopens on next access. */
   close: () => void
   stores: IndexedDbStoreHandles<Stores>
   '~': {
@@ -82,7 +96,6 @@ type StoreDefinitions = Record<string, IndexedDbStoreDefinition>
 
 const MAX_UPGRADE_ATTEMPTS = 5
 
-// Serialize open/upgrade per name so concurrent handles cannot race upgrades.
 const openLocks = new Map<string, Promise<unknown>>()
 
 function withOpenLock<T>(name: string, run: () => Promise<T>): Promise<T> {
@@ -160,6 +173,34 @@ function findMissing(
   return undefined
 }
 
+function migrateStore(
+  transaction: IDBTransaction,
+  storeName: string,
+  rewrite: IndexedDbMigrateRow<any>,
+  label: string
+) {
+  const request = transaction.objectStore(storeName).openCursor()
+  request.onerror = () => {
+    console.error(
+      `[${label}] Could not read "${storeName}" to migrate it.`,
+      request.error
+    )
+  }
+  request.onsuccess = () => {
+    const cursor = request.result
+    if (!cursor) {
+      return
+    }
+    const next = rewrite(cursor.value, cursor.key)
+    if (next === null) {
+      cursor.delete()
+    } else if (next !== undefined) {
+      cursor.update(next)
+    }
+    cursor.continue()
+  }
+}
+
 interface OpenOptions {
   name: string
   version?: number
@@ -184,6 +225,8 @@ function openRequest(
         transaction,
         oldVersion: event.oldVersion,
         newVersion: event.newVersion,
+        migrate: (storeName, rewrite) =>
+          migrateStore(transaction, storeName, rewrite, label),
       })
     }
     request.onblocked = () => {
@@ -207,7 +250,6 @@ async function openDatabase(
     try {
       database = await openRequest(options, version, label)
     } catch (error) {
-      // Version already advanced (e.g. another tab); reopen at the current version.
       if (
         version !== undefined &&
         (error as { name?: string } | null)?.name === 'VersionError'
@@ -223,7 +265,6 @@ async function openDatabase(
       return database
     }
 
-    // Missing store/index: bump version so onupgradeneeded runs.
     version = database.version + 1
     database.close()
   }
@@ -237,6 +278,21 @@ async function openDatabase(
  * Opens one IndexedDB connection and builds a handle for each store definition
  * (`createIndexedDbStorage` or `createIndexedDbTable`). Missing stores/indexes
  * are created automatically; concurrent opens of the same name are serialized.
+ *
+ * `version` is a minimum, not a pin: adding a store or an index bumps it on its
+ * own, so set it only when existing rows need migrating. Bump it, then rewrite
+ * the rows with `migrate` in `onUpgrade`, which runs inside the `versionchange`
+ * transaction after the declared stores and indexes are created. Everything
+ * there is synchronous — `migrate` queues a cursor walk instead of returning a
+ * promise, and `onUpgrade` cannot be `async`.
+ *
+ * `migrate` rewrites fields, not keys: changing the `keyPath` field of a row
+ * aborts the upgrade. Indexes are created and filled before `onUpgrade` runs,
+ * so a migration cannot clean up rows for a `unique` index added in the same
+ * version — add the index in a later version than the cleanup. A failed
+ * upgrade rolls back whole and is reported with `console.warn`: `ready` still
+ * resolves, but reads and writes then reject, because every access retries the
+ * same failing upgrade.
  *
  * @example Vanilla
  * ```ts twoslash title="db.ts"
@@ -263,6 +319,33 @@ async function openDatabase(
  * settings.get() // { theme: 'light' } until hydrated
  * await db.ready // connection open, settings hydrated
  * await todos.put({ id: '1', title: 'Write docs', status: 'open' })
+ * ```
+ *
+ * @example Migrations
+ * ```ts twoslash title="db.ts"
+ * import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
+ * import * as z from 'zod'
+ *
+ * const db = createIndexedDb({
+ *   name: 'app',
+ *   version: 2, // v1 rows have no `priority`
+ *   stores: {
+ *     todos: createIndexedDbTable({
+ *       keyPath: 'id',
+ *       indexes: { priority: 'priority' },
+ *       schema: z.object({ id: z.string(), title: z.string(), priority: z.number() }),
+ *     }),
+ *   },
+ *   onUpgrade: ({ oldVersion, migrate }) => {
+ *     if (oldVersion < 2) {
+ *       // Store names and rows are typed from `stores`.
+ *       migrate('todos', row => ({ ...row, priority: row.priority ?? 0 }))
+ *       // Return `null` to drop a row, nothing to keep it as is.
+ *     }
+ *   },
+ * })
+ *
+ * await db.ready // upgrade finished, rows migrated
  * ```
  */
 export function createIndexedDb<const Stores extends IndexedDbStores>(
@@ -296,7 +379,6 @@ export function createIndexedDb<const Stores extends IndexedDbStores>(
         openDatabase(openOptions, label)
       )
         .then((database) => {
-          // Close so another connection can upgrade; reopen lazily.
           database.onversionchange = () => {
             database.close()
             if (databasePromise === promise) {
@@ -305,7 +387,6 @@ export function createIndexedDb<const Stores extends IndexedDbStores>(
           }
           return database
         })
-        // Drop rejected opens so the next call can retry.
         .catch((error) => {
           if (databasePromise === promise) {
             databasePromise = undefined

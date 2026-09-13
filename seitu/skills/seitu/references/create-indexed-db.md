@@ -43,6 +43,33 @@ await db.ready // connection open, every store exists, every storage hydrated
 | `version?` | `number` | Minimum version. Bumped automatically when a store/index is missing |
 | `onUpgrade?` | `(ctx) => void` | Runs inside the `versionchange` transaction after stores/indexes are created. For data migrations |
 
+## Migrations
+
+Bump `version` when existing rows need rewriting (new stores and indexes bump it on their own), then rewrite rows with `ctx.migrate`:
+
+```ts
+const db = createIndexedDb({
+  name: 'app',
+  version: 2, // v1 rows have no `priority`
+  stores: { todos: createIndexedDbTable({ keyPath: 'id', schema }) },
+  onUpgrade: ({ oldVersion, migrate }) => {
+    if (oldVersion < 2) {
+      migrate('todos', (row, key) => ({ ...row, priority: row.priority ?? 0 }))
+    }
+  },
+})
+```
+
+`migrate(storeName, rewrite)` walks every row of a declared store with a cursor. Store names and row types come from `stores`; the row is also indexable by any key, so fields the current schema dropped are still readable. Return the new row, `null` to delete it, or nothing to keep it.
+
+Everything in `onUpgrade` is synchronous: `migrate` queues the cursor walk and returns `void`, `onUpgrade` cannot be `async`, and a throw inside `rewrite` aborts the `versionchange` transaction, so the database is never half-migrated. `transaction` and `database` stay on the context for raw IndexedDB work.
+
+Limits of the cursor walk:
+
+- **Fields, not keys.** Returning a row whose `keyPath` field changed aborts the upgrade (`cursor.update` rejects a key that differs from the cursor's). Rekey by deleting and re-`put`ting after `ready`.
+- **Indexes are already filled.** They are created before `onUpgrade` runs, so a `unique` index added in the same version fails on duplicate legacy rows before the migration can dedupe them. Clean up in one version, add the index in the next.
+- **Failure is warn-only.** An aborted upgrade rolls back whole, logs `console.warn`, and leaves the database on its old version. `ready` still resolves, but every later read and write rejects, because each one retries the same failing upgrade.
+
 Object store shape (`keyPath`, `autoIncrement`, `indexes`) lives on the table definition, not here. A storage is always an out-of-line key/value store.
 
 ## Interface
@@ -77,6 +104,7 @@ interface IndexedDbStore<Handle> {
 - Opens eagerly in the browser; `ready` also awaits every storage's first hydrate. Tables have nothing to hydrate.
 - Missing store or index → closes, reopens at `version + 1`, creates it in `onupgradeneeded`.
 - `version` is a **minimum**, not a pin. A pinned version lower than the existing one is recovered automatically.
+- `onUpgrade` receives `migrate(storeName, rewrite)` for cursor-based row migrations (see [Migrations](#migrations)).
 - Another connection upgrading the database → this handle closes and reopens on next access (`onversionchange`).
 - Upgrade blocked by a foreign connection → `console.warn`, then waits.
 - Two databases with the same `name` created in the same tick are serialized through a module-level lock.

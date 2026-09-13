@@ -38,6 +38,56 @@ await db.ready // connection open, settings hydrated
 await todos.put({ id: '1', title: 'Write docs', status: 'open' })
 ```
 
+#### Upgrading to a new version
+
+`version` is a minimum, not a pin: adding a store or an index bumps it on
+its own, so set it only when existing rows need migrating. Bump it, then
+rewrite the rows with `migrate` in `onUpgrade`, which runs inside the
+`versionchange` transaction after the declared stores and indexes are
+created. Everything there is synchronous — `migrate` queues a cursor walk
+instead of returning a promise, and `onUpgrade` cannot be `async`.
+
+```ts twoslash title="db.ts"
+import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
+import * as z from 'zod'
+
+const db = createIndexedDb({
+  name: 'app',
+  version: 2, // v1 rows have no `priority`
+  stores: {
+    todos: createIndexedDbTable({
+      keyPath: 'id',
+      indexes: { priority: 'priority' },
+      schema: z.object({ id: z.string(), title: z.string(), priority: z.number() }),
+    }),
+  },
+  onUpgrade: ({ oldVersion, migrate }) => {
+    if (oldVersion < 2) {
+      // Store names and rows are typed from `stores`.
+      migrate('todos', row => ({ ...row, priority: row.priority ?? 0 }))
+      // Return `null` to drop a row, nothing to keep it as is.
+    }
+  },
+})
+
+await db.ready // upgrade finished, rows migrated
+```
+
+Three things the cursor walk cannot do:
+
+- **Rekey a row.** `migrate` rewrites fields, not keys — returning a row whose
+  `keyPath` field changed aborts the upgrade. Delete the old row and `put` the
+  new one after `ready` instead.
+- **Prepare rows for an index added in the same version.** Indexes are created
+  and filled before `onUpgrade` runs, so a `unique` index over rows that still
+  hold duplicates fails before the migration can dedupe them. Clean up in one
+  version, add the index in the next.
+- **Report failure.** A throw inside the rewrite (or any aborted upgrade) rolls
+  the whole `versionchange` transaction back and is reported with
+  `console.warn`. The database stays on its old version, and because every
+  access retries the same failing upgrade, `ready` still resolves but reads and
+  writes reject until the migration is fixed.
+
 * * *
 
 ## createIndexedDbStorage()
@@ -134,13 +184,19 @@ const { todos } = db.stores
 await todos.put({ id: '1', title: 'Write docs', status: 'open' })
 await todos.get('1') // { id: '1', title: 'Write docs', status: 'open' }
 await todos.getAll()
-await todos.index('status').getAll('open') // index names are typed
+await todos.index('status').getAll('open') // index names and keys are typed
 await todos.delete('1')
 
 const open = todos.query(t => t.index('status').getAll('open'), { initial: [] })
 open.get() // [] until the first run settles
 open.subscribe(rows => console.log(rows)) // re-runs after every write
 ```
+
+`keyPath` and every index key path must name a schema field that can hold a
+key, and the key type is read back off that field, so `get`, `getAll`, `count`
+and `delete` only accept keys that field can produce. Compound (`['id',
+'order']`) and nested (`'meta.slug'`) paths fall back to `IDBValidKey` — only
+the first segment of a nested path is checked.
 
 #### React
 

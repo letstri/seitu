@@ -5,7 +5,7 @@ description: >-
 metadata:
   type: lifecycle
   library: seitu
-  library_version: "0.16.1"
+  library_version: "1.1.0"
 sources:
   - letstri/seitu:docs/content/docs/index.mdx
   - letstri/seitu:seitu/src/core/index.ts

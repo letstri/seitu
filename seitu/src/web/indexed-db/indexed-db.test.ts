@@ -158,6 +158,91 @@ describe('createIndexedDb', () => {
     expect(onUpgrade.mock.calls[0]![0].transaction.mode).toBe('versionchange')
   })
 
+  it('migrate() rewrites, keeps and deletes rows inside the upgrade', async () => {
+    const todos = createIndexedDbTable({
+      keyPath: 'id',
+      schema: z.object({
+        id: z.string(),
+        title: z.string(),
+        priority: z.number(),
+      }),
+    })
+    const seed = createIndexedDb({
+      name: 'app',
+      stores: { todos: table({ keyPath: 'id' }) },
+    })
+    await seed.stores.todos.put([
+      { id: '1', title: 'migrate me' },
+      { id: '2', title: 'keep me', priority: 7 },
+      { id: '3', title: 'drop me' },
+    ])
+    seed.close()
+
+    const db = createIndexedDb({
+      name: 'app',
+      version: 2,
+      stores: { todos },
+      onUpgrade: ({ oldVersion, migrate }) => {
+        if (oldVersion < 2) {
+          migrate('todos', (row) => {
+            expectTypeOf(row.title).toEqualTypeOf<string>()
+            if (row.id === '3') return null
+            if (row.priority !== undefined) return
+            return { ...row, priority: 0 }
+          })
+        }
+      },
+    })
+
+    expect(await db.stores.todos.getAll()).toEqual([
+      { id: '1', title: 'migrate me', priority: 0 },
+      { id: '2', title: 'keep me', priority: 7 },
+    ])
+  })
+
+  it('rolls the upgrade back and warns when a migration throws', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const seed = createIndexedDb({
+      name: 'app',
+      stores: { todos: table({ keyPath: 'id' }) },
+    })
+    await seed.stores.todos.put([
+      { id: '1', title: 'first' },
+      { id: '2', title: 'second' },
+    ])
+    seed.close()
+
+    const db = createIndexedDb({
+      name: 'app',
+      version: 2,
+      stores: { todos: table({ keyPath: 'id' }) },
+      onUpgrade: ({ migrate }) => {
+        migrate('todos', (row) => {
+          if (row.id === '2') {
+            throw new Error('boom')
+          }
+          return { ...row, title: 'migrated' }
+        })
+      },
+    })
+
+    await db.ready
+    expect(warn).toHaveBeenCalled()
+    // Every access retries the upgrade, which aborts again.
+    await expect(db.stores.todos.getAll()).rejects.toThrow('aborted')
+    db.close()
+
+    // The whole transaction rolled back: the store is untouched at version 1.
+    const old = createIndexedDb({
+      name: 'app',
+      stores: { todos: table({ keyPath: 'id' }) },
+    })
+    expect(await old.stores.todos.getAll()).toEqual([
+      { id: '1', title: 'first' },
+      { id: '2', title: 'second' },
+    ])
+  })
+
   it('recovers when the pinned version is lower than the existing one', async () => {
     const newer = createIndexedDb({
       name: 'app',

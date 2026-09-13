@@ -16,7 +16,10 @@ import type {
   IndexedDbStoreHandle,
 } from '../indexed-db'
 
-export type IndexedDbTableRange = IDBValidKey | IDBKeyRange | null
+export type IndexedDbTableRange<Key extends IDBValidKey = IDBValidKey> =
+  | Key
+  | IDBKeyRange
+  | null
 
 export interface IndexedDbTableValidationErrorProps {
   issues: StandardSchemaV1.Issue[]
@@ -43,10 +46,8 @@ export class IndexedDbTableValidationError extends Error {
 
 export interface IndexedDbTableOptions<
   S extends StandardSchemaV1<unknown>,
-> extends IndexedDbStoreDefinition {
-  /** Row schema. Validated before `put` and after each read. */
+> extends IndexedDbStoreDefinition<StandardSchemaV1.InferOutput<S>> {
   schema: S
-  /** Called for invalid rows on read. Return a repaired row or nothing to drop it. */
   onValidationError?: (
     props: IndexedDbTableValidationErrorProps
   ) => void | StandardSchemaV1.InferOutput<S>
@@ -58,71 +59,112 @@ export type IndexedDbTableIndexNames<Definition> = Definition extends {
   ? keyof Indexes & string
   : string
 
-export interface IndexedDbTableIndexReader<Row> {
-  get: (key: IDBValidKey | IDBKeyRange) => Promise<Row | undefined>
-  getAll: (query?: IndexedDbTableRange, count?: number) => Promise<Row[]>
+type KeyAtPath<Row, Path, Value = Path extends keyof Row ? Row[Path] : never> =
+  Extract<
+    Value | (Value extends readonly (infer Element)[] ? Element : never),
+    IDBValidKey
+  > extends infer Key extends IDBValidKey
+    ? [Key] extends [never]
+      ? IDBValidKey
+      : Key
+    : IDBValidKey
+
+type StoreShape<Definition> = {
+  [
+    K in keyof Definition as K extends 'schema' | 'onValidationError'
+      ? never
+      : K
+  ]: Definition[K]
+}
+
+export type IndexedDbExplicitKey<Definition> = Definition extends {
+  keyPath: unknown
+}
+  ? never
+  : IDBValidKey
+
+export type IndexedDbPrimaryKey<Row, Definition> = Definition extends {
+  keyPath: infer Path
+}
+  ? KeyAtPath<Row, Path>
+  : IDBValidKey
+
+export type IndexedDbIndexKey<Row, Definition, Name> = Definition extends {
+  indexes: infer Indexes
+}
+  ? Name extends keyof Indexes
+    ? KeyAtPath<
+        Row,
+        Indexes[Name] extends { keyPath: infer Path } ? Path : Indexes[Name]
+      >
+    : IDBValidKey
+  : IDBValidKey
+
+export interface IndexedDbTableIndexReader<
+  Row,
+  Key extends IDBValidKey = IDBValidKey,
+> {
+  get: (key: Key | IDBKeyRange) => Promise<Row | undefined>
+  getAll: (query?: IndexedDbTableRange<Key>, count?: number) => Promise<Row[]>
   getAllKeys: (
-    query?: IndexedDbTableRange,
+    query?: IndexedDbTableRange<Key>,
     count?: number
   ) => Promise<IDBValidKey[]>
-  count: (query?: IndexedDbTableRange) => Promise<number>
+  count: (query?: IndexedDbTableRange<Key>) => Promise<number>
 }
 
 export interface IndexedDbTableReader<
   Row,
-  IndexName extends string = string,
-> extends IndexedDbTableIndexReader<Row> {
-  index: (name: IndexName) => IndexedDbTableIndexReader<Row>
+  Definition = unknown,
+> extends IndexedDbTableIndexReader<Row, IndexedDbPrimaryKey<Row, Definition>> {
+  index: <Name extends IndexedDbTableIndexNames<Definition>>(
+    name: Name
+  ) => IndexedDbTableIndexReader<Row, IndexedDbIndexKey<Row, Definition, Name>>
 }
 
 export interface IndexedDbQueryOptions<R> {
-  /** `get()` value until the first run settles, and on the server. */
   initial: R
 }
 
 export interface IndexedDbQuery<R> extends ServerReadable<R>, Subscribable<R> {
-  /** Never rejects; failures keep the initial value. */
   ready: Promise<R>
-  /** Never rejects. */
   refresh: () => Promise<R>
 }
 
-export interface IndexedDbTable<Row, IndexName extends string = string>
-  extends IndexedDbTableReader<Row, IndexName>, IndexedDbStoreHandle {
-  /**
-   * Validate and write one row or many. Pass `key` for stores without
-   * `keyPath`.
-   */
-  put: (rows: Row | Row[], key?: IDBValidKey) => Promise<void>
-  delete: (keys: IDBValidKey | IDBKeyRange | IDBValidKey[]) => Promise<void>
+export interface IndexedDbTable<Row, Definition = unknown>
+  extends IndexedDbTableReader<Row, Definition>, IndexedDbStoreHandle {
+  put: (
+    rows: Row | Row[],
+    key?: IndexedDbExplicitKey<Definition>
+  ) => Promise<void>
+  delete: (
+    keys:
+      | IndexedDbPrimaryKey<Row, Definition>
+      | IDBKeyRange
+      | IndexedDbPrimaryKey<Row, Definition>[]
+  ) => Promise<void>
   clear: () => Promise<void>
-  /** Reactive query that re-runs when this table changes. */
   query: {
     <R>(
-      run: (table: IndexedDbTableReader<Row, IndexName>) => Promise<R>,
+      run: (table: IndexedDbTableReader<Row, Definition>) => Promise<R>,
       options: IndexedDbQueryOptions<R>
     ): IndexedDbQuery<R>
     <R>(
-      run: (table: IndexedDbTableReader<Row, IndexName>) => Promise<R>
+      run: (table: IndexedDbTableReader<Row, Definition>) => Promise<R>
     ): IndexedDbQuery<R | undefined>
   }
   '~': {
     schema: StandardSchemaV1<unknown>
-    /** Change notifications (no value). */
     subscribe: (callback: () => any) => () => void
     notify: () => void
   }
 }
 
-/** Pass to `createIndexedDb({ stores })`; handle is on `db.stores`. */
 export type IndexedDbTableDefinition<
   S extends StandardSchemaV1<unknown>,
   Definition,
 > = IndexedDbStore<
-  IndexedDbTable<
-    StandardSchemaV1.InferOutput<S>,
-    IndexedDbTableIndexNames<Definition>
-  >
+  IndexedDbTable<StandardSchemaV1.InferOutput<S>, StoreShape<Definition>>
 >
 
 function createTable<S extends StandardSchemaV1<unknown>>(
@@ -177,16 +219,15 @@ function createTable<S extends StandardSchemaV1<unknown>>(
     broadcast()
   }
 
-  const rows = (raws: unknown[]): Row[] =>
-    raws.map(validateRow).filter((row) => row !== undefined)
-
   const createReader = (
     source: (store: IDBObjectStore) => IDBObjectStore | IDBIndex
   ): IndexedDbTableIndexReader<Row> => ({
     get: async (key) =>
       validateRow(await read((store) => source(store).get(key))),
     getAll: async (query, count) =>
-      rows(await read((store) => source(store).getAll(query, count))),
+      (await read((store) => source(store).getAll(query, count)))
+        .map(validateRow)
+        .filter((row) => row !== undefined),
     getAllKeys: (query, count) =>
       read((store) => source(store).getAllKeys(query, count)),
     count: (query) => read((store) => source(store).count(query ?? undefined)),
@@ -203,13 +244,11 @@ function createTable<S extends StandardSchemaV1<unknown>>(
   ): IndexedDbQuery<R | undefined> => {
     const initial = queryOptions?.initial
     let cache: R | undefined = initial
-    // Run seq so slower out-of-order queries can bail out.
     let seq = 0
 
     const querySubscription = createSubscription({
       onFirstSubscribe: () => {
         const unsubscribe = subscribe(() => void refresh())
-        // Catch writes that landed before this subscriber (e.g. another tab).
         void refresh()
         return unsubscribe
       },
@@ -271,11 +310,7 @@ function createTable<S extends StandardSchemaV1<unknown>>(
       )
       await write((store) => {
         for (const row of validated) {
-          if (key === undefined) {
-            store.put(row)
-          } else {
-            store.put(row, key)
-          }
+          store.put(row, key)
         }
       })
     },
@@ -302,6 +337,10 @@ function createTable<S extends StandardSchemaV1<unknown>>(
  * reads, validation. Use `query()` for a `Readable`/`Subscribable` that
  * re-runs on table changes. On the server, queries stay on `initial`.
  *
+ * Key paths must name a schema field that can hold a key, and reads are typed
+ * from that field. Compound (`['id', 'order']`) and nested (`'meta.slug'`)
+ * paths fall back to `IDBValidKey`.
+ *
  * @example Vanilla
  * ```ts twoslash title="todos.ts"
  * import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
@@ -322,7 +361,7 @@ function createTable<S extends StandardSchemaV1<unknown>>(
  * await todos.put({ id: '1', title: 'Write docs', status: 'open' })
  * await todos.get('1') // { id: '1', title: 'Write docs', status: 'open' }
  * await todos.getAll()
- * await todos.index('status').getAll('open') // index names are typed
+ * await todos.index('status').getAll('open') // index names and keys are typed
  * await todos.delete('1')
  *
  * const open = todos.query(t => t.index('status').getAll('open'), { initial: [] })
@@ -362,7 +401,9 @@ function createTable<S extends StandardSchemaV1<unknown>>(
  */
 export function createIndexedDbTable<
   S extends StandardSchemaV1<unknown>,
-  const Definition extends IndexedDbStoreDefinition,
+  const Definition extends IndexedDbStoreDefinition<
+    StandardSchemaV1.InferOutput<S>
+  >,
 >(
   options: IndexedDbTableOptions<S> & Definition
 ): IndexedDbTableDefinition<S, Definition> {

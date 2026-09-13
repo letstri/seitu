@@ -1,7 +1,7 @@
 # skill_tree.yaml
 library:
   name: seitu
-  version: 0.16.1
+  version: 1.1.0
   repository: https://github.com/letstri/seitu
   description: Type-safe reactive primitives with shared get/subscribe API
 generated_from:

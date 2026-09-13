@@ -28,7 +28,7 @@ await todos.put([/* many rows */]) // one transaction
 await todos.get('1')
 await todos.getAll() // every row
 await todos.getAll(IDBKeyRange.bound('1', '5'), 10) // range + limit
-await todos.index('status').getAll('open') // index names are typed
+await todos.index('status').getAll('open') // index names and keys are typed
 await todos.index('order').getAllKeys(IDBKeyRange.upperBound(3))
 await todos.count()
 await todos.delete('1')
@@ -51,21 +51,34 @@ open.subscribe((rows) => {}) // re-runs after every write, local or from another
 | --- | --- | --- |
 | `schema` | `StandardSchema` | Row schema. Validated on `put` (rejects) and on read (drops/repairs) |
 | `onValidationError?` | `({ issues, value }) => void \| Row` | Read-side repair hook. Return a row to keep it, nothing to drop it |
-| `keyPath?` | `string \| string[]` | Primary key path. Omit for out-of-line keys (pass `key` to `put`) |
+| `keyPath?` | `keyof Row \| \`${keyof Row}.${string}\` \| ...[]` | Primary key path. Must name a schema field that can hold a key. Omit for out-of-line keys (pass `key` to `put`) |
 | `autoIncrement?` | `boolean` | Key generator |
-| `indexes?` | `Record<string, string \| string[] \| { keyPath, unique?, multiEntry? }>` | Indexes. String value is shorthand for `{ keyPath }`. Names are typed on `index()` |
+| `indexes?` | `Record<string, keyPath \| keyPath[] \| { keyPath, unique?, multiEntry? }>` | Indexes. String value is shorthand for `{ keyPath }`. Same key-path rules. Names are typed on `index()` |
+
+Key paths are checked against the schema: a top-level field whose value can be
+a key (`string`, `number`, `Date`, `BufferSource`, or an array of those), or
+any field followed by a nested path (`'meta.slug'` — only the first segment is
+checked). A loose schema has no known fields, so any path is accepted.
+
+An optional field (`z.string().optional()`) is a valid key path — a row without
+it is skipped by an index, and rejected by a `keyPath` store. A nullable one
+(`z.string().nullable()`) is not: `null` is not a valid key.
 
 ## Interface
 
 ```ts
-interface IndexedDbTable<Row, IndexName> {
-  get: (key) => Promise<Row | undefined>
-  getAll: (query?, count?) => Promise<Row[]>
-  getAllKeys: (query?, count?) => Promise<IDBValidKey[]>
+// `Definition` is the store options minus `schema`/`onValidationError`; it is
+// what types index names, key ranges, and `delete`. `Key` below is the key
+// type read off the matching key path, or `IDBValidKey` when it cannot be
+// narrowed (compound and nested key paths).
+interface IndexedDbTable<Row, Definition> {
+  get: (key: Key | IDBKeyRange) => Promise<Row | undefined>
+  getAll: (query?: Key | IDBKeyRange | null, count?) => Promise<Row[]>
+  getAllKeys: (query?, count?) => Promise<IDBValidKey[]> // primary keys, even on an index
   count: (query?) => Promise<number>
-  index: (name: IndexName) => { get; getAll; getAllKeys; count }
-  put: (rows: Row | Row[], key?: IDBValidKey) => Promise<void> // rejects with IndexedDbTableValidationError
-  delete: (keys: IDBValidKey | IDBKeyRange | IDBValidKey[]) => Promise<void>
+  index: (name: IndexName) => { get; getAll; getAllKeys; count } // keyed by that index
+  put: (rows: Row | Row[], key?: IDBValidKey) => Promise<void> // rejects with IndexedDbTableValidationError; `key` is `never` when `keyPath` is set
+  delete: (keys: Key | IDBKeyRange | Key[]) => Promise<void>
   clear: () => Promise<void>
   query: <R>(
     run: (t) => Promise<R>,
@@ -89,6 +102,19 @@ interface IndexedDbQuery<R> extends Readable<R>, Subscribable<R> {
 - Overlapping runs: latest wins, stale results discarded.
 - Without `initial`, `get()` is `R | undefined`.
 - Server snapshot = `initial` (framework bindings hydrate without mismatch).
+
+## Breaking changes in 1.1
+
+`IndexedDbTable`'s second type argument was the union of index names; it is now
+the store definition (`keyPath`, `autoIncrement`, `indexes`), which is what
+types index names, key ranges, `delete` and the `put` key. A hand-written
+`IndexedDbTable<Row, 'status'>` still compiles but silently falls back to
+untyped keys — write `IndexedDbTable<Row, { keyPath: 'id'; indexes: { status:
+'status' } }>`, or let `typeof db.stores.todos` infer it.
+
+Key paths are also checked against the schema now, so a path that never
+matched a row field, or names a field that cannot hold a key (a boolean, an
+object), is a compile error instead of a runtime `DataError`.
 
 ## Common Mistakes
 
@@ -163,7 +189,24 @@ Storage is for a handful of settings-like values. Rows go in a table.
 
 ### [MEDIUM] Boolean index keys
 
-Booleans are not valid IndexedDB keys. Index a string/number/date instead (`status: 'open' | 'done'`).
+Booleans are not valid IndexedDB keys, and a boolean field is now rejected as a
+key path at compile time. Index a string/number/date instead
+(`status: 'open' | 'done'`).
+
+### [MEDIUM] Passing an explicit put key to a store with a keyPath
+
+IndexedDB throws `DataError` for that, so `key` is typed `never` once `keyPath`
+is set.
+
+Wrong:
+
+```ts
+const todos = createIndexedDbTable({ keyPath: 'id', schema })
+await db.stores.todos.put(row, '1') // key is not allowed here
+```
+
+Correct: let the `keyPath` supply the key, or drop `keyPath` and pass `key` on
+every `put`.
 
 ### [MEDIUM] Expecting put to reject on invalid rows in Node without fake-indexeddb
 

@@ -8,7 +8,7 @@ Skills for teams **using** Seitu ship in the published npm package at [`seitu/sk
 
 Repo-root [`_artifacts/`](_artifacts/skill_tree.yaml) (`domain_map.yaml`, `skill_spec.md`, `skill_tree.yaml`) tracks skill coverage and source-doc references for CI staleness checks.
 
-When you change public API behavior, docs examples, or integration patterns, keep `seitu/skills/` aligned with `docs/content/docs/`, bump `library_version` in SKILL frontmatter on release, and run `cd seitu && pnpm run skills:stale`.
+When you change public API behavior, docs examples, or integration patterns, keep `seitu/skills/` aligned with `docs/content/docs/`, bump `library_version` in SKILL frontmatter on release — matching `library.version` in `_artifacts/` — and run `cd seitu && pnpm run skills:stale`.
 
 ## Repository layout
 
@@ -45,9 +45,7 @@ Skill maintenance (from `seitu/`):
 
 ```bash
 pnpm run skills:validate    # structure + packaging before publish
-pnpm run skills:stale       # flag drift vs docs/sources
-pnpm run skills:sync-state  # refresh source SHAs after doc/source edits
-pnpm run skills:upgrade     # re-apply frontmatter + Common Mistakes from _artifacts
+pnpm run skills:stale       # flag drift vs docs/sources and _artifacts
 ```
 
 Do not commit unless the user asks.

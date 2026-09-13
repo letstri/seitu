@@ -2,7 +2,9 @@ import { IDBFactory, IDBKeyRange } from 'fake-indexeddb'
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import * as z from 'zod'
 
+import type { IndexedDbStore } from '../indexed-db'
 import { createIndexedDb } from '../indexed-db'
+import type { IndexedDbTable } from './index'
 import { createIndexedDbTable, IndexedDbTableValidationError } from './index'
 
 const todoSchema = z.object({
@@ -230,6 +232,115 @@ describe('createIndexedDbTable', () => {
       expectTypeOf(createTodos().index)
         .parameter(0)
         .toEqualTypeOf<'status' | 'order'>()
+    })
+
+    it('types index and primary keys from the schema', async () => {
+      const todos = createTodos()
+
+      expectTypeOf(todos.index('status').getAll)
+        .parameter(0)
+        .toEqualTypeOf<'open' | 'done' | IDBKeyRange | null | undefined>()
+      expectTypeOf(todos.index('order').get)
+        .parameter(0)
+        .toEqualTypeOf<number | IDBKeyRange>()
+      expectTypeOf(todos.get).parameter(0).toEqualTypeOf<string | IDBKeyRange>()
+
+      // @ts-expect-error - 'open2' is not a status value
+      await todos.index('status').getAll('open2')
+      // @ts-expect-error - ids are strings
+      await todos.get(1)
+      // @ts-expect-error - 'missing' is not an index
+      todos.index('missing')
+    })
+
+    it('rejects key paths that are not in the schema', () => {
+      createIndexedDbTable({
+        // @ts-expect-error - 'ids' is not a schema key
+        keyPath: 'ids',
+        schema: todoSchema,
+      })
+
+      createIndexedDbTable({
+        keyPath: 'id',
+        // @ts-expect-error - 'statuss' is not a schema key
+        indexes: { status: 'statuss' },
+        schema: todoSchema,
+      })
+
+      createIndexedDbTable({
+        keyPath: ['id', 'order'],
+        indexes: {
+          status: { keyPath: 'status', unique: false },
+          nested: 'title.length',
+        },
+        schema: todoSchema,
+      })
+    })
+
+    it('rejects key paths whose field cannot be a key', () => {
+      const nested = z.object({
+        id: z.string(),
+        meta: z.object({ slug: z.string() }),
+      })
+
+      createIndexedDbTable({
+        // @ts-expect-error - an object field is not a valid key
+        keyPath: 'meta',
+        schema: nested,
+      })
+
+      createIndexedDbTable({ keyPath: 'meta.slug', schema: nested })
+
+      createIndexedDbTable({
+        keyPath: 'whatever',
+        schema: z.object({ id: z.string() }).loose(),
+      })
+    })
+
+    it('accepts optional key fields but not nullable ones', () => {
+      const schema = z.object({
+        id: z.string(),
+        slug: z.string().optional(),
+        group: z.string().nullable(),
+      })
+
+      createIndexedDbTable({ keyPath: 'id', indexes: { slug: 'slug' }, schema })
+
+      createIndexedDbTable({
+        keyPath: 'id',
+        // @ts-expect-error - null is not a valid key
+        indexes: { group: 'group' },
+        schema,
+      })
+    })
+
+    it('allows an explicit put key only without a keyPath', () => {
+      type Handle<Store> = Store extends IndexedDbStore<infer H> ? H : never
+      type Keyed = Handle<
+        ReturnType<
+          typeof createIndexedDbTable<typeof todoSchema, { keyPath: 'id' }>
+        >
+      >
+      type OutOfLine = Handle<
+        ReturnType<typeof createIndexedDbTable<typeof todoSchema, {}>>
+      >
+
+      expectTypeOf<Keyed['put']>().parameter(1).toEqualTypeOf<undefined>()
+      expectTypeOf<OutOfLine['put']>()
+        .parameter(1)
+        .toEqualTypeOf<IDBValidKey | undefined>()
+    })
+
+    it('keeps the schema out of the table type', () => {
+      type Definition =
+        ReturnType<typeof createTodos> extends IndexedDbTable<Todo, infer D>
+          ? D
+          : never
+
+      expectTypeOf<Definition>().toEqualTypeOf<{
+        readonly keyPath: 'id'
+        readonly indexes: { readonly status: 'status'; readonly order: 'order' }
+      }>()
     })
   })
 

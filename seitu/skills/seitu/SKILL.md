@@ -11,7 +11,7 @@ description: >-
 metadata:
   type: core
   library: seitu
-  library_version: "0.16.1"
+  library_version: "1.1.0"
 requires:
   - seitu-overview
 sources:
