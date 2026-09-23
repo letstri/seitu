@@ -1,12 +1,12 @@
 # domain_map.yaml
 # Library: seitu
-# Version: 1.1.0
+# Version: 1.2.0
 # Regenerated: consolidated per-primitive skills into a single "seitu" skill
 # with a thin SKILL.md router and reference files (see skills[1].references).
 
 library:
   name: seitu
-  version: 1.1.0
+  version: 1.2.0
   repository: https://github.com/letstri/seitu
   description: Type-safe reactive primitives with a shared get/subscribe API for core, web, React, Vue, Solid, and Svelte.
   primary_framework: framework-agnostic
@@ -94,6 +94,7 @@ skills:
       - createComputed
       - createWebStorageValue
       - createWebStorage
+      - createCookieValue
       - createIndexedDbStorage
       - createMediaQuery
       - createIsOnline
@@ -114,6 +115,7 @@ skills:
       - derive state from other subscribables
       - persist one typed value to web storage
       - persist multiple related keys
+      - persist a small preference that SSR must render
       - persist large or async state in the browser
       - react to viewport or prefers-* queries
       - track online/offline status
@@ -131,6 +133,7 @@ skills:
       - subscribe via component children render prop
     references:
       - create-computed.md
+      - create-cookie-value.md
       - create-debounced-fn.md
       - create-debounced.md
       - create-indexed-db-storage.md

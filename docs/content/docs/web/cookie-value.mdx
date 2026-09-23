@@ -1,0 +1,99 @@
+---
+title: Cookie Value
+description: "Reactive handle for one cookie."
+---
+
+## createCookieValue()
+Reactive handle for one cookie. The cookie is the storage, so the server
+and the browser read the same value: pass `getServerCookies` and SSR renders
+the visitor's choice, and hydration matches it.
+
+`set` writes `document.cookie` and is a no-op on the server; sending a
+`Set-Cookie` response header is the framework's job. Keep values small: the
+encoded `name=value` pair must stay under 4 KB (bigger writes are skipped
+with a warning) and cookies travel with every request. `HttpOnly` cookies
+are invisible to JavaScript, so they cannot be read or written here.
+
+### Examples
+
+#### Vanilla
+
+```ts twoslash title="theme.ts"
+import { createCookieValue } from 'seitu/web'
+import * as z from 'zod'
+
+const theme = createCookieValue({
+  key: 'theme',
+  schema: z.enum(['light', 'dark']),
+  defaultValue: 'light',
+})
+
+theme.get()
+theme.set('dark')
+theme.subscribe(console.log)
+theme.clear()
+```
+
+#### TanStack Start
+
+```ts title="theme.ts"
+import { createIsomorphicFn } from '@tanstack/react-start'
+import { getRequestHeader } from '@tanstack/react-start/server'
+import { createCookieValue } from 'seitu/web'
+import * as z from 'zod'
+
+export const theme = createCookieValue({
+  key: 'theme',
+  schema: z.enum(['light', 'dark']),
+  defaultValue: 'light',
+  getServerCookies: createIsomorphicFn().server(() =>
+    getRequestHeader('cookie')
+  ),
+})
+```
+
+#### Next.js
+
+```ts title="theme.ts"
+import { cookies } from 'next/headers'
+import { createCookieValue } from 'seitu/web'
+import * as z from 'zod'
+
+export const theme = createCookieValue({
+  key: 'theme',
+  schema: z.enum(['light', 'dark']),
+  defaultValue: 'light',
+  getServerCookies: () =>
+    cookies()
+      .getAll()
+      .map(({ name, value }) => `${name}=${value}`)
+      .join('; '),
+})
+```
+
+#### React
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import { createCookieValue } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+import * as z from 'zod'
+
+const theme = createCookieValue({
+  key: 'theme',
+  schema: z.enum(['light', 'dark']),
+  defaultValue: 'light',
+})
+
+export default function Page() {
+  const value = useSubscription(theme)
+  return (
+    <button onClick={() => theme.set(value === 'dark' ? 'light' : 'dark')}>
+      {value}
+    </button>
+  )
+}
+```
+
+* * *

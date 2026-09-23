@@ -11,6 +11,7 @@ import * as z from 'zod'
 
 import { createStore } from '../../core/store'
 import { createSubscription } from '../../core/subscription'
+import { createCookieValue } from '../../web/cookie-value'
 import { createMediaQuery } from '../../web/media-query'
 import { createScrollState } from '../../web/scroll-state'
 import type { WebStorage } from '../../web/web-storage'
@@ -644,6 +645,55 @@ describe('useSubscription hydration', () => {
     await act(async () => root?.unmount())
     container.remove()
     window.localStorage.removeItem('hydrate-count')
+  })
+
+  it('hydrates a cookie value from the server header without a mismatch', async () => {
+    const { hydrateRoot } = await import('react-dom/client')
+    const { renderToString } = await import('react-dom/server')
+    const raw = encodeURIComponent(JSON.stringify('fr'))
+    const value = createCookieValue({
+      key: 'hydrate-lang',
+      schema: z.string(),
+      defaultValue: 'en',
+      getServerCookies: () => `hydrate-lang=${raw}`,
+    })
+
+    function App() {
+      const v = useSubscription(value)
+      return <span data-testid="lang">{v}</span>
+    }
+
+    const originalWindow = globalThis.window
+    vi.stubGlobal('window', undefined)
+    let html: string
+    try {
+      html = renderToString(<App />)
+    } finally {
+      vi.stubGlobal('window', originalWindow)
+    }
+    expect(html).toContain('>fr<')
+
+    document.cookie = `hydrate-lang=${raw}; Path=/`
+    const container = document.createElement('div')
+    container.innerHTML = html
+    document.body.append(container)
+
+    const errors: unknown[] = []
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <App />, {
+        onRecoverableError: (e) => errors.push(e),
+      })
+    })
+
+    expect(errors).toEqual([])
+    expect(container.querySelector('[data-testid="lang"]')!.textContent).toBe(
+      'fr'
+    )
+
+    await act(async () => root?.unmount())
+    container.remove()
+    document.cookie = `hydrate-lang=; Path=/; Max-Age=0; Expires=${new Date(0).toUTCString()}`
   })
 
   it('applies the selector to the server snapshot', () => {

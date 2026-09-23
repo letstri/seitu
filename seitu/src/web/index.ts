@@ -1,3 +1,4 @@
+export * from './cookie-value'
 export * from './indexed-db'
 export * from './indexed-db-storage'
 export * from './indexed-db-table'

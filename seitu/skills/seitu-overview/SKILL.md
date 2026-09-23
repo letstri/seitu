@@ -5,7 +5,7 @@ description: >-
 metadata:
   type: lifecycle
   library: seitu
-  library_version: "1.1.0"
+  library_version: "1.2.0"
 sources:
   - letstri/seitu:docs/content/docs/index.mdx
   - letstri/seitu:seitu/src/core/index.ts
@@ -22,7 +22,7 @@ API — no actions, no reducers, no context providers.
 | Import path | Purpose |
 |-------------|---------|
 | `seitu` | Core stores, computed, debounce/throttle |
-| `seitu/web` | Browser persistence (localStorage, sessionStorage, IndexedDB) and DOM state |
+| `seitu/web` | Browser persistence (localStorage, sessionStorage, cookies, IndexedDB) and DOM state |
 | `seitu/react` | `useSubscription` hook + `Subscription` component |
 | `seitu/vue` | `useSubscription` composable |
 | `seitu/solid` | `useSubscription` primitive (returns `Accessor`) + `Subscription` component |
@@ -90,6 +90,7 @@ What do you need?
 │
 ├─ Browser persistence
 │  ├─ Single key → createWebStorageValue
+│  ├─ SSR must render it (lang, theme) → createCookieValue
 │  ├─ Multiple keys → createWebStorage
 │  └─ Large/async data → createIndexedDbStorage
 │
@@ -144,7 +145,9 @@ const data = useSubscription(() => createWebStorageValue({ ... }))
 
 All `seitu/web` primitives return defaults when `window` / `navigator` is
 undefined. Safe to create at module level in SSR frameworks (Next.js, Nuxt).
-Use `defaultMatches` on `createMediaQuery` for SSR-specific defaults.
+Use `defaultMatches` on `createMediaQuery` for SSR-specific defaults. When
+the server must render a persisted value, use `createCookieValue` with
+`getServerCookies`.
 
 ## Validation & repair
 

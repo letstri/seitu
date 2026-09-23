@@ -3,7 +3,8 @@ name: seitu
 description: >-
   Per-primitive API for Seitu: createStore, createComputed, createSchemaStore,
   createSubscription/createReadableSubscription, createDebounced(Fn),
-  createThrottled(Fn), createWebStorage(Value), createIndexedDb(Storage/Table),
+  createThrottled(Fn), createWebStorage(Value), createCookieValue,
+  createIndexedDb(Storage/Table),
   createMediaQuery, createIsOnline, createScrollState, and the React, Vue,
   Solid, and Svelte useSubscription/Subscription bindings. Use once you know
   which primitive or framework binding you need; read seitu-overview first
@@ -11,7 +12,7 @@ description: >-
 metadata:
   type: core
   library: seitu
-  library_version: "1.1.0"
+  library_version: "1.2.0"
 requires:
   - seitu-overview
 sources:
@@ -24,6 +25,7 @@ sources:
   - letstri/seitu:docs/content/docs/core/throttled-fn.mdx
   - letstri/seitu:docs/content/docs/web/web-storage.mdx
   - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
+  - letstri/seitu:docs/content/docs/web/cookie-value.mdx
   - letstri/seitu:docs/content/docs/web/indexed-db.mdx
   - letstri/seitu:docs/content/docs/web/media-query.mdx
   - letstri/seitu:docs/content/docs/web/is-online.mdx
@@ -68,12 +70,21 @@ primitive or framework you need instead of reading everything.
 |------|-----------|
 | Multi-key localStorage/sessionStorage | [references/create-web-storage.md](references/create-web-storage.md) |
 | Single-key localStorage/sessionStorage | [references/create-web-storage-value.md](references/create-web-storage-value.md) |
+| Single cookie, readable on the server for SSR | [references/create-cookie-value.md](references/create-cookie-value.md) |
 | IndexedDB connection, owns the stores | [references/create-indexed-db.md](references/create-indexed-db.md) |
 | IndexedDB key/value store, sync `get()` | [references/create-indexed-db-storage.md](references/create-indexed-db-storage.md) |
 | IndexedDB rows, indexes, reactive queries | [references/create-indexed-db-table.md](references/create-indexed-db-table.md) |
 | CSS media query | [references/create-media-query.md](references/create-media-query.md) |
 | `navigator.onLine` status | [references/create-is-online.md](references/create-is-online.md) |
 | Scroll position / edges of an element | [references/create-scroll-state.md](references/create-scroll-state.md) |
+
+## Persisted state that SSR must render
+
+`localStorage` is invisible to the server, so `createWebStorageValue` renders
+`defaultValue` on the server and switches after hydration. When the server
+HTML must show the persisted value (language, theme), store it in a cookie with
+`createCookieValue` and pass `getServerCookies` so the server reads the request
+header — see [references/create-cookie-value.md](references/create-cookie-value.md).
 
 ## Framework bindings
 

@@ -14,13 +14,13 @@ Seitu is a type-safe reactive primitives library. Framework-agnostic core (`seit
 | Skill | Type | Domain | What it covers | Load when |
 | ----- | ---- | ------ | --------------- | --------- |
 | seitu-overview | lifecycle | orientation | imports, mental model, decision tree, SSR | Always — read first |
-| seitu | core | reactive-state + browser-integration + framework-bindings | createStore, createSchemaStore, createComputed, createDebounced(Fn), createThrottled(Fn), createSubscription, createReadableSubscription, createWebStorage(Value), createIndexedDbStorage, createMediaQuery, createIsOnline, createScrollState, React/Vue/Solid/Svelte `useSubscription`/`Subscription` | Past the overview — thin `SKILL.md` router with 19 reference files loaded on demand |
+| seitu | core | reactive-state + browser-integration + framework-bindings | createStore, createSchemaStore, createComputed, createDebounced(Fn), createThrottled(Fn), createSubscription, createReadableSubscription, createWebStorage(Value), createCookieValue, createIndexedDbStorage, createMediaQuery, createIsOnline, createScrollState, React/Vue/Solid/Svelte `useSubscription`/`Subscription` | Past the overview — thin `SKILL.md` router with 20 reference files loaded on demand |
 
 `seitu` is a single skill with a thin `SKILL.md` router and reference files under
 `skills/seitu/references/`: `create-store.md`, `create-schema-store.md`,
 `create-computed.md`, `create-debounced.md`, `create-throttled.md`,
 `create-debounced-fn.md`, `create-throttled-fn.md`, `create-subscription.md`,
-`create-readable-subscription.md`, `create-web-storage-value.md`,
+`create-readable-subscription.md`, `create-web-storage-value.md`, `create-cookie-value.md`,
 `create-web-storage.md`, `create-indexed-db-storage.md`,
 `create-media-query.md`, `create-is-online.md`, `create-scroll-state.md`,
 `react.md`, `vue.md`, `solid.md`, `svelte.md`.

@@ -75,6 +75,21 @@ const theme = createWebStorageValue({
 theme.set('light')
 ```
 
+### Cookie the server can render
+
+```ts
+import { createCookieValue } from 'seitu/web'
+import * as z from 'zod'
+
+const lang = createCookieValue({
+  key: 'lang',
+  schema: z.enum(['en', 'fr']),
+  defaultValue: 'en',
+  getServerCookies: () => requestCookieHeader, // the framework's `Cookie` header reader
+}) // SSR renders the cookie value, hydration matches it
+lang.set('fr')
+```
+
 ### IndexedDB
 
 ```ts
@@ -191,8 +206,7 @@ function Theme() {
 <button onclick={() => settings.set({ theme: $theme === 'light' ? 'dark' : 'light' })}>{$theme}</button>
 ```
 
-Inline creation (elements, props). Use a callback ref so the subscription is
-rebuilt when the element mounts, unmounts, or remounts:
+Inline creation (elements, props). Use a callback ref so the subscription is rebuilt when the element mounts, unmounts, or remounts:
 
 ```tsx
 const [el, setEl] = useState<HTMLDivElement | null>(null)

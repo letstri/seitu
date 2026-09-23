@@ -1,7 +1,7 @@
 # skill_tree.yaml
 library:
   name: seitu
-  version: 1.1.0
+  version: 1.2.0
   repository: https://github.com/letstri/seitu
   description: Type-safe reactive primitives with shared get/subscribe API
 generated_from:
@@ -29,7 +29,7 @@ skills:
       Per-primitive API for Seitu: createStore, createComputed,
       createSchemaStore, createSubscription/createReadableSubscription,
       createDebounced(Fn), createThrottled(Fn), createWebStorage(Value),
-      createIndexedDb(Storage/Table), createMediaQuery, createIsOnline,
+      createCookieValue, createIndexedDb(Storage/Table), createMediaQuery, createIsOnline,
       createScrollState, and the React, Vue, Solid, and Svelte
       useSubscription/Subscription bindings. Use once you know which primitive
       or framework binding you need; read seitu-overview first for the mental
@@ -38,6 +38,7 @@ skills:
       - seitu-overview
     references:
       - references/create-computed.md
+      - references/create-cookie-value.md
       - references/create-debounced-fn.md
       - references/create-debounced.md
       - references/create-indexed-db-storage.md
@@ -68,6 +69,7 @@ skills:
       - letstri/seitu:docs/content/docs/core/throttled-fn.mdx
       - letstri/seitu:docs/content/docs/web/web-storage.mdx
       - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
+      - letstri/seitu:docs/content/docs/web/cookie-value.mdx
       - letstri/seitu:docs/content/docs/web/indexed-db.mdx
       - letstri/seitu:docs/content/docs/web/media-query.mdx
       - letstri/seitu:docs/content/docs/web/is-online.mdx
