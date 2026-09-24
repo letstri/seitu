@@ -1,22 +1,15 @@
 ---
 title: Scroll State
-description: "Creates a reactive handle that tracks scroll position of an element relative to each edge."
+description: "Tracks an element's scroll position relative to each edge."
 ---
 
 ## createScrollState()
-Creates a reactive handle that tracks scroll position of an element relative to each edge.
+Notifies on
+`scroll` and `ResizeObserver` (not inner content growth — call `'~'.notify()`
+after that). The element getter is resolved on first subscribe; recreate the
+handle if the element identity changes (React: `deps`).
 
-Subscribers are notified on `scroll` events and, where `ResizeObserver` is
-available, when the element's own box resizes. Content growth inside the
-element (which changes `scrollHeight` without resizing the element) is not
-observed; call `'~'.notify()` after such changes if you need an update.
-
-The element getter is resolved once when the first subscriber arrives. If the
-element can change identity, recreate the handle (React: pass `deps`).
-
-### Examples
-
-#### Vanilla
+### Vanilla
 
 ```ts twoslash
 import { createScrollState } from 'seitu/web'
@@ -38,31 +31,7 @@ const state = scroll.get()
 console.log(state)
 ```
 
-#### React (with useRef)
-
-```tsx twoslash title="page.tsx"
-'use client'
-
-import * as React from 'react'
-import { createScrollState } from 'seitu/web'
-import { useSubscription } from 'seitu/react'
-
-function Layout() {
-  const ref = React.useRef<HTMLDivElement>(null)
-  const state = useSubscription(() => createScrollState({
-    element: () => ref.current,
-    threshold: 10,
-  }))
-
-  return (
-    <div ref={ref}>
-      {state.top.reached ? 'at the top' : 'scrolled'}
-    </div>
-  )
-}
-```
-
-#### React (with useState)
+### React (callback ref)
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -85,6 +54,3 @@ function Layout() {
   )
 }
 ```
-
-* * *
-

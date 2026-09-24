@@ -2,3 +2,177 @@
 @import 'fumadocs-ui/css/black.css';
 @import 'fumadocs-ui/css/preset.css';
 @import 'fumadocs-twoslash/twoslash.css';
+
+/* Tokens follow the Tamery UI kit: three surface levels, 0.5px hairlines,
+   macOS diffuse shadows and one neutral hover surface (accent). */
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 0.875rem;
+
+  --default-border-width: 0.5px;
+  --default-ring-width: 0.5px;
+
+  --radius-sm: 0.24rem;
+  --radius-md: 0.32rem;
+  --radius-lg: 0.4rem;
+  --radius-xl: 0.56rem;
+  --radius-2xl: 0.72rem;
+
+  --shadow-2xs: 0 1px 2px 0 rgb(0 0 0 / 0.02);
+  --shadow-xs: 0 2px 4px 0 rgb(0 0 0 / 0.02);
+  --shadow-sm: 0 2px 8px -1px rgb(0 0 0 / 0.03), 0 1px 2px 0 rgb(0 0 0 / 0.02);
+  --shadow-md:
+    0 6px 16px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg:
+    0 16px 32px -4px rgb(0 0 0 / 0.12), 0 4px 8px -4px rgb(0 0 0 / 0.06);
+  --shadow-xl:
+    0 28px 56px -8px rgb(0 0 0 / 0.16), 0 8px 16px -8px rgb(0 0 0 / 0.08);
+
+  --ease-house: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Level 2: the page. Level 3: cards, popovers and controls on it. */
+  --color-fd-background: oklch(0.986 0.0013 282.73);
+  --color-fd-foreground: oklch(0.18 0 0);
+  --color-fd-card: oklch(1 0 0);
+  --color-fd-card-foreground: oklch(0.18 0 0);
+  --color-fd-popover: oklch(1 0 0);
+  --color-fd-popover-foreground: oklch(0.18 0 0);
+  --color-fd-primary: oklch(0.5788 0.2316 259.64);
+  --color-fd-primary-foreground: oklch(0.97 0.014 254.604);
+  --color-fd-secondary: oklch(0.94 0 0);
+  --color-fd-secondary-foreground: oklch(0.21 0 0);
+  --color-fd-muted: oklch(0.915 0.002 282.73);
+  --color-fd-muted-foreground: oklch(0.55 0 0);
+  --color-fd-accent: oklch(0.93 0.0013 282.73);
+  --color-fd-accent-foreground: oklch(0.21 0 0);
+  --color-fd-border: oklch(0 0 0 / 5%);
+  --color-fd-ring: oklch(0.5788 0.2316 259.64);
+}
+
+.dark {
+  --color-fd-background: oklch(0.2437 0.0059 259.64);
+  --color-fd-foreground: oklch(0.985 0 0);
+  --color-fd-card: oklch(0.2633 0.0075 259.64);
+  --color-fd-card-foreground: oklch(0.985 0 0);
+  --color-fd-popover: oklch(0.2633 0.0075 259.64);
+  --color-fd-popover-foreground: oklch(0.985 0 0);
+  --color-fd-primary: oklch(0.5788 0.2316 259.64);
+  --color-fd-primary-foreground: oklch(0.97 0.014 254.604);
+  --color-fd-ring: oklch(0.5788 0.2316 259.64);
+  --color-fd-secondary: oklch(0.3 0.007 282.73);
+  --color-fd-secondary-foreground: oklch(0.985 0 0);
+  --color-fd-muted: oklch(0.2 0.007 282.73);
+  --color-fd-muted-foreground: oklch(0.705 0 0);
+  --color-fd-accent: oklch(0.32 0.0075 259.64);
+  --color-fd-accent-foreground: oklch(0.985 0 0);
+  --color-fd-border: oklch(1 0 0 / 5%);
+
+  --shadow-md:
+    0 6px 16px -2px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg:
+    0 16px 32px -4px rgb(0 0 0 / 0.4), 0 4px 8px -4px rgb(0 0 0 / 0.26);
+  --shadow-xl:
+    0 28px 56px -8px rgb(0 0 0 / 0.5), 0 8px 16px -8px rgb(0 0 0 / 0.3);
+}
+
+@utility focus-ring {
+  @apply ring-fd-ring/50 ring-3 outline-none;
+}
+
+code,
+pre,
+.font-mono {
+  font-variant-ligatures: none;
+}
+
+::selection {
+  @apply bg-fd-primary/30 text-fd-primary;
+}
+
+/* Landing page ---------------------------------------------------------- */
+
+.frame {
+  @apply mx-auto max-w-6xl px-6 sm:px-10;
+}
+
+/* Level-3 box: fill, hairline ring (never a border) and a control-tier lip. */
+.surface {
+  @apply bg-fd-card ring-fd-foreground/4 rounded-xl shadow-xs ring;
+}
+
+/* Button variants mirror the Tamery kit's buttonVariants. */
+.btn {
+  @apply focus-visible:focus-ring inline-flex h-8 shrink-0 cursor-default items-center justify-center gap-1.5 rounded-xl px-3 text-sm whitespace-nowrap outline-none select-none active:translate-y-px [&_svg]:size-4 [&_svg]:shrink-0;
+  transition-property: transform, box-shadow, color, background-color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-house);
+}
+.btn-lg {
+  @apply h-9 px-4;
+}
+.btn-xs {
+  @apply h-6 gap-1 rounded-md px-2.5 text-xs [&_svg]:size-3;
+}
+.btn-icon-xs {
+  @apply size-6 rounded-md px-0 [&_svg]:size-3.5;
+}
+.btn-default {
+  @apply bg-fd-primary text-fd-primary-foreground hover:bg-fd-primary/80;
+}
+.btn-outline {
+  @apply bg-fd-popover text-fd-foreground ring-fd-foreground/4 hover:bg-fd-accent hover:ring-fd-foreground/12 shadow-xs ring;
+}
+/* Ghost hovers instantly: rows the pointer sweeps across must not trail. */
+.btn-ghost {
+  @apply text-fd-muted-foreground hover:bg-fd-accent hover:text-fd-foreground;
+  transition-property: transform;
+}
+
+/* Micro section label. */
+.eyebrow {
+  @apply text-fd-muted-foreground text-2xs font-semibold tracking-wider uppercase;
+}
+
+/* Code blocks that sit inside our own surfaces drop their chrome. */
+.bare-code figure {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.swap {
+  animation: swap 150ms var(--ease-house) both;
+}
+@keyframes swap {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Plays each time notify() lands a new entry in the live log. */
+.blip {
+  animation: blip 600ms var(--ease-house) both;
+}
+@keyframes blip {
+  from {
+    background-color: color-mix(
+      in oklch,
+      var(--color-fd-primary) 12%,
+      transparent
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swap,
+  .blip {
+    animation: none;
+  }
+  .btn:active {
+    translate: none;
+  }
+}

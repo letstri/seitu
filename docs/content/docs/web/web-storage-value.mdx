@@ -1,18 +1,13 @@
 ---
 title: Web Storage Value
-description: "Creates a reactive handle for a single localStorage or sessionStorage key."
+description: "Reactive handle for one localStorage/sessionStorage key."
 ---
 
 ## createWebStorageValue()
-Creates a reactive handle for a single localStorage or sessionStorage key.
+On the server,
+`get()` and the SSR snapshot are `defaultValue`.
 
-On the server (no `window`) `get()` returns `defaultValue`. The same value is
-exposed as the server snapshot so framework bindings can hydrate without a
-mismatch and then switch to the persisted value.
-
-### Examples
-
-#### Vanilla
+### Vanilla
 
 ```ts twoslash title="session-storage.ts"
 import { createWebStorageValue } from 'seitu/web'
@@ -31,7 +26,7 @@ tokenStorage.get()
 tokenStorage.subscribe(console.log)
 ```
 
-#### React
+### React
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -56,6 +51,3 @@ export default function Page() {
   )
 }
 ```
-
-* * *
-

@@ -155,9 +155,6 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
-      '@tanstack/intent':
-        specifier: ^0.3.8
-        version: 0.3.8
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -1993,10 +1990,6 @@ packages:
     resolution: {integrity: sha512-DR9t6lfLVdrjgCwpglrR9DR7Ok8/HlXjcOE+goWXF3zyuLUO/ug7vMbSFxTqrQTtbRghJfyhmIZ0S6LhPIy44w==}
     engines: {node: '>=20.19'}
 
-  '@tanstack/intent@0.3.8':
-    resolution: {integrity: sha512-5KXhk+dPqzVHcETuf0Q6l1jasjFS2BJvG4Vw1dakuHEaQ85kZ3oSsOMROsad5w/DsEsQ9q1F00cQzIrk9jPzsQ==}
-    hasBin: true
-
   '@tanstack/react-router@1.170.32':
     resolution: {integrity: sha512-SIpxvaTKco100a5ZR3ePmArbhtm3XOx+w1dpGYY9gxHDta4iXSKDdQuhLonwJbIMkVJsU1rwXf0UDHMrF/1snw==}
     engines: {node: '>=20.19'}
@@ -2665,10 +2658,6 @@ packages:
   buffer-image-size@0.6.4:
     resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
     engines: {node: '>=4.0'}
-
-  cac@6.7.14:
-    resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
-    engines: {node: '>=8'}
 
   cac@7.0.0:
     resolution: {integrity: sha512-tixWYgm5ZoOD+3g6UTea91eow5z6AAHaho3g0V9CNSNb45gM8SmflpAc+GRd1InC4AqN/07Unrgp56Y94N9hJQ==}
@@ -6367,14 +6356,6 @@ snapshots:
 
   '@tanstack/history@1.162.1': {}
 
-  '@tanstack/intent@0.3.8':
-    dependencies:
-      cac: 6.7.14
-      jsonc-parser: 3.3.1
-      semver: 7.8.5
-      std-env: 4.1.0
-      yaml: 2.9.0
-
   '@tanstack/react-router@1.170.32(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@tanstack/history': 1.162.1
@@ -7012,8 +6993,6 @@ snapshots:
   buffer-image-size@0.6.4:
     dependencies:
       '@types/node': 26.4.1
-
-  cac@6.7.14: {}
 
   cac@7.0.0: {}
 
@@ -9009,7 +8988,8 @@ snapshots:
 
   semver@6.3.1: {}
 
-  semver@7.8.5: {}
+  semver@7.8.5:
+    optional: true
 
   seroval-plugins@1.5.4(seroval@1.5.4):
     dependencies:

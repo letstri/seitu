@@ -10,33 +10,8 @@ description: >-
   which primitive or framework binding you need; read seitu-overview first
   for the mental model and decision tree.
 metadata:
-  type: core
   library: seitu
   library_version: "1.2.0"
-requires:
-  - seitu-overview
-sources:
-  - letstri/seitu:docs/content/docs/core/store.mdx
-  - letstri/seitu:docs/content/docs/core/computed.mdx
-  - letstri/seitu:docs/content/docs/core/schema-store.mdx
-  - letstri/seitu:docs/content/docs/core/debounced.mdx
-  - letstri/seitu:docs/content/docs/core/debounced-fn.mdx
-  - letstri/seitu:docs/content/docs/core/throttled.mdx
-  - letstri/seitu:docs/content/docs/core/throttled-fn.mdx
-  - letstri/seitu:docs/content/docs/web/web-storage.mdx
-  - letstri/seitu:docs/content/docs/web/web-storage-value.mdx
-  - letstri/seitu:docs/content/docs/web/cookie-value.mdx
-  - letstri/seitu:docs/content/docs/web/indexed-db.mdx
-  - letstri/seitu:docs/content/docs/web/media-query.mdx
-  - letstri/seitu:docs/content/docs/web/is-online.mdx
-  - letstri/seitu:docs/content/docs/web/scroll-state.mdx
-  - letstri/seitu:docs/content/docs/react/hooks.mdx
-  - letstri/seitu:docs/content/docs/react/components.mdx
-  - letstri/seitu:docs/content/docs/vue/composables.mdx
-  - letstri/seitu:docs/content/docs/solid/hooks.mdx
-  - letstri/seitu:docs/content/docs/solid/components.mdx
-  - letstri/seitu:docs/content/docs/svelte/hooks.mdx
-  - letstri/seitu:seitu/src/core/subscription/index.ts
 ---
 
 # Seitu — primitives and framework bindings
@@ -99,7 +74,7 @@ One hook/composable works with **any** Seitu primitive.
 
 ## Rules that apply everywhere
 
-- **Create primitives at module scope, not inside components/render.** A new instance per render loses shared state and re-subscribes every time.
+- **Create shared primitives at module scope.** For component-local values, pass a factory to the framework binding; do not create a new instance on every render.
 - **Reference equality gates notification.** `set()` skips notifying subscribers when the new value is `===` the old one — always return a new object/array from updaters.
 - **Framework bindings are optional peer deps and are not interchangeable.** Importing `seitu/react` hooks/components in Vue, Solid, or Svelte code (or vice versa) breaks — use the binding matching the framework you're in.
 - **Web/DOM primitives are SSR-safe by default** (return defaults when `window`/`navigator` is undefined) — safe to create at module level in SSR frameworks. `createMediaQuery` needs `defaultMatches` set explicitly for a correct SSR value.

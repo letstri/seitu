@@ -3,12 +3,8 @@ name: seitu-overview
 description: >-
   Module map, mental model, decision tree, SSR — read before other Seitu skills.
 metadata:
-  type: lifecycle
   library: seitu
   library_version: "1.2.0"
-sources:
-  - letstri/seitu:docs/content/docs/index.mdx
-  - letstri/seitu:seitu/src/core/index.ts
 ---
 
 # Seitu Overview
@@ -172,6 +168,10 @@ const settings = createWebStorageValue({
 The **seitu** skill has a reference file per primitive and framework binding
 in `skills/seitu/references/<slug>.md` (e.g. `create-store.md`). Read this
 overview first, then the specific reference for the function you need.
+
+To move an existing project onto Seitu (replace storage hooks, `matchMedia`
+listeners, small global stores and similar code), follow the **seitu-setup**
+skill.
 ## Common Mistakes
 
 ### [HIGH] Using useState for shared module-level state

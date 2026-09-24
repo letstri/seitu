@@ -1,6 +1,5 @@
 dist
 README.md
 !skills/README.md
-skills/sync-state.json
 tsconfig.tsbuildinfo
 .DS_Store

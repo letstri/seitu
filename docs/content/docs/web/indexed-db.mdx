@@ -1,16 +1,34 @@
 ---
-title: Indexed Db
+title: IndexedDB
 description: "Opens one IndexedDB connection and builds a handle for each store definition (createIndexedDbStorage or createIndexedDbTable)."
 ---
 
 ## createIndexedDb()
-Opens one IndexedDB connection and builds a handle for each store definition
-(`createIndexedDbStorage` or `createIndexedDbTable`). Missing stores/indexes
+Missing stores/indexes
 are created automatically; concurrent opens of the same name are serialized.
 
-### Examples
+`version` is a minimum, not a pin: adding a store or an index bumps it on its
+own, so set it only when existing rows need migrating. Bump it, then rewrite
+the rows with `migrate` in `onUpgrade`, which runs inside the `versionchange`
+transaction after the declared stores and indexes are created. Everything
+there is synchronous — `migrate` queues a cursor walk instead of returning a
+promise, and `onUpgrade` cannot be `async`.
 
-#### Vanilla
+`migrate` rewrites fields, not keys: changing the `keyPath` field of a row
+aborts the upgrade. Indexes are created and filled before `onUpgrade` runs,
+so a migration cannot clean up rows for a `unique` index added in the same
+version — add the index in a later version than the cleanup. A failed
+upgrade rolls back whole and is reported with `console.warn`: `ready` still
+resolves, but reads and writes then reject, because every access retries the
+same failing upgrade.
+
+Every write is one transaction, and only one. A single `put`, `delete`, `set`
+or `clear` call opens a `readwrite` transaction and queues all of its rows or
+keys on it, so a batch lands whole or not at all; two calls are two
+transactions, and none of them spans stores. Reads work the same way: each
+one is its own `readonly` snapshot.
+
+### Vanilla
 
 ```ts twoslash title="db.ts"
 import { createIndexedDb, createIndexedDbStorage, createIndexedDbTable } from 'seitu/web'
@@ -38,14 +56,7 @@ await db.ready
 await todos.put({ id: '1', title: 'Write docs', status: 'open' })
 ```
 
-#### Upgrading to a new version
-
-`version` is a minimum, not a pin: adding a store or an index bumps it on
-its own, so set it only when existing rows need migrating. Bump it, then
-rewrite the rows with `migrate` in `onUpgrade`, which runs inside the
-`versionchange` transaction after the declared stores and indexes are
-created. Everything there is synchronous — `migrate` queues a cursor walk
-instead of returning a promise, and `onUpgrade` cannot be `async`.
+### Migrations
 
 ```ts twoslash title="db.ts"
 import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
@@ -72,28 +83,7 @@ const db = createIndexedDb({
 await db.ready
 ```
 
-Three things the cursor walk cannot do:
-
-- **Rekey a row.** `migrate` rewrites fields, not keys — returning a row whose
-  `keyPath` field changed aborts the upgrade. Delete the old row and `put` the
-  new one after `ready` instead.
-- **Prepare rows for an index added in the same version.** Indexes are created
-  and filled before `onUpgrade` runs, so a `unique` index over rows that still
-  hold duplicates fails before the migration can dedupe them. Clean up in one
-  version, add the index in the next.
-- **Report failure.** A throw inside the rewrite (or any aborted upgrade) rolls
-  the whole `versionchange` transaction back and is reported with
-  `console.warn`. The database stays on its old version, and because every
-  access retries the same failing upgrade, `ready` still resolves but reads and
-  writes reject until the migration is fixed.
-
-#### Transactions
-
-Every write is one transaction, and only one. A single `put`, `delete`, `set`
-or `clear` call opens a `readwrite` transaction and queues all of its rows or
-keys on it, so a batch lands whole or not at all. Two calls are two
-transactions, and neither spans stores — there is no transaction handle to
-open yourself.
+### Transactions
 
 ```ts twoslash title="checkout.ts"
 import { createIndexedDb, createIndexedDbStorage, createIndexedDbTable } from 'seitu/web'
@@ -127,34 +117,12 @@ await todos.put({ id: '3', title: 'Reconcile', status: 'open' })
 await sync.set({ pending: 1 })
 ```
 
-What that buys, and what it does not:
-
-- **A batch is all-or-nothing.** Pass the whole array to one call instead of
-  awaiting one call per row. Rows are validated before the transaction opens,
-  so a single bad row rejects with nothing written.
-- **A batch notifies once.** `query()` re-runs, and other tabs are told, after
-  the transaction completes — once per call, not once per row.
-- **Nothing spans stores.** A table write and a storage write are separate
-  transactions, so order them to fail safe: write the rows first, then the
-  pointer that makes them visible.
-- **Failures differ per store.** A table write rejects when its transaction
-  aborts. A storage write never rejects: the cache already holds the new value
-  and a failed persist is only a `console.warn`, so re-read after `hydrate()`
-  if the write has to be confirmed.
-
-The one transaction you do get to widen is the `versionchange` one — everything
-`onUpgrade` queues shares it, which is why a failed migration rolls back whole.
-
-* * *
-
 ## createIndexedDbStorage()
 Key/value store for `createIndexedDb({ stores })`. `get()` reads an
 in-memory cache hydrated from IndexedDB (`await db.ready`). `set`/`clear`
 update the cache now and persist later. SSR snapshot is `defaultValues`.
 
-### Examples
-
-#### Vanilla
+### Vanilla
 
 ```ts twoslash title="settings-storage.ts"
 import { createIndexedDb, createIndexedDbStorage } from 'seitu/web'
@@ -181,7 +149,7 @@ settings.get() // { token: 'abc', preferences: { theme: 'light' } }
 settings.subscribe(console.log)
 ```
 
-#### React
+### React
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -211,16 +179,16 @@ export default function Page() {
 }
 ```
 
-* * *
-
 ## createIndexedDbTable()
 Row store for `createIndexedDb({ stores })`: keyed rows, indexes, range
 reads, validation. Use `query()` for a `Readable`/`Subscribable` that
 re-runs on table changes. On the server, queries stay on `initial`.
 
-### Examples
+Key paths must name a schema field that can hold a key, and reads are typed
+from that field. Compound (`['id', 'order']`) and nested (`'meta.slug'`)
+paths fall back to `IDBValidKey`.
 
-#### Vanilla
+### Vanilla
 
 ```ts twoslash title="todos.ts"
 import { createIndexedDb, createIndexedDbTable } from 'seitu/web'
@@ -249,13 +217,7 @@ open.get()
 open.subscribe(rows => console.log(rows))
 ```
 
-`keyPath` and every index key path must name a schema field that can hold a
-key, and the key type is read back off that field, so `get`, `getAll`, `count`
-and `delete` only accept keys that field can produce. Compound (`['id',
-'order']`) and nested (`'meta.slug'`) paths fall back to `IDBValidKey` — only
-the first segment of a nested path is checked.
-
-#### React
+### React
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -285,5 +247,3 @@ export default function Page() {
   )
 }
 ```
-
-* * *

@@ -217,13 +217,12 @@ const scroll = useSubscription(() => createScrollState({ element: el }), {
 return <div ref={setEl} />
 ```
 
-## Agent skills (TanStack Intent)
+## Agent skills
 
 Skills ship inside the npm package and describe the installed version's API.
 
 ```bash
-pnpm dlx @tanstack/intent@latest install
-pnpm dlx @tanstack/intent@latest load seitu#seitu-overview
+npx skills add letstri/seitu
 ```
 
 ## License

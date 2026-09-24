@@ -1,144 +1,45 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock'
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs'
-import { HomeLayout } from 'fumadocs-ui/layouts/home'
-import {
-  ArrowRightIcon,
-  BlocksIcon,
-  DatabaseIcon,
-  MonitorSmartphoneIcon,
-  PackageIcon,
-  ServerIcon,
-  ShieldCheckIcon,
-  UnplugIcon,
-} from 'lucide-react'
+import { useSearchContext } from 'fumadocs-ui/contexts/search'
+import { ArrowRightIcon, CheckIcon, CopyIcon, SearchIcon } from 'lucide-react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 
-import { baseOptions, githubUrl } from '~/lib/layout.shared'
+import { DebounceDemo } from '~/components/debounce-demo'
+import { LiveContract } from '~/components/live-contract'
+import { githubUrl } from '~/lib/layout.shared'
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
-const initCode = `// Import needed function, e.g. local storage
-import { createWebStorage } from 'seitu/web'
-// Use any Standard Schema library you want
-import * as z from 'zod'
-
-// Create an instance of the function
-const localStorage = createWebStorage({
-  type: 'localStorage',
-  schemas: { count: z.number(), name: z.string() },
-  defaultValues: { count: 0, name: '' },
-})`
-
-const usageCode = `// Manipulate the instance
-localStorage.get() // { count: 0, name: '' }
-localStorage.set({ count: 1, name: 'John' })
-localStorage.subscribe(console.log)
-`
-
-const reactCode = `// Import framework hook to subscribe to the function output
-import { useSubscription } from 'seitu/react'
-
-export default function Page() {
-  // Subscribe to the instance
-  const count = useSubscription(
-    localStorage,
-    // Re-render only when count changes
-    { selector: value => value.count }
-  )
-
-  return (
-    <div>
-      <span>{count}</span>
-      <button onClick={() => count.set(c => c + 1)}>Increment</button>
-    </div>
-  )
-}
-`
-
-const contractCode = `const value = createStore(0) // or storage, media query, scroll state…
-
-value.get() // read anywhere, no component needed
-value.set(v => v + 1) // write, sync or async
-value.subscribe(console.log) // listen, returns an unsubscribe
-`
-
-const features = [
+const highlights = [
   {
-    icon: UnplugIcon,
-    title: 'One contract',
-    description:
-      'Every primitive returns the same handle: get(), set() and subscribe(). Learn it once, use it for state, storage and browser APIs.',
-  },
-  {
-    icon: ShieldCheckIcon,
     title: 'Validated by your schema',
-    description:
-      'Pass any Standard Schema validator — Zod, Valibot, ArkType. Stored data is parsed on read and write, and falls back to your defaults.',
+    body: 'Zod, Valibot or ArkType — any Standard Schema. Bad stored data falls back to your defaults.',
   },
   {
-    icon: BlocksIcon,
-    title: 'Usable outside components',
-    description:
-      'Primitives live at module scope, so utilities, event handlers and tests read the same value your components render.',
+    title: 'SSR-safe by default',
+    body: 'Browser APIs are touched only on the client. Servers render your defaults, so hydration matches.',
   },
   {
-    icon: ServerIcon,
-    title: 'SSR-safe',
-    description:
-      'Browser APIs are touched only after mount, so servers get your default values instead of a hydration mismatch.',
-  },
-  {
-    icon: MonitorSmartphoneIcon,
-    title: 'Framework bindings',
-    description:
-      'A useSubscription hook, composable or rune for React, Vue, Solid and Svelte — with selectors to skip needless re-renders.',
-  },
-  {
-    icon: PackageIcon,
     title: 'Import only what you use',
-    description:
-      'Entry points per area and per feature: seitu/web for everything browser, seitu/web/web-storage for just one.',
+    body: 'No framework in core. Entry points per area and per primitive keep bundles small.',
   },
 ]
 
-const primitives = [
-  {
-    icon: BlocksIcon,
-    title: 'Core',
-    href: '/docs/core/store',
-    description:
-      'Stores, schema stores, computed values, debounce and throttle.',
-    items: [
-      'createStore',
-      'createSchemaStore',
-      'createComputed',
-      'createDebounced',
-    ],
-  },
-  {
-    icon: DatabaseIcon,
-    title: 'Web',
-    href: '/docs/web/web-storage',
-    description:
-      'Typed browser storage and DOM state, validated on every read.',
-    items: [
-      'createWebStorage',
-      'createIndexedDb',
-      'createMediaQuery',
-      'createScrollState',
-    ],
-  },
+const agentLines = [
+  ['seitu-overview', 'module map, mental model, SSR'],
+  ['seitu', 'per-primitive API, common mistakes'],
+  ['seitu-setup', 'migrate an existing project'],
+  ['/llms.txt', 'index of every docs page'],
+  ['/docs/<page>.mdx', 'any page as plain Markdown'],
 ]
 
-const frameworks = [
-  { name: 'React', href: '/docs/react/hooks' },
-  { name: 'Vue', href: '/docs/vue/composables' },
-  { name: 'Solid', href: '/docs/solid/hooks' },
-  { name: 'Svelte', href: '/docs/svelte/hooks' },
-  { name: 'No framework', href: '/docs/core/subscription' },
+const navLinks = [
+  { text: 'Docs', splat: '' },
+  { text: 'Primitives', splat: 'core/store' },
+  { text: 'AI agents', splat: 'ai-agents' },
+  { text: 'Extend', splat: 'custom-primitives' },
 ]
 
 function DocsLink({
@@ -157,155 +58,377 @@ function DocsLink({
   )
 }
 
+function useCopy() {
+  const [copied, setCopied] = useState(false)
+  return {
+    copied,
+    copy: (text: string) => {
+      void navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    },
+  }
+}
+
+function CopyIconButton({ text }: { text: string }) {
+  const { copied, copy } = useCopy()
+  const label = copied ? 'Copied' : 'Copy'
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={() => copy(text)}
+      className="btn btn-ghost btn-icon-xs"
+    >
+      {copied ? <CheckIcon /> : <CopyIcon />}
+    </button>
+  )
+}
+
+function CommandPill({
+  text,
+  prompt = true,
+  size = 'default',
+}: {
+  text: string
+  prompt?: boolean
+  size?: 'default' | 'lg'
+}) {
+  return (
+    <div
+      className={`surface flex items-center gap-2 ps-3 pe-1 ${size === 'lg' ? 'h-9' : 'h-8'}`}
+    >
+      <code className="min-w-0 flex-1 truncate font-mono text-xs">
+        {prompt && (
+          <span className="text-fd-muted-foreground select-none">$ </span>
+        )}
+        {text}
+      </code>
+      <CopyIconButton text={text} />
+    </div>
+  )
+}
+
+function Code({ children }: { children: ReactNode }) {
+  return (
+    <code className="bg-fd-muted text-fd-foreground rounded-md px-1 py-px font-mono text-sm">
+      {children}
+    </code>
+  )
+}
+
+function Section({ children }: { children: ReactNode }) {
+  return (
+    <section className="border-fd-border border-t">
+      <div className="frame py-14 lg:py-20">{children}</div>
+    </section>
+  )
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="text-2xl font-medium tracking-tight text-balance sm:text-3xl">
+      {children}
+    </h2>
+  )
+}
+
+function Panel({
+  title,
+  meta,
+  children,
+}: {
+  title: string
+  meta: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <div className="surface min-w-0 overflow-hidden">
+      <div className="border-fd-border flex h-8 items-center justify-between border-b ps-3 pe-1">
+        <span className="text-fd-muted-foreground font-mono text-xs">
+          {title}
+        </span>
+        {meta}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Header() {
+  const { setOpenSearch } = useSearchContext()
+  return (
+    <header className="border-fd-border bg-fd-background/80 sticky top-0 z-40 border-b backdrop-blur-md">
+      <div className="frame flex h-12 items-center gap-4">
+        <Link to="/" className="flex cursor-default items-center gap-2">
+          <Logo />
+          <span className="text-base font-semibold tracking-tight">Seitu</span>
+        </Link>
+        <nav className="hidden items-center md:flex">
+          {navLinks.map(({ text, splat }) => (
+            <DocsLink key={text} splat={splat} className="btn btn-ghost">
+              {text}
+            </DocsLink>
+          ))}
+          <a
+            href={githubUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="btn btn-ghost"
+          >
+            GitHub
+          </a>
+        </nav>
+        <div className="ms-auto flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Search docs"
+            onClick={() => setOpenSearch(true)}
+            className="btn btn-outline text-fd-muted-foreground px-2.5 sm:w-44 sm:justify-start"
+          >
+            <SearchIcon />
+            <span className="hidden sm:inline">Search</span>
+            <kbd className="bg-fd-foreground/5 text-2xs ms-auto hidden rounded-md px-1 font-sans font-medium sm:inline">
+              ⌘K
+            </kbd>
+          </button>
+          <DocsLink className="btn btn-default">Get started</DocsLink>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function Logo() {
+  // Three bars: get, set, subscribe.
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="text-fd-primary size-5">
+      <rect x="3" y="5" width="18" height="3.2" rx="1.6" fill="currentColor" />
+      <rect
+        x="3"
+        y="10.4"
+        width="12"
+        height="3.2"
+        rx="1.6"
+        fill="currentColor"
+        opacity="0.7"
+      />
+      <rect
+        x="3"
+        y="15.8"
+        width="15"
+        height="3.2"
+        rx="1.6"
+        fill="currentColor"
+        opacity="0.4"
+      />
+    </svg>
+  )
+}
+
+const steps = [
+  {
+    title: 'Add the package',
+    body: 'One dependency. Bindings ship inside it.',
+    code: 'pnpm add seitu',
+  },
+  {
+    title: 'Create a handle',
+    body: 'At module scope, so any file can import it.',
+    code: 'const counter = createStore(0)',
+  },
+  {
+    title: 'Read it in a component',
+    body: 'From seitu/react, /vue, /solid or /svelte.',
+    code: 'useSubscription(counter)',
+  },
+]
+
+const footerLinks = [
+  {
+    title: 'Docs',
+    links: [
+      ['Introduction', ''],
+      ['AI agents', 'ai-agents'],
+      ['Custom primitives', 'custom-primitives'],
+    ],
+  },
+  {
+    title: 'Primitives',
+    links: [
+      ['Core', 'core/store'],
+      ['Web', 'web/web-storage'],
+      ['Subscription', 'core/subscription'],
+    ],
+  },
+  {
+    title: 'Frameworks',
+    links: [
+      ['React', 'react/hooks'],
+      ['Vue', 'vue/composables'],
+      ['Solid', 'solid/hooks'],
+      ['Svelte', 'svelte/hooks'],
+    ],
+  },
+]
+
 function Home() {
   return (
-    <HomeLayout {...baseOptions()}>
-      <main className="flex flex-1 flex-col">
-        <section className="container mx-auto grid grid-cols-1 items-center gap-8 px-4 py-16 sm:gap-12 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
-          <div className="pt-6 text-center sm:pt-8 lg:order-1 lg:pt-12 lg:text-left">
-            <h1 className="text-fd-foreground text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-              <span className="block">Seitu</span>
+    <div className="bg-fd-background text-fd-foreground flex min-h-screen flex-col">
+      <Header />
+
+      <main className="w-full">
+        {/* Hero: the thesis, and the proof running live next to it. */}
+        <section className="frame grid grid-cols-1 items-center gap-10 py-14 lg:grid-cols-2 lg:gap-16 lg:py-24">
+          <div>
+            <p className="eyebrow">Reactive primitives for TypeScript</p>
+            <h1 className="mt-3 text-4xl font-medium tracking-tight text-balance sm:text-5xl">
+              One contract for every value
             </h1>
-            <p className="text-fd-muted-foreground mx-auto mt-4 max-w-md text-base leading-relaxed sm:mt-5 sm:max-w-lg sm:text-lg lg:mx-0 lg:mt-6 lg:max-w-xl lg:text-xl">
-              Type-safe reactive primitives with one contract: get(), set(),
-              subscribe(). In-memory state, validated localStorage and
-              IndexedDB, media queries and scroll position — inside components
-              or far away from them.
+            <p className="text-fd-muted-foreground mt-5 max-w-md text-base leading-relaxed">
+              Stores, localStorage, cookies, IndexedDB and media queries all
+              share <Code>get</Code> and <Code>subscribe</Code>, plus{' '}
+              <Code>set</Code> wherever a value is writable. Learn it once. So
+              does your AI agent.
             </p>
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <DocsLink className="bg-fd-primary text-fd-primary-foreground focus:ring-fd-primary focus:ring-offset-fd-background inline-flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-opacity hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:outline-none sm:w-auto">
-                Documentation
-                <ArrowRightIcon className="size-4 shrink-0" />
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <DocsLink className="btn btn-default btn-lg">
+                Read the docs
+                <ArrowRightIcon />
               </DocsLink>
-              <a
-                href={githubUrl}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="border-fd-border text-fd-foreground hover:bg-fd-accent hover:text-fd-accent-foreground inline-flex w-full items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-medium transition-colors sm:w-auto"
-              >
-                GitHub
-              </a>
-            </div>
-            <div className="mx-auto mt-6 max-w-md text-left lg:mx-0">
-              <DynamicCodeBlock lang="bash" code="pnpm add seitu" />
+              <div className="sm:w-52">
+                <CommandPill text="pnpm add seitu" size="lg" />
+              </div>
             </div>
           </div>
-          <div className="w-full min-w-0 lg:order-2">
-            <Tabs items={['Init', 'Usage', 'Framework']}>
-              <Tab value="Init">
-                <DynamicCodeBlock lang="ts" code={initCode} />
-              </Tab>
-              <Tab value="Usage">
-                <DynamicCodeBlock lang="ts" code={usageCode} />
-              </Tab>
-              <Tab value="Framework">
-                <DynamicCodeBlock lang="tsx" code={reactCode} />
-              </Tab>
-            </Tabs>
+          <div className="min-w-0">
+            <LiveContract />
           </div>
         </section>
 
         <section className="border-fd-border border-t">
-          <div className="container mx-auto grid grid-cols-1 items-center gap-8 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
+          <dl className="frame grid grid-cols-1 gap-6 py-10 md:grid-cols-3 md:gap-10">
+            {highlights.map(({ title, body }) => (
+              <div key={title}>
+                <dt className="text-sm font-medium">{title}</dt>
+                <dd className="text-fd-muted-foreground mt-1 text-sm leading-relaxed">
+                  {body}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <Section>
+          <SectionTitle>Debouncing is one more handle</SectionTitle>
+          <p className="text-fd-muted-foreground mt-4 max-w-xl text-base leading-relaxed">
+            Wrap any source with <Code>createDebounced</Code> and read it like
+            the original. No effects, timers or cleanup in your components.
+          </p>
+          <div className="mt-8">
+            <DebounceDemo />
+          </div>
+        </Section>
+
+        <Section>
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <h2 className="text-fd-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-                Learn one API, use it everywhere
-              </h2>
-              <p className="text-fd-muted-foreground mt-4 text-base leading-relaxed">
-                A store, a validated <code>localStorage</code> key, an IndexedDB
-                table and a media query all hand you the same three methods.
-                Swap the source without rewriting the code around it.
+              <SectionTitle>
+                Predictable for people. Obvious to agents.
+              </SectionTitle>
+              <p className="text-fd-muted-foreground mt-4 max-w-md text-base leading-relaxed">
+                Coding agents get small, uniform APIs right. Seitu ships skills
+                with the package and every docs page as Markdown, so your agent
+                reads the API of the version you installed.
               </p>
+              <DocsLink splat="ai-agents" className="btn btn-outline mt-6">
+                Set up your agent
+                <ArrowRightIcon />
+              </DocsLink>
             </div>
-            <DynamicCodeBlock lang="ts" code={contractCode} />
-          </div>
-        </section>
-
-        <section className="border-fd-border border-t">
-          <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map(({ icon: Icon, title, description }) => (
-                <div
-                  key={title}
-                  className="border-fd-border bg-fd-card rounded-xl border p-5"
-                >
-                  <Icon className="text-fd-primary size-5" />
-                  <h3 className="text-fd-foreground mt-3 font-semibold">
-                    {title}
-                  </h3>
-                  <p className="text-fd-muted-foreground mt-2 text-sm leading-relaxed">
-                    {description}
+            <Panel
+              title="terminal"
+              meta={<CopyIconButton text="npx skills add letstri/seitu" />}
+            >
+              <div className="overflow-x-auto p-3 font-mono text-xs leading-6">
+                <p className="break-words">
+                  <span className="text-fd-muted-foreground select-none">
+                    ${' '}
+                  </span>
+                  npx skills add letstri/seitu
+                </p>
+                <p className="text-fd-muted-foreground mt-2">
+                  # what your agent can read
+                </p>
+                {agentLines.map(([name, desc]) => (
+                  <p key={name} className="flex flex-col sm:flex-row sm:gap-4">
+                    <span className="shrink-0 sm:w-36">{name}</span>
+                    <span className="text-fd-muted-foreground">{desc}</span>
                   </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </Panel>
           </div>
-        </section>
+        </Section>
 
-        <section className="border-fd-border border-t">
-          <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-            <h2 className="text-fd-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-              Primitives
-            </h2>
-            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {primitives.map(
-                ({ icon: Icon, title, href, description, items }) => (
-                  <DocsLink
-                    key={title}
-                    splat={href.replace('/docs/', '')}
-                    className="border-fd-border bg-fd-card hover:bg-fd-accent rounded-xl border p-5 transition-colors"
-                  >
-                    <Icon className="text-fd-primary size-5" />
-                    <h3 className="text-fd-foreground mt-3 font-semibold">
-                      {title}
-                    </h3>
-                    <p className="text-fd-muted-foreground mt-2 text-sm leading-relaxed">
-                      {description}
-                    </p>
-                    <ul className="mt-4 flex flex-wrap gap-2">
-                      {items.map((item) => (
-                        <li
-                          key={item}
-                          className="border-fd-border text-fd-muted-foreground rounded-md border px-2 py-1 font-mono text-xs"
-                        >
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </DocsLink>
-                )
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-fd-border border-t">
-          <div className="container mx-auto px-4 py-16 text-center sm:px-6 lg:px-8">
-            <h2 className="text-fd-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-              Pick your framework
-            </h2>
-            <p className="text-fd-muted-foreground mx-auto mt-4 max-w-xl text-base leading-relaxed">
-              The primitives never change. Only the way you subscribe to them
-              does.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              {frameworks.map(({ name, href }) => (
-                <DocsLink
-                  key={name}
-                  splat={href.replace('/docs/', '')}
-                  className="border-fd-border text-fd-foreground hover:bg-fd-accent hover:text-fd-accent-foreground inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-                >
-                  {name}
-                </DocsLink>
-              ))}
-            </div>
-            <DocsLink className="bg-fd-primary text-fd-primary-foreground focus:ring-fd-primary focus:ring-offset-fd-background mt-10 inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-opacity hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:outline-none">
-              Read the docs
-              <ArrowRightIcon className="size-4 shrink-0" />
-            </DocsLink>
-          </div>
-        </section>
+        <Section>
+          <SectionTitle>
+            From install to a live value in three steps
+          </SectionTitle>
+          <ol className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
+            {steps.map(({ title, body, code }, i) => (
+              <li key={title}>
+                <h3 className="text-sm font-medium">
+                  <span className="text-fd-muted-foreground me-2 tabular-nums">
+                    {i + 1}
+                  </span>
+                  {title}
+                </h3>
+                <p className="text-fd-muted-foreground mt-1 mb-4 text-sm">
+                  {body}
+                </p>
+                <CommandPill text={code} prompt={i === 0} />
+              </li>
+            ))}
+          </ol>
+        </Section>
       </main>
-    </HomeLayout>
+
+      <footer className="border-fd-border border-t">
+        <div className="frame flex flex-col gap-8 py-10 md:flex-row md:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Logo />
+              <span className="text-base font-semibold tracking-tight">
+                Seitu
+              </span>
+            </div>
+            <p className="text-fd-muted-foreground mt-2 text-sm">
+              MIT licensed.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-12 gap-y-6 sm:grid-cols-3">
+            {footerLinks.map(({ title, links }) => (
+              <div key={title}>
+                <p className="eyebrow">{title}</p>
+                <ul className="mt-2 space-y-1.5 text-sm">
+                  {links.map(([text, splat]) => (
+                    <li key={text}>
+                      <DocsLink
+                        splat={splat}
+                        className="text-fd-muted-foreground hover:text-fd-foreground cursor-default transition-colors"
+                      >
+                        {text}
+                      </DocsLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </footer>
+    </div>
   )
 }

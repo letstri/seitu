@@ -1,33 +1,19 @@
 ---
 title: Hooks
-description: "Use this hook to subscribe to a reactive value."
+description: "Subscribe to a reactive value."
 ---
 
 ## useSubscription()
-Use this hook to subscribe to a reactive value. Accepts a subscription object
-directly, or a factory function that is called only once on first render —
-subsequent renders reuse the cached subscription unless dependency array changes.
+Pass a handle or a factory (run once; recreated
+when `deps` change).
 
-**Server rendering.** When the source exposes `getServer`
-(every `seitu/web` handle does), it is used for the server render and the
-hydration render so the markup matches; the persisted value is picked up
-right after hydration. Handles without it (e.g. `createStore`) use `get()`
-on both sides.
+Sources with `getServer` (every `seitu/web` handle) use it for SSR and
+hydration; others use `get()`. `getSnapshot` skips selector/equality when
+source, selector, and version are unchanged — keep `selector` stable.
+Factories run during render (twice under StrictMode); keep them cheap and
+create long-lived resources at module scope.
 
-**Performance.** `getSnapshot` runs on every render (twice in development).
-The hook skips the selector and the equality check when the source returned
-the same reference, the selector is the same function and no notification
-arrived since the last snapshot. Pass a stable `selector` (module-level or
-`useCallback`) to benefit from this on re-renders caused by parent updates.
-
-**Factories run during render.** React StrictMode invokes them twice in
-development and discards one result, so keep factories cheap and free of
-side effects that need cleanup. Create long-lived resources such as
-`createIndexedDbStorage` at module scope instead.
-
-### Examples
-
-#### Inline subscription
+### Inline subscription
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -48,7 +34,7 @@ export default function Page() {
 }
 ```
 
-#### Instance outside of component
+### Instance outside of component
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -69,7 +55,7 @@ export default function Page() {
 }
 ```
 
-#### Subscription with selector
+### Subscription with selector
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -88,14 +74,14 @@ const sessionStorage = createWebStorage({
 })
 
 export default function Page() {
-  // Usage with selector, re-renders only when count changes
+  // Re-renders only when count changes
   const count = useSubscription(sessionStorage, { selector: value => value.count })
 
   return <div>{count}</div>
 }
 ```
 
-#### Ref example
+### Element from a callback ref
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -105,16 +91,17 @@ import { createScrollState } from 'seitu/web'
 import { useSubscription } from 'seitu/react'
 
 export default function Page() {
-  const ref = React.useRef<HTMLDivElement>(null)
-  const state = useSubscription(() => createScrollState({ element: () => ref.current, direction: 'vertical' }))
+  // A callback ref plus `deps` rebuilds on remount; `() => ref.current` binds once.
+  const [el, setEl] = React.useState<HTMLDivElement | null>(null)
+  const state = useSubscription(
+    () => createScrollState({ element: el, direction: 'vertical' }),
+    { deps: [el] }
+  )
 
   return (
-    <div ref={ref}>
+    <div ref={setEl}>
       {String(state.top.reached)}
     </div>
   )
 }
 ```
-
-* * *
-

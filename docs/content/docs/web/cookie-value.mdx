@@ -4,7 +4,7 @@ description: "Reactive handle for one cookie."
 ---
 
 ## createCookieValue()
-Reactive handle for one cookie. The cookie is the storage, so the server
+The cookie is the storage, so the server
 and the browser read the same value: pass `getServerCookies` and SSR renders
 the visitor's choice, and hydration matches it.
 
@@ -14,9 +14,7 @@ encoded `name=value` pair must stay under 4 KB (bigger writes are skipped
 with a warning) and cookies travel with every request. `HttpOnly` cookies
 are invisible to JavaScript, so they cannot be read or written here.
 
-### Examples
-
-#### Vanilla
+### Vanilla
 
 ```ts twoslash title="theme.ts"
 import { createCookieValue } from 'seitu/web'
@@ -34,7 +32,7 @@ theme.subscribe(console.log)
 theme.clear()
 ```
 
-#### TanStack Start
+### TanStack Start
 
 ```ts title="theme.ts"
 import { createIsomorphicFn } from '@tanstack/react-start'
@@ -52,7 +50,7 @@ export const theme = createCookieValue({
 })
 ```
 
-#### Next.js
+### Next.js
 
 ```ts title="theme.ts"
 import { cookies } from 'next/headers'
@@ -71,7 +69,7 @@ export const theme = createCookieValue({
 })
 ```
 
-#### React
+### React
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -95,5 +93,3 @@ export default function Page() {
   )
 }
 ```
-
-* * *

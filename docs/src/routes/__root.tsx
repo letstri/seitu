@@ -20,15 +20,27 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Seitu - Type-Safe Utilities',
+        title: 'Seitu — one contract for every reactive value',
       },
       {
         name: 'description',
         content:
-          'Type-safe, framework-agnostic utilities for reactive values: stores, storage, media queries and more, with bindings for React, Vue, Solid and Svelte.',
+          'Type-safe reactive primitives that share one API: get(), set(), subscribe(). Stores, validated storage, IndexedDB, cookies and browser state for React, Vue, Solid and Svelte — with agent skills in the npm package.',
       },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..500&display=swap',
+      },
+      { rel: 'stylesheet', href: appCss },
+    ],
   }),
   component: RootComponent,
 })

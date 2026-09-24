@@ -1,19 +1,13 @@
 ---
 title: Hooks
-description: "Use this primitive to subscribe to a reactive value."
+description: "Subscribe to a reactive value."
 ---
 
 ## useSubscription()
-Use this primitive to subscribe to a reactive value. Accepts a subscription object
-directly, or an accessor/getter that returns one. The getter is reactive — when it
-reads a signal, the subscription is recreated and re-subscribed automatically.
+Pass a handle or a getter (reactive:
+re-subscribes when it reads a signal). Returns an `Accessor<R>` (`value()`).
 
-Returns a Solid `Accessor<R>`: call it (`value()`) to read the current value inside JSX
-or another reactive scope.
-
-### Examples
-
-#### Inline subscription
+### Inline subscription
 
 ```tsx
 import { createWebStorageValue } from 'seitu/web'
@@ -32,7 +26,7 @@ function Counter() {
 }
 ```
 
-#### Instance outside of component
+### Instance outside of component
 
 ```tsx
 import { createWebStorage } from 'seitu/web'
@@ -51,7 +45,7 @@ function Counter() {
 }
 ```
 
-#### Subscription with selector
+### Subscription with selector
 
 ```tsx
 import { createWebStorage } from 'seitu/web'
@@ -68,14 +62,14 @@ const sessionStorage = createWebStorage({
 })
 
 function Counter() {
-  // Usage with selector, the accessor only updates when count changes
+  // Accessor updates only when count changes
   const count = useSubscription(sessionStorage, { selector: value => value.count })
 
   return <div>{count()}</div>
 }
 ```
 
-#### Reactive source (re-subscribes when a signal changes)
+### Reactive source (re-subscribes when a signal changes)
 
 ```tsx
 import { createSignal } from 'solid-js'
@@ -96,7 +90,7 @@ function User() {
 }
 ```
 
-#### Ref example
+### Ref example
 
 ```tsx
 import { createScrollState } from 'seitu/web'
@@ -113,6 +107,3 @@ function Page() {
   )
 }
 ```
-
-* * *
-

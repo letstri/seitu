@@ -1,48 +1,37 @@
-# Seitu agent skills (TanStack Intent)
+# Seitu agent skills
 
 These skills teach AI assistants how to integrate [Seitu](https://seitu.letstri.dev) in **your** app — not how to work on the Seitu library monorepo.
 
-Skills ship inside the `seitu` npm package and are versioned with each release. They include `sources` metadata pointing at docs and source files so maintainers can detect drift when documentation changes.
+Skills ship inside the `seitu` npm package and are versioned with each release. 
+## Install
 
-## Install via npm (recommended)
-
-After adding Seitu to your project:
-
-```bash
-pnpm add seitu
-pnpm dlx @tanstack/intent@latest install
-```
-
-Intent discovers `seitu` in `node_modules`, reads the skills bundled with your installed version, and writes lightweight skill-loading guidance into your agent config (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, etc.).
-
-List or load a specific skill:
+With any skills-aware agent:
 
 ```bash
-pnpm dlx @tanstack/intent@latest list
-pnpm dlx @tanstack/intent@latest load seitu#seitu
+npx skills add letstri/seitu
 ```
-
-When you `pnpm update seitu`, skills update with the package — knowledge travels through npm, not model training cutoffs.
 
 Start with **`seitu-overview`** — module map, mental model, and decision tree.
 
-## Manual install (Cursor)
+## Manual install
 
-Copy skill folders into `.agents/skills/`:
+Copy the skill folders that match your installed version into `.agents/skills/`:
 
 ```bash
 cp -r node_modules/seitu/skills/seitu-overview .agents/skills/
 cp -r node_modules/seitu/skills/seitu .agents/skills/
+cp -r node_modules/seitu/skills/seitu-setup .agents/skills/
 ```
 
 Restart Cursor or start a new agent chat so skills are picked up.
 
 ## Skills
 
-| Skill | Intent id | When to use |
-|-------|-----------|-------------|
-| [seitu-overview](./seitu-overview/SKILL.md) | `seitu#seitu-overview` | Read first — module map, mental model, decision tree |
-| [seitu](./seitu/SKILL.md) | `seitu#seitu` | Everything past the overview: per-primitive API and framework bindings, routed through reference files |
+| Skill | When to use |
+|-------|-------------|
+| [seitu-overview](./seitu-overview/SKILL.md) | Read first — module map, mental model, decision tree |
+| [seitu](./seitu/SKILL.md) | Everything past the overview: per-primitive API and framework bindings, routed through reference files |
+| [seitu-setup](./seitu-setup/SKILL.md) | Adopt Seitu in an existing project: install, find hand-rolled state and browser subscriptions, replace them without losing stored data |
 
 ### `seitu` reference files
 
@@ -68,10 +57,6 @@ Restart Cursor or start a new agent chat so skills are picked up.
 | [solid.md](./seitu/references/solid.md) | `useSubscription` primitive + `Subscription` component |
 | [svelte.md](./seitu/references/svelte.md) | `useSubscription` binding |
 
-## Registry and version history
-
-The package includes the `tanstack-intent` npm keyword. Published versions are indexed on the [Agent Skills Registry](https://tanstack.com/intent/registry) with skill history per release.
-
 ## Without skills
 
 - Official docs: https://seitu.letstri.dev/docs
@@ -79,13 +64,4 @@ The package includes the `tanstack-intent` npm keyword. Published versions are i
 
 ## Maintainer workflow (this repo)
 
-From `seitu/`:
-
-```bash
-pnpm run skills:validate   # structure + packaging before publish
-pnpm run skills:stale      # flag drift vs docs/sources
-pnpm run skills:sync-state # refresh source SHAs after doc/source edits
-pnpm run skills:upgrade    # re-apply frontmatter + Common Mistakes from _artifacts
-```
-
-CI runs `intent validate` on PRs and `intent stale` after releases (`.github/workflows/check-skills.yml`). Update `library_version` in SKILL frontmatter when cutting a release.
+Keep skills aligned with `docs/content/docs/` when public API changes. Update `library_version` in SKILL frontmatter when cutting a release.

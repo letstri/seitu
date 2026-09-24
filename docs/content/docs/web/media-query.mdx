@@ -1,17 +1,13 @@
 ---
 title: Media Query
-description: "Creates a handle for a media query."
+description: "Reactive media query."
 ---
 
 ## createMediaQuery()
-Creates a handle for a media query.
+On the server, `get()` and the SSR snapshot are
+`defaultMatches` (`false`).
 
-On the server `get()` returns `defaultMatches` (default `false`); the same value
-is used as the server snapshot during hydration.
-
-### Examples
-
-#### Vanilla
+### Vanilla
 
 ```ts twoslash title="media-query.ts"
 import { createMediaQuery } from 'seitu/web'
@@ -27,7 +23,7 @@ const state = isDesktop.get()
 console.log(state)
 ```
 
-#### React
+### React
 
 ```tsx twoslash title="page.tsx"
 import { createMediaQuery } from 'seitu/web'
@@ -41,7 +37,7 @@ function Layout() {
 }
 ```
 
-#### Errors
+### Errors
 
 ```tsx twoslash
 import { createMediaQuery } from 'seitu/web'
@@ -53,6 +49,3 @@ createMediaQuery({ query: '(min-width: ' })
 // @errors: 2362 2322 2820
 createMediaQuery({ query: '(min-width: 768' })
 ```
-
-* * *
-

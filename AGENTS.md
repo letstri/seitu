@@ -4,11 +4,9 @@ This repo is the **Seitu** monorepo (library, docs site, playground). Most agent
 
 ## Consumer skills (for app developers)
 
-Skills for teams **using** Seitu ship in the published npm package at [`seitu/skills/`](seitu/skills/README.md). Repo-root [`skills/seitu`](skills/seitu) is a symlink alias (same pattern as [redux-toolkit/skills](https://github.com/reduxjs/redux-toolkit/tree/master/skills)) so CI and GitHub resolve skills from the monorepo root. Consumers install via [TanStack Intent](https://tanstack.com/intent/latest/docs/overview) (`pnpm dlx @tanstack/intent@latest install`) or copy from `node_modules/seitu/skills/`.
+Skills for teams **using** Seitu ship in the published npm package at [`seitu/skills/`](seitu/skills/README.md). Repo-root [`skills/seitu`](skills/seitu) is a symlink alias (same pattern as [redux-toolkit/skills](https://github.com/reduxjs/redux-toolkit/tree/master/skills)) so GitHub resolves skills from the monorepo root. Consumers install via `npx skills add letstri/seitu` or copy from `node_modules/seitu/skills/`.
 
-Repo-root [`_artifacts/`](_artifacts/skill_tree.yaml) (`domain_map.yaml`, `skill_spec.md`, `skill_tree.yaml`) tracks skill coverage and source-doc references for CI staleness checks.
-
-When you change public API behavior, docs examples, or integration patterns, keep `seitu/skills/` aligned with `docs/content/docs/`, bump `library_version` in SKILL frontmatter on release — matching `library.version` in `_artifacts/` — and run `cd seitu && pnpm run skills:stale`.
+When you change public API behavior, docs examples, or integration patterns, keep `seitu/skills/` aligned with `docs/content/docs/` and bump `library_version` in SKILL frontmatter on release.
 
 ## Repository layout
 
@@ -21,9 +19,8 @@ When you change public API behavior, docs examples, or integration patterns, kee
 | `docs/` | Documentation site |
 | `docs/content/docs/` | MDX documentation pages |
 | `playground/` | Example app — reference when validating integrations |
-| `seitu/skills/` | Agent skills shipped in the npm package (TanStack Intent) |
-| `skills/seitu` | Symlink → `seitu/skills/` for monorepo-root discovery and CI |
-| `_artifacts/` | Intent domain map, skill spec, and skill tree for CI staleness |
+| `seitu/skills/` | Agent skills shipped in the npm package |
+| `skills/seitu` | Symlink → `seitu/skills/` for monorepo-root discovery |
 
 Docs site: https://seitu.letstri.dev — machine-readable export: `/llms.txt` on the docs app.
 
@@ -39,13 +36,6 @@ pnpm run format
 pnpm run format:check
 cd seitu && pnpm run build
 cd docs && pnpm dev
-```
-
-Skill maintenance (from `seitu/`):
-
-```bash
-pnpm run skills:validate    # structure + packaging before publish
-pnpm run skills:stale       # flag drift vs docs/sources and _artifacts
 ```
 
 Do not commit unless the user asks.

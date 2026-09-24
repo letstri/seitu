@@ -1,0 +1,43 @@
+---
+title: AI agents
+description: Give an agent the Seitu API for the version your project uses.
+icon: Sparkles
+---
+
+Seitu ships agent skills with the npm package. Install them once, then have your agent read the reference for the primitive it needs.
+
+```bash
+npx skills add letstri/seitu
+```
+
+To use files from the **installed package version**, copy `node_modules/seitu/skills/seitu-overview`, `node_modules/seitu/skills/seitu` and `node_modules/seitu/skills/seitu-setup` into your agent's skills directory. The overview covers the shared API and which primitive to choose; `seitu/references/` contains the exact options and examples; `seitu-setup` moves an existing project onto Seitu.
+
+The docs are also machine-readable:
+
+| URL | Use |
+| --- | --- |
+| [`/llms.txt`](/llms.txt) | Find a page. |
+| [`/llms-full.txt`](/llms-full.txt) | Read all pages. |
+| `/docs/<page>.mdx` | Read one page, such as [`/docs/core/store.mdx`](/docs/core/store.mdx). |
+
+Each page has a **Copy Markdown** button.
+
+## Prompt for a task
+
+```txt
+Use Seitu for [describe the state or browser value]. Read the installed
+seitu-overview skill and the relevant seitu reference first. Choose the
+smallest matching primitive and use the binding for this project's framework.
+Create shared handles once at module scope; use a factory for component-local
+handles. Check read-only vs writable methods, SSR defaults, and types.
+```
+
+## Prompt for migrating a project
+
+```txt
+Set up Seitu in this project. Follow the installed seitu-setup skill: detect
+the stack, list the code Seitu can replace, and show me the plan before you
+edit files. Keep existing storage keys so users keep their data.
+```
+
+Framework bindings are included in `seitu`; import them from `seitu/react`, `seitu/vue`, `seitu/solid`, or `seitu/svelte` as appropriate.

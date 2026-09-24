@@ -1,16 +1,13 @@
 ---
 title: Components
-description: "Declarative component that subscribes to a reactive value and passes it to a render function."
+description: "Subscribes to a value and passes it to children."
 ---
 
 ## Subscription()
-Declarative component that subscribes to a reactive value and passes it to a render function.
-Re-renders when the value (or selected value) changes. Use when you prefer a component API
-over the useSubscription hook.
+Prefer over the hook when
+you want a component API.
 
-### Examples
-
-#### Basic usage
+### Basic usage
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -34,7 +31,7 @@ export default function Page() {
 }
 ```
 
-#### With selector
+### With selector
 
 ```tsx twoslash title="/app/page.tsx"
 'use client'
@@ -57,6 +54,3 @@ export default function Page() {
   )
 }
 ```
-
-* * *
-

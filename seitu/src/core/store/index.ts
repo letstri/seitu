@@ -14,7 +14,7 @@ export interface Store<T>
  * const store = createStore({ count: 0 })
  * store.set(prev => ({ ...prev, count: prev.count + 1 }))
  * store.subscribe(state => console.log(state))
- * store.get() // { count: 0 }
+ * store.get() // { count: 1 }
  * ```
  */
 export function createStore<T>(initial: T): Store<T> {

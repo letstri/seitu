@@ -1,19 +1,11 @@
 ---
 title: Debounced
-description: "Creates a debounced readable that delays updates from a source subscribable."
+description: "Debounces updates from a source."
 ---
 
 ## createDebounced()
-Creates a debounced readable that delays updates from a source subscribable.
-
-The debounced store will only emit the latest value after `wait` milliseconds
-of inactivity from the source.
-
-While nobody is subscribed, `get()` reads straight through to the source
-(there is nothing to debounce yet). Once subscribed, `get()` returns the last
-emitted value. Use `flush()` / `cancel()` to control a pending update.
-
-### Examples
+Unsubscribed `get()` reads through;
+subscribed `get()` returns the last emitted value.
 
 ```ts twoslash
 import { createStore, createDebounced } from 'seitu'
@@ -23,6 +15,3 @@ const debounced = createDebounced(store, 300)
 debounced.subscribe(value => console.log('debounced:', value))
 debounced.flush()
 ```
-
-* * *
-

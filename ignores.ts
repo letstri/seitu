@@ -11,7 +11,6 @@ export const ignorePatterns = [
   '**/build/**',
   '**/coverage/**',
   '**/node_modules/**',
-  '**/_artifacts/**',
   '**/next-env.d.ts',
   '**/*.gen.ts',
   '**/*.generated.ts',

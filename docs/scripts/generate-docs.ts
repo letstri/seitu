@@ -140,6 +140,21 @@ function stripHtml(markdown: string): string {
     .replaceAll(/\n{3,}/gu, '\n\n')
 }
 
+function removeRepeatedLead(markdown: string, description?: string): string {
+  if (!description) return markdown
+  const lead = /^(## [^\n]+\n)([\s\S]*?)(\n\n|$)/u.exec(markdown)
+  if (!lead) return markdown
+  const sentence = /^[\s\S]*?[.!?](?=\s|$)/u.exec(lead[2])?.[0]
+  if (!sentence) return markdown
+  const plain = sentence
+    .replaceAll(/[`*]/gu, '')
+    .replaceAll(/\s+/gu, ' ')
+    .trim()
+  if (plain !== description) return markdown
+  const rest = lead[2].slice(sentence.length).trim()
+  return `${lead[1]}${rest ? `${rest}\n\n` : '\n'}${markdown.slice(lead[0].length)}`
+}
+
 function getOutputPath(sourcePath: string): string {
   const rel = path
     .relative(srcDir, sourcePath)
@@ -174,9 +189,17 @@ function getPageDescription(jsdocMap: Map<string, string>): string | undefined {
   )
 }
 
+// Names that title-casing the folder name gets wrong.
+const TITLE_OVERRIDES: Record<string, string> = {
+  'indexed-db': 'IndexedDB',
+}
+
 function getPageTitle(sourcePath: string): string {
   const rel = path.relative(srcDir, sourcePath).replace(OUTPUT_PATH_REGEXP, '')
   const name = path.basename(rel)
+  if (TITLE_OVERRIDES[name]) {
+    return TITLE_OVERRIDES[name]
+  }
   return name
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -216,7 +239,7 @@ async function renderSection(
 
   const markdown = await jsdoc2md.render({
     'heading-depth': 2,
-    separators: true,
+    separators: false,
     'example-lang': 'ts',
     'param-list-format': 'table',
     'property-list-format': 'table',
@@ -256,7 +279,13 @@ async function generateDocForPage(sourcePaths: string[]): Promise<void> {
   ]
     .filter(Boolean)
     .join('\n')
-  const body = sections.map((section) => section.markdown).join('\n\n')
+  const body = sections
+    .map((section, index) =>
+      index === 0
+        ? removeRepeatedLead(section.markdown, description)
+        : section.markdown
+    )
+    .join('\n\n')
   const outPath = getOutputPath(primary)
   await fs.mkdir(path.dirname(outPath), { recursive: true })
   await fs.writeFile(outPath, `${frontmatter}\n\n${body}\n`, 'utf-8')

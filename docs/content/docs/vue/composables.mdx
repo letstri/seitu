@@ -1,15 +1,12 @@
 ---
 title: Composables
-description: "Use this composable to subscribe to a reactive value."
+description: "Subscribe to a reactive value."
 ---
 
 ## useSubscription()
-Use this composable to subscribe to a reactive value. Accepts a subscription object
-directly or a ref/getter that returns one.
+Pass a handle or a ref/getter that returns one.
 
-### Examples
-
-#### Inline subscription
+### Inline subscription
 
 ```vue
 <script setup lang="ts">
@@ -27,7 +24,7 @@ const value = useSubscription(
 </template>
 ```
 
-#### Instance outside of the subscription
+### Instance outside of the subscription
 
 ```vue
 <script setup lang="ts">
@@ -49,7 +46,7 @@ const value = useSubscription(sessionStorage)
 </template>
 ```
 
-#### With selector
+### With selector
 
 ```vue
 <script setup lang="ts">
@@ -70,6 +67,3 @@ const count = useSubscription(sessionStorage, { selector: v => v.count })
   <div>{{ count }}</div>
 </template>
 ```
-
-* * *
-

@@ -1,18 +1,13 @@
 ---
 title: Web Storage
-description: "Creates a reactive handle for a localStorage or sessionStorage instance."
+description: "Reactive handle for localStorage or sessionStorage."
 ---
 
 ## createWebStorage()
-Creates a reactive handle for a localStorage or sessionStorage instance.
+On the server, `get()`
+and the SSR snapshot are `defaultValues`.
 
-On the server (no `window`) `get()` returns `defaultValues`. The same value is
-exposed as the server snapshot so framework bindings can hydrate without a
-mismatch and then switch to the persisted value.
-
-### Examples
-
-#### Vanilla
+### Vanilla
 
 ```ts twoslash title="session-storage.ts"
 import { createWebStorage } from 'seitu/web'
@@ -33,7 +28,7 @@ sessionStorage.get() // { token: 'abc', preferences: { theme: 'light' } }
 sessionStorage.subscribe(console.log)
 ```
 
-#### React
+### React
 
 ```tsx twoslash title="page.tsx"
 'use client'
@@ -58,6 +53,3 @@ export default function Page() {
   )
 }
 ```
-
-* * *
-

@@ -1,19 +1,11 @@
 ---
 title: Throttled
-description: "Creates a throttled readable that rate-limits updates from a source subscribable."
+description: "Throttles updates from a source to at most once per wait ms (leading, then trailing)."
 ---
 
 ## createThrottled()
-Creates a throttled readable that rate-limits updates from a source subscribable.
-
-Emits the latest value at most once every `wait` milliseconds. The first update
-fires immediately, then subsequent updates are batched until the interval elapses.
-
-While nobody is subscribed, `get()` reads straight through to the source.
-Once subscribed, `get()` returns the last emitted value. Use `flush()` /
-`cancel()` to control a pending trailing update.
-
-### Examples
+Unsubscribed `get()` reads through; subscribed `get()` returns the
+last emitted value.
 
 ```ts twoslash
 import { createStore, createThrottled } from 'seitu'
@@ -22,6 +14,3 @@ const store = createStore('')
 const throttled = createThrottled(store, 300)
 throttled.subscribe(value => console.log('throttled:', value))
 ```
-
-* * *
-

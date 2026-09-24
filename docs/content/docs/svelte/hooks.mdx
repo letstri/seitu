@@ -1,21 +1,14 @@
 ---
 title: Hooks
-description: "Use this function to subscribe to a reactive value from a Svelte component."
+description: "Subscribe to a reactive value from a Svelte component."
 ---
 
 ## useSubscription()
-Use this function to subscribe to a reactive value from a Svelte component.
-Accepts a subscription object directly, or a factory function that is called
-once, immediately, to create one.
+Pass a handle or a
+factory (run once). Returns a Svelte `Readable` (`$value`); it attaches on
+first subscriber and detaches on last.
 
-Returns a Svelte `Readable` store — read it with the `$` auto-subscription
-(`$value`) in markup. The store attaches to the underlying subscription when
-its first subscriber arrives and detaches when the last one leaves, so an
-unused store costs nothing.
-
-### Examples
-
-#### Inline subscription
+### Inline subscription
 
 ```svelte
 <script lang="ts">
@@ -34,7 +27,7 @@ unused store costs nothing.
 <div>{$value}</div>
 ```
 
-#### Instance outside of component
+### Instance outside of component
 
 ```svelte
 <script lang="ts">
@@ -54,7 +47,7 @@ unused store costs nothing.
 <div>{$value.count}</div>
 ```
 
-#### With selector
+### With selector
 
 ```svelte
 <script lang="ts">
@@ -68,12 +61,9 @@ unused store costs nothing.
     defaultValues: { count: 0, name: '' },
   })
 
-  // Updates only when count changes
+  // Updates only when `count` changes
   const count = useSubscription(sessionStorage, { selector: v => v.count })
 </script>
 
 <div>{$count}</div>
 ```
-
-* * *
-

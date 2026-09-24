@@ -1,0 +1,79 @@
+---
+title: Custom primitives
+description: Wrap any value that changes over time in the Seitu contract, and every binding works with it.
+icon: Puzzle
+---
+
+Built-in primitives use two public helpers: [`createSubscription`](/docs/core/subscription) and `createReadableSubscription`. You can use them too. A handle you build this way works with `useSubscription` in React, Vue, Solid and Svelte, with `createComputed`, and with debounce and throttle.
+
+| Helper | Gives you |
+| --- | --- |
+| `createSubscription({ onFirstSubscribe })` | `subscribe`, `notify` and `size`. `onFirstSubscribe` runs when the first subscriber arrives. The function it returns runs after the last subscriber leaves. |
+| `createReadableSubscription(get, subscribe, notify, getServer?)` | A `Readable & Subscribable` handle. Subscribers receive `get()` each time you call `notify()`. |
+
+## Read-only: listen to the browser
+
+Attach listeners in `onFirstSubscribe`, so a handle that nothing subscribes to costs nothing. Pass `getServer` to set the value used during SSR and hydration.
+
+```ts twoslash title="page-visibility.ts"
+import { createReadableSubscription, createSubscription } from 'seitu'
+
+export function createPageVisibility() {
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe: () => {
+      document.addEventListener('visibilitychange', notify)
+      return () => document.removeEventListener('visibilitychange', notify)
+    },
+  })
+
+  const get = () =>
+    typeof document === 'undefined' || document.visibilityState === 'visible'
+
+  return createReadableSubscription(get, subscribe, notify, () => true)
+}
+```
+
+## Writable: add `set()`
+
+Spread the readable handle and add `set`. Accept a value or an updater, like the built-ins do, and call `notify()` after the value changes.
+
+```ts twoslash title="search-param.ts"
+import { createReadableSubscription, createSubscription } from 'seitu'
+import type { Readable, Subscribable, Writable } from 'seitu'
+
+export interface SearchParam
+  extends Readable<string | null>, Subscribable<string | null>, Writable<string | null> {}
+
+export function createSearchParam(name: string): SearchParam {
+  const { subscribe, notify } = createSubscription({
+    onFirstSubscribe: () => {
+      window.addEventListener('popstate', notify)
+      return () => window.removeEventListener('popstate', notify)
+    },
+  })
+
+  const get = () =>
+    typeof location === 'undefined'
+      ? null
+      : new URLSearchParams(location.search).get(name)
+
+  return {
+    ...createReadableSubscription(get, subscribe, notify, () => null),
+    set: (value) => {
+      const next = typeof value === 'function' ? value(get()) : value
+      const url = new URL(location.href)
+      if (next === null) url.searchParams.delete(name)
+      else url.searchParams.set(name, next)
+      history.replaceState(history.state, '', url)
+      notify()
+    },
+  }
+}
+```
+
+## Rules
+
+- **Call `notify()` after the value changes**, never before. Subscribers read `get()` when they are notified.
+- **Keep `get()` cheap and pure.** Bindings call it on every render. Cache the value if reading it is expensive.
+- **Guard browser globals.** `get()` can run on the server. Check `typeof window` or `typeof document` and pass `getServer` so the first client render matches the server HTML.
+- **Attach listeners lazily.** Put `addEventListener`, observers and timers in `onFirstSubscribe`, and return the cleanup.

@@ -1,17 +1,12 @@
 ---
 title: Components
-description: "Declarative component that subscribes to a reactive value and passes an accessor to a render function."
+description: "Subscribes to a value and passes an accessor to children (runs once; call value() in JSX)."
 ---
 
 ## Subscription()
-Declarative component that subscribes to a reactive value and passes an accessor to a render function.
-Unlike React, the children function runs once and receives a Solid `Accessor<R>` — call it (`value()`)
-inside the returned JSX so updates stay fine-grained. Use when you prefer a component API over the
-useSubscription primitive.
+Prefer over the primitive when you want a component API.
 
-### Examples
-
-#### Basic usage
+### Basic usage
 
 ```tsx
 import { createWebStorage } from 'seitu/web'
@@ -33,7 +28,7 @@ function Page() {
 }
 ```
 
-#### With selector
+### With selector
 
 ```tsx
 import { createWebStorage } from 'seitu/web'
@@ -54,6 +49,3 @@ function Page() {
   )
 }
 ```
-
-* * *
-
