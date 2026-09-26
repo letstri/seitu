@@ -93,7 +93,8 @@ What do you need?
 ├─ DOM / browser APIs
 │  ├─ CSS media query → createMediaQuery
 │  ├─ Online/offline → createIsOnline
-│  └─ Scroll position → createScrollState
+│  ├─ Scroll position → createScrollState
+│  └─ Element size → createElementSize
 │
 ├─ Rate limiting
 │  ├─ On a subscribable → createDebounced / createThrottled

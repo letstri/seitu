@@ -5,7 +5,7 @@ description: >-
   createSubscription/createReadableSubscription, createDebounced(Fn),
   createThrottled(Fn), createWebStorage(Value), createCookieValue,
   createIndexedDb(Storage/Table),
-  createMediaQuery, createIsOnline, createScrollState, and the React, Vue,
+  createMediaQuery, createIsOnline, createScrollState, createElementSize, and the React, Vue,
   Solid, and Svelte useSubscription/Subscription bindings. Use once you know
   which primitive or framework binding you need; read seitu-overview first
   for the mental model and decision tree.
@@ -52,6 +52,7 @@ primitive or framework you need instead of reading everything.
 | CSS media query | [references/create-media-query.md](references/create-media-query.md) |
 | `navigator.onLine` status | [references/create-is-online.md](references/create-is-online.md) |
 | Scroll position / edges of an element | [references/create-scroll-state.md](references/create-scroll-state.md) |
+| Width / height of an element | [references/create-element-size.md](references/create-element-size.md) |
 
 ## Persisted state that SSR must render
 

@@ -1,4 +1,5 @@
 export * from './cookie-value'
+export * from './element-size'
 export * from './indexed-db'
 export * from './indexed-db-storage'
 export * from './indexed-db-table'

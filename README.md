@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/seitu.svg)](https://npmjs.com/package/seitu) ![You need Seitu](https://img.shields.io/badge/You_need-Seitu-purple)
 
-Type-safe reactive primitives with one contract: `get()`, `subscribe()`, `set()`. Works with in-memory state, validated `localStorage` / IndexedDB, media queries, scroll position. Bindings for React, Vue, Solid, Svelte. SSR-safe.
+Type-safe reactive primitives with one contract: `get()`, `subscribe()`, `set()`. Works with in-memory state, validated `localStorage` / IndexedDB, media queries, scroll position, element size. Bindings for React, Vue, Solid, Svelte. SSR-safe.
 
 [Documentation](https://seitu.letstri.dev) · [Playground](https://github.com/letstri/seitu/tree/main/playground)
 

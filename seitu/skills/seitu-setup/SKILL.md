@@ -73,6 +73,7 @@ rg -n "document\.cookie|js-cookie|universal-cookie|react-cookie" --glob '!**/nod
 rg -n "matchMedia|useMediaQuery|prefers-color-scheme" --glob '!**/node_modules/**'
 rg -n "navigator\.onLine|'online'|'offline'" --glob '!**/node_modules/**'
 rg -n "addEventListener\(['\"]scroll|onScroll|scrollTop|scrollLeft" --glob '!**/node_modules/**'
+rg -n "ResizeObserver|useElementSize|useResizeObserver|useMeasure" --glob '!**/node_modules/**'
 rg -n "debounce|throttle" --glob '!**/node_modules/**'
 rg -n "useSyncExternalStore|createContext|new EventTarget|EventEmitter|mitt\(" --glob '!**/node_modules/**'
 rg -n "indexedDB|idb-keyval|from 'idb'|localforage|dexie" --glob '!**/node_modules/**'
@@ -93,6 +94,7 @@ who writes it. Group the hits into categories from the table below.
 | `useMediaQuery`, `matchMedia(...).addEventListener('change', ...)` | `createMediaQuery` | `create-media-query.md` |
 | `navigator.onLine` with `online`/`offline` listeners | `createIsOnline` | `create-is-online.md` |
 | Scroll listener that computes "at top", "at bottom" or distance to an edge | `createScrollState` | `create-scroll-state.md` |
+| `ResizeObserver` in an effect that stores width/height, `useElementSize`, `useResizeObserver` | `createElementSize` | `create-element-size.md` |
 | Module-level variable plus a listener set, `EventEmitter` or `mitt` used as a store | `createStore` | `create-store.md` |
 | Small global store (zustand, nanostores, jotai atom, Svelte `writable`) with no middleware | `createStore`, or `createSchemaStore` when the value is validated | `create-store.md`, `create-schema-store.md` |
 | React context that only shares one value and its setter | `createStore` at module scope + `useSubscription` | `react.md` |

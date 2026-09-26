@@ -1,0 +1,50 @@
+---
+title: Element Size
+description: "Tracks an element's width and height through ResizeObserver."
+---
+
+## createElementSize()
+Sizes ignore CSS transforms. A null element and the server snapshot are
+`0 × 0`. `box` picks `'content-box'` (default) or `'border-box'`. The element
+getter is resolved on first subscribe; recreate the handle if the element
+identity changes (React: `deps`).
+
+### Vanilla
+
+```ts twoslash
+import { createElementSize } from 'seitu/web'
+
+const size = createElementSize({
+  element: document.querySelector('.container'),
+})
+
+size.subscribe(({ width, height }) => {
+  console.log(width, height)
+})
+
+const { width } = size.get()
+console.log(width)
+```
+
+### React (callback ref)
+
+```tsx twoslash title="page.tsx"
+'use client'
+
+import * as React from 'react'
+import { createElementSize } from 'seitu/web'
+import { useSubscription } from 'seitu/react'
+
+function Panel() {
+  const [ref, setRef] = React.useState<HTMLDivElement | null>(null)
+  const size = useSubscription(() => createElementSize({
+    element: ref,
+  }), { deps: [ref] })
+
+  return (
+    <div ref={setRef}>
+      {size.width} × {size.height}
+    </div>
+  )
+}
+```
