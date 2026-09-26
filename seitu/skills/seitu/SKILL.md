@@ -11,7 +11,7 @@ description: >-
   for the mental model and decision tree.
 metadata:
   library: seitu
-  library_version: "1.3.0"
+  library_version: "1.3.1"
 ---
 
 # Seitu — primitives and framework bindings

@@ -4,7 +4,7 @@ description: >-
   Module map, mental model, decision tree, SSR — read before other Seitu skills.
 metadata:
   library: seitu
-  library_version: "1.3.0"
+  library_version: "1.3.1"
 ---
 
 # Seitu Overview
