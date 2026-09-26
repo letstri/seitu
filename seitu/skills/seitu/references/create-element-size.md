@@ -7,7 +7,7 @@ import { createElementSize } from 'seitu/web'
 
 const size = createElementSize({
   element: document.querySelector('.container'),
-  box: 'border-box',
+  box: 'content-box',
 })
 
 size.get() // { width, height }
@@ -19,7 +19,7 @@ size.subscribe(({ width }) => console.log(width))
 | Option | Type | Description |
 |--------|------|-------------|
 | `element` | `Element \| null \| (() => Element \| null)` | Target element; getter is resolved once on first subscribe |
-| `box?` | `'content-box' \| 'border-box'` | Box to measure (default `'content-box'`) |
+| `box?` | `'content-box' \| 'border-box'` | Box to measure (default `'border-box'`) |
 
 ## Interface
 

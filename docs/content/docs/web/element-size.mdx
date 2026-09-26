@@ -5,7 +5,7 @@ description: "Tracks an element's width and height through ResizeObserver."
 
 ## createElementSize()
 Sizes ignore CSS transforms. A null element and the server snapshot are
-`0 × 0`. `box` picks `'content-box'` (default) or `'border-box'`. The element
+`0 × 0`. `box` picks `'border-box'` (default) or `'content-box'`. The element
 getter is resolved on first subscribe; recreate the handle if the element
 identity changes (React: `deps`).
 

@@ -19,7 +19,7 @@ export interface ElementSizeOptions {
   element: Element | null | (() => Element | null)
   /**
    * Which box to measure, same as `ResizeObserver`'s `box` option.
-   * @default 'content-box'
+   * @default 'border-box'
    */
   box?: 'content-box' | 'border-box'
 }
@@ -69,7 +69,7 @@ const emptySize: ElementSizeValue = { width: 0, height: 0 }
  * ```
  */
 export function createElementSize(options: ElementSizeOptions): ElementSize {
-  const { box = 'content-box' } = options
+  const { box = 'border-box' } = options
 
   const resolveElement = () =>
     typeof options.element === 'function' ? options.element() : options.element

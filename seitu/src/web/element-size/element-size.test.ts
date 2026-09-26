@@ -21,23 +21,23 @@ describe('createElementSize', () => {
     expect(size.getServer()).toEqual({ width: 0, height: 0 })
   })
 
-  it('measures the content box by default', () => {
+  it('measures the border box by default', () => {
     const el = createElement(
       'width: 100px; height: 50px; padding: 10px; border: 2px solid'
     )
     expect(createElementSize({ element: el }).get()).toEqual({
-      width: 100,
-      height: 50,
+      width: 124,
+      height: 74,
     })
   })
 
-  it('measures the border box', () => {
+  it('measures the content box', () => {
     const el = createElement(
       'width: 100px; height: 50px; padding: 10px; border: 2px solid'
     )
-    expect(createElementSize({ element: el, box: 'border-box' }).get()).toEqual(
-      { width: 124, height: 74 }
-    )
+    expect(
+      createElementSize({ element: el, box: 'content-box' }).get()
+    ).toEqual({ width: 100, height: 50 })
   })
 
   it('accounts for box-sizing: border-box', () => {
@@ -45,12 +45,12 @@ describe('createElementSize', () => {
       'box-sizing: border-box; width: 100px; height: 50px; padding: 10px; border: 2px solid'
     )
     expect(createElementSize({ element: el }).get()).toEqual({
-      width: 76,
-      height: 26,
+      width: 100,
+      height: 50,
     })
-    expect(createElementSize({ element: el, box: 'border-box' }).get()).toEqual(
-      { width: 100, height: 50 }
-    )
+    expect(
+      createElementSize({ element: el, box: 'content-box' }).get()
+    ).toEqual({ width: 76, height: 26 })
   })
 
   it('resolves a getter', () => {
@@ -78,7 +78,7 @@ describe('createElementSize', () => {
     )
 
     const el = createElement('width: 100px; height: 50px')
-    const size = createElementSize({ element: el, box: 'border-box' })
+    const size = createElementSize({ element: el })
     const callback = vi.fn()
     const unsubscribe = size.subscribe(callback)
 
