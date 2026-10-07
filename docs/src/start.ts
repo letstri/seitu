@@ -12,7 +12,7 @@ const llmMiddleware = createMiddleware().server(({ next, request }) => {
   const path = rewriteLLM(url.pathname)
 
   if (path) {
-    throw redirect(new URL(path, url))
+    throw redirect({ href: new URL(path, url).href })
   }
 
   return next()
