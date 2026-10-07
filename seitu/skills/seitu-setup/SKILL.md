@@ -9,7 +9,7 @@ description: >-
   a codebase to Seitu, or replace existing state or storage code with Seitu.
 metadata:
   library: seitu
-  library_version: "1.3.1"
+  library_version: "1.4.0"
 ---
 
 # Seitu setup and migration
