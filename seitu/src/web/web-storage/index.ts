@@ -101,7 +101,8 @@ export function createWebStorage<S extends WebStorageInput>(
   const keys = Object.keys(defaultValues) as (keyof WebStorageOutput<S>)[]
   const resolveKey = (key: keyof WebStorageOutput<S>): string =>
     String(options.keyTransform ? options.keyTransform(key as keyof S) : key)
-  const storageKeys = new Set(keys.map(resolveKey))
+  const storageKeyList = keys.map(resolveKey)
+  const storageKeys = new Set(storageKeyList)
 
   // Ignore this handle's own synthetic events; notify once after the write.
   let isWriting = false
@@ -115,7 +116,10 @@ export function createWebStorage<S extends WebStorageInput>(
       ),
   })
 
-  const cachedRaws = new Map<keyof WebStorageOutput<S>, string | null>()
+  // Per-key raw string and validated value, so a change to one key only
+  // re-validates that key. `undefined` raw means "not read yet".
+  const cachedRaws: (string | null | undefined)[] = keys.map(() => undefined)
+  const cachedValues: unknown[] = []
   let cachedOutput: WebStorageOutput<S> | undefined
 
   const get = () => {
@@ -124,41 +128,36 @@ export function createWebStorage<S extends WebStorageInput>(
     }
 
     const storage = window[options.type]
+    let changed = cachedOutput === undefined
 
-    let hasCache = cachedOutput !== undefined
-    const currentRaws = {} as Record<keyof WebStorageOutput<S>, string | null>
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]!
+      const raw = storage.getItem(storageKeyList[i]!)
 
-    for (const key of keys) {
-      const raw = storage.getItem(resolveKey(key))
-
-      currentRaws[key] = raw
-
-      if (hasCache && cachedRaws.get(key) !== raw) {
-        hasCache = false
+      if (raw === cachedRaws[i]) {
+        continue
       }
+
+      changed = true
+      cachedRaws[i] = raw
+      cachedValues[i] =
+        raw === null
+          ? defaultValues[key]
+          : validateSchema(options.schemas[key], tryParseJson(raw), {
+              defaultValue: defaultValues[key],
+              label: `createWebStorage:${String(key)}`,
+              key,
+              onError: options.onValidationError,
+            })
     }
 
-    if (hasCache) {
+    if (!changed) {
       return cachedOutput!
     }
 
     const output = { ...defaultValues }
-
-    for (const key of keys) {
-      const raw = currentRaws[key]
-
-      if (raw === null) {
-        output[key] = defaultValues[key]
-      } else {
-        output[key] = validateSchema(options.schemas[key], tryParseJson(raw), {
-          defaultValue: defaultValues[key],
-          label: `createWebStorage:${String(key)}`,
-          key,
-          onError: options.onValidationError,
-        })
-      }
-
-      cachedRaws.set(key, raw)
+    for (let i = 0; i < keys.length; i++) {
+      output[keys[i]!] = cachedValues[i] as WebStorageOutput<S>[keyof S]
     }
 
     cachedOutput = output
@@ -205,8 +204,7 @@ export function createWebStorage<S extends WebStorageInput>(
     },
     clear: () => {
       write((storage) => {
-        for (const key of keys) {
-          const storageKey = resolveKey(key)
+        for (const storageKey of storageKeyList) {
           const oldValue = storage.getItem(storageKey)
 
           storage.removeItem(storageKey)

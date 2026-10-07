@@ -5,7 +5,8 @@ description: "Derives a subscription from one source or many."
 
 ## createComputed()
 `transform` is memoized on
-source references, so `get()` is stable until a source changes.
+source references, so `get()` is stable until a source changes. Subscribers
+are notified only when the derived value changes (`Object.is`).
 
 ```ts twoslash
 import { createComputed, createStore } from 'seitu'

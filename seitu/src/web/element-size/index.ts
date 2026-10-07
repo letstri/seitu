@@ -76,7 +76,7 @@ export function createElementSize(options: ElementSizeOptions): ElementSize {
 
   // ponytail: computed width includes a scrollbar, ResizeObserver's content-box
   // does not. Cache the observer entry if that gap matters.
-  const get = (): ElementSizeValue => {
+  const measure = (): ElementSizeValue => {
     const element = resolveElement()
 
     if (!element) {
@@ -118,7 +118,27 @@ export function createElementSize(options: ElementSizeOptions): ElementSize {
       : { width, height }
   }
 
-  const { subscribe, notify } = createSubscription({
+  let last = emptySize
+  // While observed, the size only changes when ResizeObserver fires, so reads
+  // reuse one measurement instead of forcing a style recalc each time.
+  let observed = false
+  let stale = true
+
+  const get = (): ElementSizeValue => {
+    if (observed && !stale) {
+      return last
+    }
+
+    const next = measure()
+    if (next.width !== last.width || next.height !== last.height) {
+      last = next
+    }
+    stale = !observed
+
+    return last
+  }
+
+  const { subscribe, notify: notifySubscribers } = createSubscription({
     onFirstSubscribe() {
       const element = resolveElement()
       if (!element || typeof ResizeObserver === 'undefined') {
@@ -127,10 +147,20 @@ export function createElementSize(options: ElementSizeOptions): ElementSize {
 
       const observer = new ResizeObserver(() => notify())
       observer.observe(element, { box })
+      observed = true
+      stale = true
 
-      return () => observer.disconnect()
+      return () => {
+        observer.disconnect()
+        observed = false
+      }
     },
   })
+
+  const notify = () => {
+    stale = true
+    notifySubscribers()
+  }
 
   return createReadableSubscription(get, subscribe, notify, () => emptySize)
 }

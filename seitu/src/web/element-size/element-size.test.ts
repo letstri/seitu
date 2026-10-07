@@ -91,4 +91,53 @@ describe('createElementSize', () => {
     unsubscribe()
     expect(disconnect).toHaveBeenCalledOnce()
   })
+
+  it('keeps the same reference while the size is unchanged', () => {
+    const el = createElement('width: 100px; height: 50px')
+    const size = createElementSize({ element: el })
+
+    const first = size.get()
+    expect(size.get()).toBe(first)
+
+    el.style.width = '120px'
+    expect(size.get()).toEqual({ width: 120, height: 50 })
+  })
+
+  it('measures once per resize while observed', () => {
+    let resize: (() => void) | undefined
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(cb: () => void) {
+          resize = cb
+        }
+
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const getComputedStyle = vi.spyOn(window, 'getComputedStyle')
+
+    const el = createElement('width: 100px; height: 50px')
+    const size = createElementSize({ element: el })
+    const unsubscribe = size.subscribe(() => {})
+
+    size.get()
+    size.get()
+    expect(getComputedStyle).toHaveBeenCalledOnce()
+
+    el.style.width = '200px'
+    resize?.()
+    expect(size.get()).toEqual({ width: 200, height: 50 })
+    size.get()
+    expect(getComputedStyle).toHaveBeenCalledTimes(2)
+
+    // A manual notify re-measures, as before.
+    el.style.width = '300px'
+    size['~'].notify()
+    expect(size.get()).toEqual({ width: 300, height: 50 })
+
+    unsubscribe()
+    getComputedStyle.mockRestore()
+  })
 })

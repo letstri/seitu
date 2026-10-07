@@ -276,4 +276,28 @@ describe('createWebStorage synthetic storage events', () => {
     window.dispatchEvent(new StorageEvent('storage', { key: null }))
     expect(callback).toHaveBeenCalledOnce()
   })
+
+  it('re-validates only the keys whose stored value changed', () => {
+    window.localStorage.clear()
+    const count = z.number()
+    const name = z.string()
+    const countValidate = vi.spyOn(count['~standard'], 'validate')
+    const nameValidate = vi.spyOn(name['~standard'], 'validate')
+    const storage = createWebStorage({
+      type: 'localStorage',
+      schemas: { count, name },
+      defaultValues: { count: 0, name: '' },
+    })
+
+    storage.set({ count: 1, name: 'a' })
+    const first = storage.get()
+    expect(storage.get()).toBe(first)
+    expect(countValidate).toHaveBeenCalledOnce()
+    expect(nameValidate).toHaveBeenCalledOnce()
+
+    storage.set({ count: 2 })
+    expect(storage.get()).toEqual({ count: 2, name: 'a' })
+    expect(countValidate).toHaveBeenCalledTimes(2)
+    expect(nameValidate).toHaveBeenCalledOnce()
+  })
 })

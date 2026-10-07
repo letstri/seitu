@@ -15,6 +15,20 @@ describe('parseCookie', () => {
   it('returns null when missing', () => {
     expect(parseCookie('', 'theme')).toBeNull()
   })
+
+  it('trims whitespace around pairs like split + trim', () => {
+    expect(parseCookie('a=1;theme=dark', 'theme')).toBe('dark')
+    expect(parseCookie('a=1;\t theme=dark  ; b=2', 'theme')).toBe('dark')
+    expect(parseCookie('theme=', 'theme')).toBe('')
+    expect(parseCookie('', 'theme')).toBeNull()
+    expect(parseCookie('a=1;', 'theme')).toBeNull()
+    expect(parseCookie('theme= dark ', 'theme')).toBe(' dark')
+  })
+
+  it('ignores the key inside another cookie value', () => {
+    expect(parseCookie('a=theme=x; theme=y', 'theme')).toBe('y')
+    expect(parseCookie('a=x theme=1', 'theme')).toBeNull()
+  })
 })
 
 describe('serializeCookie', () => {

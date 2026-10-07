@@ -205,4 +205,43 @@ describe('createComputed memoization', () => {
     const plain = createComputed(createStore(1), (v) => v)
     expect(plain.getServer).toBeUndefined()
   })
+
+  it('notifies only when the derived value changes', () => {
+    const store = createStore({ x: 1, y: 1 })
+    const x = createComputed(store, (s) => s.x)
+    const callback = vi.fn()
+    x.subscribe(callback)
+
+    store.set({ x: 1, y: 2 })
+    expect(callback).not.toHaveBeenCalled()
+
+    store.set({ x: 2, y: 2 })
+    expect(callback).toHaveBeenCalledExactlyOnceWith(2)
+  })
+
+  it('notifies once per change through a diamond', () => {
+    const a = createStore(1)
+    const double = createComputed(a, (v) => v * 2)
+    const sum = createComputed([a, double], ([v, d]) => v + d)
+    const callback = vi.fn()
+    sum.subscribe(callback)
+
+    a.set(2)
+    expect(callback).toHaveBeenCalledExactlyOnceWith(6)
+  })
+
+  it('does not throw on subscribe when the transform throws', () => {
+    const store = createStore(0)
+    const computed = createComputed(store, (v) => {
+      if (v === 0) {
+        throw new Error('not ready')
+      }
+      return v
+    })
+    const callback = vi.fn()
+
+    expect(() => computed.subscribe(callback)).not.toThrow()
+    store.set(1)
+    expect(callback).toHaveBeenCalledExactlyOnceWith(1)
+  })
 })

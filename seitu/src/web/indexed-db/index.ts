@@ -152,17 +152,29 @@ function findMissing(
   database: IDBDatabase,
   stores: StoreDefinitions
 ): string | undefined {
+  const indexed: [storeName: string, indexNames: string[]][] = []
+
   for (const [storeName, definition] of Object.entries(stores)) {
     if (!database.objectStoreNames.contains(storeName)) {
       return storeName
     }
 
     const indexNames = Object.keys(definition.indexes ?? {})
-    if (indexNames.length === 0) {
-      continue
+    if (indexNames.length > 0) {
+      indexed.push([storeName, indexNames])
     }
+  }
 
-    const transaction = database.transaction(storeName, 'readonly')
+  if (indexed.length === 0) {
+    return undefined
+  }
+
+  // One transaction covers every store that declares indexes.
+  const transaction = database.transaction(
+    indexed.map(([storeName]) => storeName),
+    'readonly'
+  )
+  for (const [storeName, indexNames] of indexed) {
     const store = transaction.objectStore(storeName)
     for (const indexName of indexNames) {
       if (!store.indexNames.contains(indexName)) {

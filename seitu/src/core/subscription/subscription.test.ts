@@ -114,4 +114,31 @@ describe('createSubscription robustness', () => {
     expect(sub.size).toBe(0)
     expect(cleanup).toHaveBeenCalledOnce()
   })
+
+  it('skips a subscriber removed by an earlier one in the same notify', () => {
+    const { subscribe, notify } = createSubscription()
+    const second = vi.fn()
+    let unsubscribeSecond = () => {}
+    subscribe(() => unsubscribeSecond())
+    unsubscribeSecond = subscribe(second)
+
+    notify()
+    expect(second).not.toHaveBeenCalled()
+
+    notify()
+    expect(second).not.toHaveBeenCalled()
+  })
+
+  it('picks up subscribers added between notifies', () => {
+    const { subscribe, notify } = createSubscription()
+    const first = vi.fn()
+    const second = vi.fn()
+    subscribe(first)
+    notify()
+    subscribe(second)
+    notify()
+
+    expect(first).toHaveBeenCalledTimes(2)
+    expect(second).toHaveBeenCalledOnce()
+  })
 })

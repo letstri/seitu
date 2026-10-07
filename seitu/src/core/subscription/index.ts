@@ -92,13 +92,15 @@ export function createSubscription(options?: {
   onFirstSubscribe?: () => void | (() => void)
 }): Subscription {
   const subscribers = new Set<() => void>()
+  // Snapshot reused across notifies; rebuilt only after (un)subscribe.
+  let snapshot: (() => void)[] | undefined
   let onEmpty: (() => void) | undefined
 
   const notify = () => {
     let error: { caught: unknown } | undefined
 
-    // Copy the set so subscribers added during notify are skipped this round.
-    for (const cb of [...subscribers]) {
+    // Iterate a snapshot so subscribers added during notify are skipped this round.
+    for (const cb of (snapshot ??= [...subscribers])) {
       if (!subscribers.has(cb)) {
         continue
       }
@@ -122,6 +124,7 @@ export function createSubscription(options?: {
       }
 
       subscribers.add(callback)
+      snapshot = undefined
 
       if (opts?.immediate) {
         callback()
@@ -131,6 +134,7 @@ export function createSubscription(options?: {
         if (!subscribers.delete(callback)) {
           return
         }
+        snapshot = undefined
 
         if (subscribers.size === 0) {
           onEmpty?.()

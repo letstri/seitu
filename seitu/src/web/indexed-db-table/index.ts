@@ -224,10 +224,18 @@ function createTable<S extends StandardSchemaV1<unknown>>(
   ): IndexedDbTableIndexReader<Row> => ({
     get: async (key) =>
       validateRow(await read((store) => source(store).get(key))),
-    getAll: async (query, count) =>
-      (await read((store) => source(store).getAll(query, count)))
-        .map(validateRow)
-        .filter((row) => row !== undefined),
+    getAll: async (query, count) => {
+      const rows: Row[] = []
+      for (const raw of await read((store) =>
+        source(store).getAll(query, count)
+      )) {
+        const row = validateRow(raw)
+        if (row !== undefined) {
+          rows.push(row)
+        }
+      }
+      return rows
+    },
     getAllKeys: (query, count) =>
       read((store) => source(store).getAllKeys(query, count)),
     count: (query) => read((store) => source(store).count(query ?? undefined)),

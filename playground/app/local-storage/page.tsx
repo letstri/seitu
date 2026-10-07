@@ -22,9 +22,14 @@ const fullName = createComputed(
   (s) => `${s.firstName} ${s.lastName}`
 )
 
+// Module-scope selectors keep `useSubscription`'s snapshot cache warm.
+type Profile = ReturnType<typeof localStorage.get>
+const selectFirstName = (s: Profile) => s.firstName
+const selectLastName = (s: Profile) => s.lastName
+
 export default function Page() {
   const firstName = useSubscription(localStorage, {
-    selector: (s) => s.firstName,
+    selector: selectFirstName,
   })
   const name = useSubscription(fullName)
 
@@ -35,7 +40,7 @@ export default function Page() {
         value={firstName}
         onChange={(e) => localStorage.set({ firstName: e.target.value })}
       />
-      <Subscription value={localStorage} selector={(s) => s.lastName}>
+      <Subscription value={localStorage} selector={selectLastName}>
         {(lastName) => (
           <input
             type="text"

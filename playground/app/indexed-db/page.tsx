@@ -54,14 +54,20 @@ const doneTodos = todos.query((t) => t.index('status').getAll('done'), {
 
 const queries = { all: allTodos, open: openTodos, done: doneTodos }
 
+// Module-scope selectors keep `useSubscription`'s snapshot cache warm.
+type Profile = ReturnType<typeof profile.get>
+const selectFirstName = (s: Profile) => s.firstName
+const selectLastName = (s: Profile) => s.lastName
+const selectFilter = (s: ReturnType<typeof settings.get>) => s.filter
+
 export default function Page() {
   const [hydrated, setHydrated] = React.useState(false)
   const [title, setTitle] = React.useState('')
   const [error, setError] = React.useState<string | null>(null)
 
-  const firstName = useSubscription(profile, { selector: (s) => s.firstName })
+  const firstName = useSubscription(profile, { selector: selectFirstName })
   const name = useSubscription(fullName)
-  const filter = useSubscription(settings, { selector: (s) => s.filter })
+  const filter = useSubscription(settings, { selector: selectFilter })
   const rows = useSubscription(queries[filter])
   const open = useSubscription(() =>
     todos.query((t) => t.index('status').count('open'), {
@@ -98,7 +104,7 @@ export default function Page() {
         value={firstName}
         onChange={(e) => void profile.set({ firstName: e.target.value })}
       />
-      <Subscription value={profile} selector={(s) => s.lastName}>
+      <Subscription value={profile} selector={selectLastName}>
         {(lastName) => (
           <input
             type="text"

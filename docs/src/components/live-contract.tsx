@@ -9,7 +9,7 @@ import {
   createMediaQuery,
   createWebStorageValue,
 } from 'seitu/web'
-import * as z from 'zod'
+import * as z from 'zod/mini'
 
 type Handle = Readable<unknown> & Subscribable<unknown>
 

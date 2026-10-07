@@ -11,6 +11,9 @@ export interface CookieAttributes {
 /** 400 days, the cap browsers apply to `Max-Age`/`Expires`. */
 const DEFAULT_MAX_AGE = 400 * 24 * 60 * 60
 
+/** Same set `String.prototype.trim` strips. */
+const WHITESPACE = /\s/
+
 /**
  * Returns the raw value of `key` from a `Cookie` header or `document.cookie`,
  * or `null` when the cookie is missing.
@@ -26,11 +29,23 @@ const DEFAULT_MAX_AGE = 400 * 24 * 60 * 60
 export function parseCookie(header: string, key: string): string | null {
   const prefix = `${key}=`
 
-  for (const part of header.split(';')) {
-    const trimmed = part.trim()
+  // Jump between occurrences of `key=` and accept the first one that starts a
+  // pair (only whitespace between it and the previous `;`), instead of
+  // splitting and trimming every cookie in the header.
+  for (
+    let index = header.indexOf(prefix);
+    index !== -1;
+    index = header.indexOf(prefix, index + 1)
+  ) {
+    let before = index - 1
+    while (before >= 0 && WHITESPACE.test(header[before]!)) {
+      before--
+    }
 
-    if (trimmed.startsWith(prefix)) {
-      return trimmed.slice(prefix.length)
+    if (before === -1 || header[before] === ';') {
+      const start = index + prefix.length
+      const end = header.indexOf(';', start)
+      return header.slice(start, end === -1 ? undefined : end).trimEnd()
     }
   }
 

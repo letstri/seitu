@@ -1,6 +1,6 @@
 # createComputed
 
-Derived read-only subscription from one or many sources. Lazy — only subscribes to sources when it has its own subscribers.
+Derived read-only subscription from one or many sources. Lazy — only subscribes to sources when it has its own subscribers. Subscribers are notified only when the derived value changes (`Object.is`), so selecting a field from a large store does not wake them on unrelated changes.
 
 ## Single source
 

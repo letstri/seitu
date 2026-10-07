@@ -429,4 +429,20 @@ describe('createScrollState resize and null element', () => {
     const snapshot = scroll.getServer()
     expect(snapshot?.top).toEqual({ reached: false, remaining: 0 })
   })
+
+  it('keeps the same reference while the position is unchanged', () => {
+    const el = createMockElement()
+    const scroll = createScrollState({ element: el })
+
+    const first = scroll.get()
+    expect(scroll.get()).toBe(first)
+
+    setScrollPosition(el, { scrollTop: 100 })
+    const moved = scroll.get()
+    expect(moved).not.toBe(first)
+    expect(moved.top).toEqual({ reached: false, remaining: 100 })
+    // Untouched edges keep their reference too.
+    expect(moved.left).toBe(first.left)
+    expect(scroll.get()).toBe(moved)
+  })
 })

@@ -5,9 +5,8 @@ import type {
   ValidationSchemaOutput,
 } from '../../internal/validate'
 import { validateSchema } from '../../internal/validate'
-import { createStore } from '../store'
 import type { Readable, Subscribable, Writable } from '../subscription'
-import { createReadableSubscription } from '../subscription'
+import { createReadableSubscription, createSubscription } from '../subscription'
 
 export interface SchemaStore<O>
   extends Subscribable<O>, Readable<O>, Writable<O, O> {}
@@ -44,14 +43,15 @@ export function createSchemaStore<S extends StandardSchemaV1<unknown>>(
 ): SchemaStore<ValidationSchemaOutput<S>> {
   type Updater = (prev: ValidationSchemaOutput<S>) => ValidationSchemaOutput<S>
 
-  const store = createStore<ValidationSchemaOutput<S>>(options.defaultValue)
+  let state: unknown = options.defaultValue
+  const { subscribe, notify } = createSubscription()
 
   const UNSET = Symbol('seitu.unset')
   let lastInput: unknown = UNSET
   let lastOutput: ValidationSchemaOutput<S>
 
   const get = (): ValidationSchemaOutput<S> => {
-    const raw = store.get()
+    const raw = state
 
     if (raw === lastInput) {
       return lastOutput
@@ -67,16 +67,16 @@ export function createSchemaStore<S extends StandardSchemaV1<unknown>>(
     return lastOutput
   }
 
-  const readable = createReadableSubscription(
-    get,
-    store.subscribe,
-    store['~'].notify
-  )
-
   return {
-    ...readable,
+    ...createReadableSubscription(get, subscribe, notify),
     set: (value) => {
-      store.set(typeof value === 'function' ? (value as Updater)(get()) : value)
+      const next =
+        typeof value === 'function' ? (value as Updater)(get()) : value
+      if (next === state) {
+        return
+      }
+      state = next
+      notify()
     },
   }
 }

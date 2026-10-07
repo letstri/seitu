@@ -122,10 +122,25 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
   const resolveElement = () =>
     typeof options.element === 'function' ? options.element() : options.element
 
-  const edge = (reached: boolean, remaining: number): ScrollStateEdge => ({
-    reached,
-    remaining: Math.max(0, remaining),
-  })
+  const vertical = direction !== 'horizontal'
+  const horizontal = direction !== 'vertical'
+
+  // Reuse the previous edge object when it is unchanged, so `get()` keeps its
+  // reference between scroll events and bindings skip deep comparison.
+  const edge = (
+    prev: ScrollStateEdge,
+    remaining: number,
+    threshold: number
+  ): ScrollStateEdge => {
+    const clamped = Math.max(0, remaining)
+    const reached = remaining <= threshold
+
+    return prev.remaining === clamped && prev.reached === reached
+      ? prev
+      : { reached, remaining: clamped }
+  }
+
+  let last = inactiveState
 
   const get = (): ScrollStateValue => {
     const element = resolveElement()
@@ -134,28 +149,34 @@ export function createScrollState(options: ScrollStateOptions): ScrollState {
       return inactiveState
     }
 
-    const remainingTop = element.scrollTop
-    const remainingBottom =
-      element.scrollHeight - element.scrollTop - element.clientHeight
-    const remainingLeft = element.scrollLeft
-    const remainingRight =
-      element.scrollWidth - element.scrollLeft - element.clientWidth
+    const { scrollTop, scrollLeft } = element
+    const top = vertical ? edge(last.top, scrollTop, t.top) : inactive
+    const bottom = vertical
+      ? edge(
+          last.bottom,
+          element.scrollHeight - scrollTop - element.clientHeight,
+          t.bottom
+        )
+      : inactive
+    const left = horizontal ? edge(last.left, scrollLeft, t.left) : inactive
+    const right = horizontal
+      ? edge(
+          last.right,
+          element.scrollWidth - scrollLeft - element.clientWidth,
+          t.right
+        )
+      : inactive
 
-    const vertical = direction !== 'horizontal'
-    const horizontal = direction !== 'vertical'
-
-    return {
-      top: vertical ? edge(remainingTop <= t.top, remainingTop) : inactive,
-      bottom: vertical
-        ? edge(remainingBottom <= t.bottom, remainingBottom)
-        : inactive,
-      left: horizontal
-        ? edge(remainingLeft <= t.left, remainingLeft)
-        : inactive,
-      right: horizontal
-        ? edge(remainingRight <= t.right, remainingRight)
-        : inactive,
+    if (
+      top !== last.top ||
+      bottom !== last.bottom ||
+      left !== last.left ||
+      right !== last.right
+    ) {
+      last = { top, bottom, left, right }
     }
+
+    return last
   }
 
   const { subscribe, notify } = createSubscription({

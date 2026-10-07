@@ -44,6 +44,8 @@ export interface CookieValueOptions<S extends StandardSchemaV1<unknown>> {
 // Browsers drop a cookie whose `name=value` pair is bigger than this.
 const MAX_COOKIE_BYTES = 4096
 
+const encoder = /* @__PURE__ */ new TextEncoder()
+
 const decode = (raw: string) => {
   try {
     return decodeURIComponent(raw)
@@ -231,9 +233,7 @@ export function createCookieValue(
         expires: new Date(0),
       })
     } else {
-      if (
-        new TextEncoder().encode(`${key}=${newRaw}`).length > MAX_COOKIE_BYTES
-      ) {
+      if (encoder.encode(`${key}=${newRaw}`).length > MAX_COOKIE_BYTES) {
         console.warn(`[${label}] Cookie is over 4096 bytes, write skipped`)
         return
       }
